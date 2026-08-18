@@ -1,0 +1,74 @@
+/**
+ * react-spreadsheet minimal overrides
+ * Only essential customizations - let the plugin handle the rest natively.
+ */
+@layer components {
+  /* Use theme font */
+  .spreadsheet-themed .Spreadsheet {
+    font-family: inherit;
+  }
+
+  /* Table: full width for proper column distribution (plugin uses table-layout: fixed natively) */
+  .spreadsheet-themed .Spreadsheet__table {
+    width: 100%;
+  }
+
+  /* Row number column: narrow width */
+  .spreadsheet-themed .Spreadsheet__header:first-child,
+  .spreadsheet-themed .Spreadsheet__cell:first-child {
+    width: 3rem;
+  }
+
+  /* Cell text size: match with Exceptions zone */
+  .spreadsheet-themed .Spreadsheet__cell,
+  .spreadsheet-themed .Spreadsheet__data-viewer {
+    font-size: 0.875rem;
+  }
+
+  /* Active cell: brand color */
+  .spreadsheet-themed .Spreadsheet__active-cell {
+    border-color: var(--primary);
+    border-width: 2px;
+  }
+
+
+  /* ---- Action column (delete button) ---- */
+  .spreadsheet-themed th.Spreadsheet__header:last-child {
+    min-width: 2.5rem;
+    width: 2.5rem;
+    max-width: 2.5rem;
+    border-left: none;
+    border-top: none;
+    border-right: none;
+    background: transparent;
+  }
+
+  .spreadsheet-themed td.spreadsheet-action-cell {
+    min-width: 2.5rem;
+    width: 2.5rem;
+    max-width: 2.5rem;
+    border-left: none;
+    border-right: none;
+    background: transparent;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .spreadsheet-themed td.spreadsheet-action-cell button {
+    pointer-events: auto;
+  }
+
+  .spreadsheet-themed td.spreadsheet-action-cell .Spreadsheet__data-viewer {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Column headers: align with Oui Crm table style (outside @layer to override browser th defaults) */
+.spreadsheet-themed th.Spreadsheet__header {
+  color: var(--muted-foreground);
+  font-weight: 400;
+  font-size: 0.875rem;
+}

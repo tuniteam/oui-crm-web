@@ -1,0 +1,30 @@
+# =============================================================================
+# Docker Compose - UAT Environment
+# Usage: docker-compose -f docker-compose.uat.yml up
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: uat
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
+    container_name: soft-m-web-uat
+    ports:
+      - '8080:80'
+    volumes:
+      - ./nginx-uat.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot
+    environment:
+      - NODE_ENV=uat
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

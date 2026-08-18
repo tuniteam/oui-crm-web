@@ -1,0 +1,27 @@
+# =============================================================================
+# Docker Compose - Development Environment
+# Usage: docker-compose up
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: soft-m-web-dev
+    ports:
+      - '5173:5173'
+    volumes:
+      # Mount source code for hot-reload
+      - .:/app
+      # Preserve node_modules from container
+      - /app/node_modules
+    env_file:
+      - .env.dev
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

@@ -1,0 +1,1 @@
+export { OpenInNewTabButton } from './OpenInNewTabButton';

@@ -1,0 +1,681 @@
+/**
+ * Oui Crm Brand Theme
+ * Violet, Rose, Bleu Ciel, Soleil, Crème
+ * Import: @import './theme.oui-crm.css'; dans globals.css
+ */
+
+:root {
+  /* ========================================
+   * Brand Colors - Oui Crm
+   * ======================================== */
+  --brand-primary: #6C5CE7;      /* Violet */
+  --brand-secondary: #54A0FF;    /* Bleu Ciel */
+  --brand-accent-rose: #FF6B6B;  /* Rose */
+  --brand-accent-amber: #FDCB6E; /* Soleil */
+  --brand-accent-cream: #FEF3C7; /* Crème */
+
+  /* ========================================
+   * Gray Scale
+   * ======================================== */
+  --gray-900: #1A1A1A;
+  --gray-800: #333333;
+  --gray-700: #495057;
+  --gray-600: #6C757D;
+  --gray-500: #ADB5BD;
+  --gray-400: #CED4DA;
+  --gray-300: #DEE2E6;
+  --gray-200: #E9ECEF;
+  --gray-100: #F8F9FA;
+
+  /* ========================================
+   * Theme Overrides - Light Mode
+   * ======================================== */
+  --primary: var(--brand-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--gray-100);
+  --secondary-foreground: var(--gray-800);
+  --foreground: var(--gray-800);
+  --muted-foreground: var(--gray-600);
+  --ring: var(--brand-primary);
+  --border: var(--gray-300);
+  --input: var(--gray-200);
+
+  /* Semantic Colors */
+  --success: #00B894;
+  --success-foreground: #FFFFFF;
+  --info: var(--brand-secondary);
+  --info-foreground: #FFFFFF;
+  --warning: var(--brand-accent-amber);
+  --warning-foreground: var(--gray-800);
+  --destructive: var(--brand-accent-rose);
+  --destructive-foreground: #FFFFFF;
+
+  /* Chart Colors */
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-secondary);
+  --chart-3: var(--brand-accent-amber);
+  --chart-4: var(--brand-accent-rose);
+  --chart-5: var(--brand-accent-cream);
+
+  /* ========================================
+   * Document Tokens (invoice / facture / bon)
+   * Used by printable document layouts
+   * ======================================== */
+  --doc-header-bg: #1a2744;
+  --doc-header-fg: #ffffff;
+  --doc-header-muted: #aab4cc;
+  --doc-accent: #f5a623;
+  --doc-accent-fg: #333333;
+
+  /* ========================================
+   * Invoice Document Tokens (Oui Crm template)
+   * Mirrors the values used by the back PDF template
+   * to keep preview ↔ generated PDF in lockstep.
+   * ======================================== */
+  --invoice-header-bg: #6C5CE7;
+  --invoice-header-fg: #FFFFFF;
+  --invoice-header-muted: rgba(255, 255, 255, 0.78);
+  --invoice-text: #333333;
+  --invoice-text-muted: #6C757D;
+  --invoice-off: #F8F9FA;
+  --invoice-border: #E2E8F0;
+  --invoice-amber: #FDCB6E;
+  --invoice-amber-fg: #333333;
+  --invoice-accent: #6C5CE7;
+}
+
+/* ========================================
+ * Dark Mode Overrides
+ * ======================================== */
+.dark {
+  --primary: var(--brand-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--gray-800);
+  --secondary-foreground: var(--gray-100);
+  --accent: var(--gray-800);
+  --accent-foreground: var(--gray-100);
+  --foreground: var(--gray-100);
+  --muted-foreground: var(--gray-400);
+  --ring: var(--brand-primary);
+  --border: var(--gray-700);
+  --input: var(--gray-700);
+
+  /* Semantic Colors - Dark */
+  --success: #00B894;
+  --info: var(--brand-secondary);
+  --warning: var(--brand-accent-amber);
+  --destructive: var(--brand-accent-rose);
+}
+
+/* ========================================
+ * Utility Classes - Brand Colors
+ * ======================================== */
+@layer utilities {
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+  .text-brand-secondary {
+    color: var(--brand-secondary);
+  }
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+  .bg-brand-secondary {
+    background-color: var(--brand-secondary);
+  }
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+  .ring-brand-primary {
+    --tw-ring-color: var(--brand-primary);
+  }
+
+  /* Document utilities */
+  .bg-doc-header {
+    background-color: var(--doc-header-bg);
+  }
+  .text-doc-header-fg {
+    color: var(--doc-header-fg);
+  }
+  .text-doc-header-muted {
+    color: var(--doc-header-muted);
+  }
+  .bg-doc-accent {
+    background-color: var(--doc-accent);
+  }
+  .text-doc-accent-fg {
+    color: var(--doc-accent-fg);
+  }
+
+  /* Invoice document utilities (Oui Crm template) */
+  .bg-invoice-header {
+    background-color: var(--invoice-header-bg);
+  }
+  .text-invoice-header-fg {
+    color: var(--invoice-header-fg);
+  }
+  .text-invoice-header-muted {
+    color: var(--invoice-header-muted);
+  }
+  .bg-invoice-off {
+    background-color: var(--invoice-off);
+  }
+  .bg-invoice-amber {
+    background-color: var(--invoice-amber);
+  }
+  .text-invoice-amber-fg {
+    color: var(--invoice-amber-fg);
+  }
+  .text-invoice {
+    color: var(--invoice-text);
+  }
+  .text-invoice-muted {
+    color: var(--invoice-text-muted);
+  }
+  .text-invoice-accent {
+    color: var(--invoice-accent);
+  }
+  .border-invoice {
+    border-color: var(--invoice-border);
+  }
+  .border-invoice-accent {
+    border-color: var(--invoice-accent);
+  }
+}
+
+/* ========================================
+ * Toast Overrides
+ * ======================================== */
+
+/* Toast Success */
+[data-sonner-toast][data-type="success"] {
+  background: oklch(96% 0.03 160) !important;
+  border-left: 4px solid #00B894 !important;
+}
+[data-sonner-toast][data-type="success"] [data-icon],
+[data-sonner-toast][data-type="success"] [data-title] {
+  color: #00B894 !important;
+}
+
+/* Toast Info */
+[data-sonner-toast][data-type="info"] {
+  background: oklch(96% 0.03 230) !important;
+  border-left: 4px solid var(--brand-secondary) !important;
+}
+[data-sonner-toast][data-type="info"] [data-icon],
+[data-sonner-toast][data-type="info"] [data-title] {
+  color: var(--brand-secondary) !important;
+}
+
+/* Toast Warning */
+[data-sonner-toast][data-type="warning"] {
+  background: oklch(96% 0.04 85) !important;
+  border-left: 4px solid var(--brand-accent-amber) !important;
+}
+[data-sonner-toast][data-type="warning"] [data-icon],
+[data-sonner-toast][data-type="warning"] [data-title] {
+  color: var(--brand-accent-amber) !important;
+}
+
+/* Toast Error */
+[data-sonner-toast][data-type="error"] {
+  background: oklch(96% 0.03 20) !important;
+  border-left: 4px solid var(--brand-accent-rose) !important;
+}
+[data-sonner-toast][data-type="error"] [data-icon],
+[data-sonner-toast][data-type="error"] [data-title] {
+  color: var(--brand-accent-rose) !important;
+}
+
+/* Dark mode toast overrides */
+.dark [data-sonner-toast][data-type="success"] {
+  background: oklch(25% 0.03 160) !important;
+}
+.dark [data-sonner-toast][data-type="info"] {
+  background: oklch(25% 0.03 230) !important;
+}
+.dark [data-sonner-toast][data-type="warning"] {
+  background: oklch(25% 0.04 85) !important;
+}
+.dark [data-sonner-toast][data-type="error"] {
+  background: oklch(25% 0.03 20) !important;
+}
+
+/* ========================================
+ * Elevation System (Facit-inspired)
+ * ======================================== */
+:root {
+  --bg-surface: #fafbfc;
+  --shadow-sm: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.075);
+  --shadow-default: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 1.5rem 3rem rgba(0, 0, 0, 0.15);
+}
+
+.dark {
+  --bg-surface: #1a1a2e;
+  --shadow-sm: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3);
+  --shadow-default: 0 1rem 3rem rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+@layer utilities {
+  .bg-surface { background-color: var(--bg-surface); }
+  .elevation-1 { box-shadow: var(--shadow-sm); }
+  .elevation-2 { box-shadow: var(--shadow-default); }
+  .elevation-3 { box-shadow: var(--shadow-lg); }
+}
+
+/* ========================================
+ * Layout Elevation
+ * ======================================== */
+
+/* App background gradient */
+body,
+#root {
+  background:
+    radial-gradient(ellipse 900px 600px at 0% 0%, rgba(108, 92, 231, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(255, 107, 107, 0.08) 0%, transparent 60%),
+    #F8F9FA;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.dark body,
+.dark #root {
+  background: #27272a;
+  background-attachment: fixed;
+}
+
+/* Main content background and spacing */
+.wrapper main {
+  background-color: transparent;
+  padding-bottom: 1.25rem;
+}
+
+/* Space between breadcrumb and page content */
+.wrapper main > *:not(:first-child) {
+  margin-top: 0.75rem; /* 12px */
+}
+
+/* Sidebar elevation */
+.sidebar {
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+  border-right: none !important;
+}
+
+.dark .sidebar {
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Card elevation */
+[data-slot="card"] {
+  box-shadow: var(--shadow-default);
+  border: none;
+}
+
+/* ========================================
+ * Grid Spacing
+ * ======================================== */
+
+/* Reduce gap between cards in grids */
+.wrapper main .grid {
+  gap: 0.75rem; /* 12px instead of 16px (gap-4) */
+}
+
+/* ========================================
+ * Leaflet Map Markers
+ * ======================================== */
+
+/* Client type marker colors */
+:root {
+  --marker-mairie: #2563eb;        /* blue-600 */
+  --marker-ccas: #16a34a;          /* green-600 */
+  --marker-syndicat: #ea580c;      /* orange-600 */
+  --marker-centre-loisirs: #8b5cf6; /* violet-500 */
+}
+
+/* Custom marker base style */
+.leaflet-marker-icon.custom-marker > div {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Cluster icon style */
+.leaflet-marker-icon.custom-cluster-icon > div {
+  background-color: var(--brand-primary);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 3px solid white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+ * Sidebar Menu Scroll - Spacing
+ * ======================================== */
+.sidebar-menu-scroll {
+  padding-bottom: 1.25rem;
+}
+
+/* ========================================
+ * Sidebar Active Client Card
+ * ======================================== */
+.sidebar-active-client {
+  background: color-mix(in oklch, var(--brand-primary) 8%, var(--background));
+  border: 1px solid color-mix(in oklch, var(--brand-primary) 25%, transparent);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-active-client .active-client-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-active-client .active-client-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--brand-primary);
+  white-space: nowrap;
+}
+
+.sidebar-active-client .active-client-label svg {
+  flex-shrink: 0;
+}
+
+.sidebar-active-client .active-client-back {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sidebar-active-client .active-client-back:hover {
+  text-decoration: underline;
+}
+
+.sidebar-active-client .active-client-back svg {
+  flex-shrink: 0;
+}
+
+.sidebar-active-client .active-client-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+.dark .sidebar-active-client {
+  background: color-mix(in oklch, var(--brand-primary) 15%, var(--background));
+  border-color: color-mix(in oklch, var(--brand-primary) 30%, transparent);
+}
+
+/* Sidebar Active Client Card - Backoffice variant (orange for distinction) */
+.sidebar-active-client--backoffice {
+  background: color-mix(in oklch, #f59e0b 10%, var(--background));
+  border-color: color-mix(in oklch, #f59e0b 35%, transparent);
+}
+
+.sidebar-active-client--backoffice .active-client-label {
+  color: #d97706;
+}
+
+.dark .sidebar-active-client--backoffice {
+  background: color-mix(in oklch, #f59e0b 18%, var(--background));
+  border-color: color-mix(in oklch, #f59e0b 40%, transparent);
+}
+
+.dark .sidebar-active-client--backoffice .active-client-label {
+  color: #fbbf24;
+}
+
+/* ========================================
+ * Reservation Closed Cell Hatching
+ * ======================================== */
+.closed-hatching {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 8px,
+    color-mix(in srgb, var(--foreground) 8%, transparent) 8px,
+    color-mix(in srgb, var(--foreground) 8%, transparent) 9px
+  );
+}
+
+/* ========================================
+ * Toast Close Button Position
+ * ======================================== */
+[data-sonner-toast] [data-close-button] {
+  position: absolute !important;
+  right: 0.5rem !important;
+  left: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* ========================================
+ * Header Backoffice — bandeau warning amber
+ * ======================================== */
+.header-backoffice {
+  border-bottom: 3px solid var(--brand-accent-amber) !important;
+}
+
+/* ========================================
+ * Sidebar Light Violet — Option B
+ * bg violet-50 · actif barre gauche brand-primary
+ * ======================================== */
+:root {
+  --sidebar-bg-light: #f5f3ff;
+  --sidebar-border-light: #e0d9ff;
+  --sidebar-border-dark: rgba(255, 255, 255, 0.07);
+  --sidebar-label-light: #a78bfa;
+}
+
+html:not(.dark) .sidebar {
+  background-color: var(--sidebar-bg-light);
+  border-inline-end-color: var(--sidebar-border-light);
+}
+
+/* Espace sous les labels de section */
+.sidebar [data-slot="accordion-menu-sub-trigger"] {
+  padding-bottom: 0.375rem;
+}
+
+/* Hover (items feuilles uniquement) */
+html:not(.dark) .sidebar [data-slot="accordion-menu-item"]:hover {
+  background-color: color-mix(in oklch, var(--brand-primary) 6%, transparent);
+}
+
+/* Actif */
+html:not(.dark) .sidebar [data-slot="accordion-menu-item"][data-selected="true"] {
+  color: var(--brand-primary);
+  background-color: color-mix(in oklch, var(--brand-primary) 10%, transparent);
+  border-inline-start: 3px solid var(--brand-primary);
+  font-weight: 600;
+}
+
+html:not(.dark) .sidebar [data-slot="accordion-menu-item"][data-selected="true"] svg {
+  opacity: 1;
+  color: var(--brand-primary);
+}
+
+/* Labels de section */
+html:not(.dark) .sidebar [data-slot="accordion-menu-label"] {
+  color: var(--sidebar-label-light);
+}
+
+/* Footer */
+.sidebar [data-slot="sidebar-footer-name"] {
+  font-size: 0.65625rem;
+}
+
+.sidebar [data-slot="sidebar-footer-chevron"] {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+html:not(.dark) .sidebar .sidebar-footer {
+  border-top: 1px solid var(--sidebar-border-light);
+}
+
+html.dark .sidebar .sidebar-footer {
+  border-top: 1px solid var(--sidebar-border-dark);
+}
+
+/* Dark mode — actif barre gauche */
+html.dark .sidebar [data-slot="accordion-menu-item"][data-selected="true"] {
+  color: var(--brand-primary);
+  border-inline-start: 3px solid var(--brand-primary);
+}
+
+/* ========================================
+ * Dashboard Widgets — Oui Crm
+ * Surfaces teintées, pastilles d'icônes et avatars dégradés.
+ * Toutes les couleurs dérivent des var(--brand-*) via color-mix,
+ * pour rester strictement dans la charte (aucune couleur hors thème).
+ * ======================================== */
+
+/* Surfaces de cartes : dégradé doux teinté + bordure assortie.
+ * Posées sur var(--card) pour rester sur la surface de la carte. */
+.dashboard-surface--violet,
+.dashboard-surface--blue,
+.dashboard-surface--rose,
+.dashboard-surface--amber,
+.dashboard-surface--green,
+.dashboard-surface--brand {
+  border-style: solid;
+  border-width: 1px;
+}
+
+.dashboard-surface--violet {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--brand-primary) 10%, var(--card)),
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--brand-primary) 20%, transparent);
+}
+
+.dashboard-surface--blue {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--brand-secondary) 10%, var(--card)),
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--brand-secondary) 20%, transparent);
+}
+
+.dashboard-surface--rose {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--brand-accent-rose) 10%, var(--card)),
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--brand-accent-rose) 20%, transparent);
+}
+
+.dashboard-surface--amber {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--brand-accent-amber) 15%, var(--card)),
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--brand-accent-amber) 30%, transparent);
+}
+
+.dashboard-surface--green {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--success) 10%, var(--card)),
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--success) 20%, transparent);
+}
+
+/* Bandeau profil : transition violet → bleu ciel */
+.dashboard-surface--brand {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in oklch, var(--brand-primary) 12%, var(--card)),
+    color-mix(in oklch, var(--brand-secondary) 6%, var(--card)) 55%,
+    var(--card)
+  );
+  border-color: color-mix(in oklch, var(--brand-primary) 20%, transparent);
+}
+
+/* Pastilles d'icônes : fond teinté + icône à la couleur de marque.
+ * (La taille / le rayon restent gérés côté composant.) */
+.dashboard-chip--violet {
+  background-color: color-mix(in oklch, var(--brand-primary) 15%, transparent);
+  color: var(--brand-primary);
+}
+
+.dashboard-chip--blue {
+  background-color: color-mix(in oklch, var(--brand-secondary) 15%, transparent);
+  color: var(--brand-secondary);
+}
+
+.dashboard-chip--rose {
+  background-color: color-mix(in oklch, var(--brand-accent-rose) 15%, transparent);
+  color: var(--brand-accent-rose);
+}
+
+.dashboard-chip--amber {
+  background-color: color-mix(in oklch, var(--brand-accent-amber) 20%, transparent);
+  color: var(--brand-accent-amber);
+}
+
+.dashboard-chip--green {
+  background-color: color-mix(in oklch, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+/* Avatars dégradés pleins (icône blanche). */
+.dashboard-avatar--violet,
+.dashboard-avatar--blue,
+.dashboard-avatar--rose,
+.dashboard-avatar--amber {
+  color: #ffffff;
+}
+
+.dashboard-avatar--violet {
+  background: linear-gradient(to bottom right, var(--brand-primary), var(--brand-secondary));
+}
+
+.dashboard-avatar--blue {
+  background: linear-gradient(to bottom right, var(--brand-secondary), var(--brand-primary));
+}
+
+.dashboard-avatar--rose {
+  background: linear-gradient(to bottom right, var(--brand-accent-rose), var(--brand-accent-amber));
+}
+
+.dashboard-avatar--amber {
+  background: linear-gradient(to bottom right, var(--brand-accent-amber), var(--brand-accent-rose));
+}
+
+

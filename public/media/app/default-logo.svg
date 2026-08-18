@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="200"
+   height="22"
+   viewBox="0 0 200 22"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="default-logo.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#111111"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.1678384"
+     inkscape:cx="54.769208"
+     inkscape:cy="-41.826629"
+     inkscape:window-width="1920"
+     inkscape:window-height="974"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <!-- Définition du dégradé -->
+  <defs
+     id="defs2">
+    <linearGradient
+       id="gradient-violet-bleu"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="100%">
+      <stop
+         offset="0"
+         style="stop-color:#b35fd8;stop-opacity:1;"
+         id="stop1" />
+      <stop
+         offset="100%"
+         style="stop-color:#74B9FF;stop-opacity:1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       id="Dégradé_sans_nom_194"
+       data-name="Dégradé sans nom 194"
+       x1="110.61"
+       y1="251.17999"
+       x2="306.92001"
+       y2="80.839996"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#5866b3"
+         id="stop1-8" />
+      <stop
+         offset=".35"
+         stop-color="#774ba3"
+         id="stop2-8" />
+    </linearGradient>
+    <linearGradient
+       id="Dégradé_sans_nom_217"
+       data-name="Dégradé sans nom 217"
+       x1="278.12"
+       y1="254.28999"
+       x2="269"
+       y2="87.190002"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#f9ce5a"
+         id="stop3" />
+      <stop
+         offset=".19"
+         stop-color="#f9a65e"
+         id="stop4" />
+      <stop
+         offset=".28"
+         stop-color="#f6a25f"
+         id="stop5" />
+      <stop
+         offset=".37"
+         stop-color="#ee9763"
+         id="stop6" />
+      <stop
+         offset=".45"
+         stop-color="#e2856a"
+         id="stop7" />
+      <stop
+         offset=".52"
+         stop-color="#d06b74"
+         id="stop8" />
+      <stop
+         offset=".6"
+         stop-color="#b94a81"
+         id="stop9" />
+      <stop
+         offset=".63"
+         stop-color="#ae3a88"
+         id="stop10" />
+      <stop
+         offset=".79"
+         stop-color="#913d95"
+         id="stop11" />
+      <stop
+         offset=".91"
+         stop-color="#83409c"
+         id="stop12" />
+      <stop
+         offset="1"
+         stop-color="#7e4ea4"
+         id="stop13" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#gradient-violet-bleu"
+       id="linearGradient15"
+       x1="39.589844"
+       y1="10.131348"
+       x2="187.17676"
+       y2="10.131348"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(10.714286,0.89285714)" />
+  </defs>
+  <!-- Logo carré avec P (22x22) -->
+  <!-- Texte PERISCOLIA en violet - même hauteur que le logo -->
+  <text
+     x="48.714287"
+     y="18.892857"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="22px"
+     font-weight="900"
+     fill="#7B5FD8"
+     id="text3"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:22px;font-family:Inter;-inkscape-font-specification:'Inter, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:url(#linearGradient15);fill-opacity:1;paint-order:fill markers stroke">PERISCOLIA</text>
+  <g
+     id="g15"
+     transform="matrix(0.05682064,0,0,0.05998814,21.386394,-0.09938919)">
+    <path
+       class="st1"
+       d="M 356.23,120.31 C 344.39,68.01 300.17,44.23 289.52,38.89 225.95,7 167.07,41.83 162.29,44.83 c -7.27,4.55 -42.77,28.06 -56,68.26 -6.77,20.57 -6.76,43.06 -7.1,71.87 -0.87,73.19 0.44,151.42 1.35,155.81 0.42,2 26.32,-2.71 55.16,-27.29 21.59,-18.41 34.61,-53.12 35.87,-52.33 12.23,7.62 42.89,10.81 79,1.43 11.63,-3.02 41.17,-16.36 63.91,-45.41 34.12,-43.58 22.68,-92.67 21.74,-96.85 z m -75.48,55.75 c -24.03,36.83 -68.8,30.77 -91.59,15.35 -7.5,-5.07 -13.21,-10.14 -16.65,-14.32 -0.27,-5.69 0.03,-24.4 1.76,-33.61 2.46,-13.15 7.48,-30.36 31.15,-43.81 17.91,-10.17 45.94,-10.32 65.37,6.9 21.34,18.92 23.13,49.3 9.96,69.49 z"
+       id="path13"
+       style="fill:url(#D%C3%A9grad%C3%A9_sans_nom_194)" />
+    <path
+       class="st4"
+       d="m 288.8,152.59 c 0.21,-3.58 21.89,-25.76 25.22,-42.34 6.1,-30.32 -6.03,-60.18 -7.48,-61.19 -0.18,-0.12 38.39,23.14 49.36,69.84 11,46.84 -9.56,80.02 -12.94,85.77 -20.55,34.9 -55.3,52.29 -66.19,55.89 -27.58,9.1 -66.97,11.47 -85.29,0.59 -1.46,-0.87 28.52,-53.31 28.68,-58.31 0,-0.13 25.14,4.63 44.64,-10.06 9.53,-7.18 23.05,-24 24,-40.19 z"
+       id="path14"
+       style="fill:url(#D%C3%A9grad%C3%A9_sans_nom_217)" />
+    <circle
+       class="st0"
+       cx="246.11"
+       cy="312.45001"
+       r="29.440001"
+       id="circle14"
+       style="fill:#84c857" />
+    <circle
+       class="st2"
+       cx="332.07001"
+       cy="283.01001"
+       r="29.440001"
+       id="circle15"
+       style="fill:#5ac5de" />
+  </g>
+</svg>
