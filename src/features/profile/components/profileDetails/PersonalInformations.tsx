@@ -38,16 +38,6 @@ export function PersonalInformations({ profile, onEdit }: Props) {
           value={profile.phone ?? TEXTS.FALLBACK}
           className="md:col-span-2"
         />
-
-        <DetailsField
-          label={FIELDS.UPDATED_AT}
-          value={
-            profile.updatedAt
-              ? new Date(profile.updatedAt).toLocaleDateString('fr-FR')
-              : TEXTS.FALLBACK
-          }
-          className="md:col-span-2"
-        />
       </div>
     </DetailsSection>
   );

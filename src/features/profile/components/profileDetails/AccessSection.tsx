@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DetailsField } from '@/components/layouts/layout-1/shared/details-page/DetailsField';
 import { DetailsSection } from '@/components/layouts/layout-1/shared/details-page/DetailsSection';
 import { COMMON } from '@/constants/common';
+import { CONTACT_TYPE } from '@/features/user/types/me';
 import type { MyProfileResponse } from '../../types/profile';
 
 type Props = {
@@ -11,16 +12,9 @@ type Props = {
   onChangeEmail?: () => void;
 };
 
-function getStatusDisplay(
-  status: string,
-  statusLabels: Record<string, string>,
-) {
-  return statusLabels[status] ?? status;
-}
-
 export function AccessSection({ profile, onChangeEmail }: Props) {
   const { profile: profileContent } = useContent();
-  const { FIELDS, TEXTS, SECTIONS, BUTTONS, STATUS_LABELS } = profileContent;
+  const { FIELDS, TEXTS, SECTIONS, BUTTONS } = profileContent;
 
   return (
     <DetailsSection
@@ -49,18 +43,18 @@ export function AccessSection({ profile, onChangeEmail }: Props) {
               <div className="flex flex-wrap gap-2">
                 {profile.roleRelationships.map((role, index) => (
                   <div
-                    key={`${role.roleCode}-${role.clientName ?? 'no-client'}-${index}`}
+                    key={`${role.roleCode}-${role.projectId ?? 'no-project'}-${index}`}
                     className="rounded-2xl border bg-muted/40 px-3 py-2 shadow-sm transition hover:bg-muted/60"
                   >
                     <div className="text-sm font-medium leading-none">
-                      {role.roleLabel}
+                      {role.roleCode}
                     </div>
 
-                    {profile.contactType !== 'BACKOFFICE' &&
-                      role.clientName && (
+                    {profile.contactType !== CONTACT_TYPE.BACKOFFICE &&
+                      role.projectName && (
                         <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                           <Building2 className="h-3 w-3" />
-                          <span>{role.clientName}</span>
+                          <span>{role.projectName}</span>
                         </div>
                       )}
                   </div>
@@ -72,11 +66,6 @@ export function AccessSection({ profile, onChangeEmail }: Props) {
               </div>
             )}
           </div>
-
-          <DetailsField
-            label={FIELDS.STATUS}
-            value={getStatusDisplay(profile.status, STATUS_LABELS)}
-          />
         </div>
 
         <p className="text-sm text-muted-foreground">{TEXTS.CONTACT_ADMIN}</p>

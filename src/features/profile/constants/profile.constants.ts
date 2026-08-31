@@ -1,5 +1,6 @@
 export const PROFILE_ROUTES = {
   PROFILE_API: '/profile',
+  PROFILE_ME_API: '/profile/me',
   PROFILE_PASSWORD_API: '/profile/change-password',
   PROFILE_AVATAR_API: '/profile/avatar',
 } as const;
@@ -19,10 +20,8 @@ export const PROFILE_UI = {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
     PHONE: 'Numéro de téléphone',
-    UPDATED_AT: 'Dernière modification',
     EMAIL: 'Email',
     ROLE: 'Rôle(s)',
-    STATUS: 'Statut',
     PASSWORD: 'Mot de passe',
   },
 
