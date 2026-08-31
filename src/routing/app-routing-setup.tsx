@@ -28,53 +28,16 @@ export function AppRoutingSetup() {
         <Route element={<Layout1 />}>
           <Route path="/profile" element={<ProfilePage />} />
 
+          {/* Client no-permissions page */}
           <Route path="/no-permissions" element={<NoPermissions />} />
 
-
-          <Route
-            path="/profile"
-            element={
-             
-                <ProfilePage />
-              
-            }
-          />
-
-
-          
-
           <Route element={<RequirePermission permission="users:read" />}>
-            <Route
-              path="/users"
-              element={
-               
-                  <UsersTable />
-              
-              }
-            />
+            <Route path="/users" element={<UsersTable />} />
             <Route
               path="/users/:userId/informations"
-              element={
-             
-                  <UserInformationsPage />
-               
-              }
+              element={<UserInformationsPage />}
             />
-           
           </Route>
-
-        
-
-         
-          {/* Client no-permissions page */}
-          <Route
-            path="/no-permissions"
-            element={
-             
-                <NoPermissions />
-             
-            }
-          />
 
           {/* Default / unknown paths inside layout */}
           <Route path="*" element={<RequireValidPath />} />

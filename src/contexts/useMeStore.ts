@@ -15,8 +15,6 @@ export type MeStoreState = {
   getPermissions: () => string[];
 
   hasPermission: (permissionCode: string) => boolean;
-  hasModule: (moduleCode: string) => boolean;
-  getActiveClientModules: () => string[];
 };
 
 export const useMeStore = create<MeStoreState>((set, get) => ({
@@ -59,13 +57,5 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
     const active = store.getActiveRoleRelationship();
     if (!active) return false;
     return (active.permissions ?? []).includes(permissionCode);
-  },
-
-  getActiveClientModules: () =>
-    get().getActiveRoleRelationship()?.modules ?? [],
-
-  hasModule: (moduleCode) => {
-    const store = get();
-    return store.getActiveClientModules().includes(moduleCode);
   },
 }));

@@ -30,6 +30,18 @@ api.interceptors.request.use(
   },
 );
 let refreshPromise: Promise<void> | null = null;
+
+// Déconnexion unique : une fois déclenchée, on ne relance ni refresh ni
+// redirection. Sans ce garde-fou, plusieurs 401 simultanés provoquent autant de
+// redirections vers le login (boucle login -> 429 -> bannissement IP).
+let loggingOut = false;
+
+function forceLogout(redirectSuffix = ''): void {
+  if (loggingOut) return;
+  loggingOut = true;
+  tokenService.clearTokens();
+  window.location.href = `${AUTH_ROUTES.LOGIN}${redirectSuffix}`;
+}
 // Intercepteur RESPONSE - Gestion des erreurs
 api.interceptors.response.use(
   (res) => res,
@@ -38,9 +50,8 @@ api.interceptors.response.use(
     const code = error?.response?.data?.messages?.code;
 
     if (status === 403 && code === 'USER_SHOULD_BE_ACTIVE') {
-      tokenService.clearTokens();
       toast.error(API_ERROR.USER_SHOULD_BE_ACTIVE);
-      window.location.href = `${AUTH_ROUTES.LOGIN}?reason=account_disabled`;
+      forceLogout('?reason=account_disabled');
       return new Promise(() => {});
     }
     // The original request that failed
@@ -77,6 +88,10 @@ api.interceptors.response.use(
       !isEmailChangeFlow
 
     ) {
+      // Déconnexion déjà en cours : on laisse la requête échouer sans
+      // redéclencher un refresh ni une seconde redirection.
+      if (loggingOut) return Promise.reject(error);
+
       // Mark the request as already retried
       prevRequest.sent = true;
       try {
@@ -98,9 +113,11 @@ api.interceptors.response.use(
         // Retry the original request with the new token
         return api(prevRequest);
       } catch {
-        // If refresh fails, log the user out
-        tokenService.clearTokens();
-        window.location.href = AUTH_ROUTES.LOGIN;
+        // Refresh échoué -> déconnexion unique. On retourne une promesse qui ne
+        // se résout jamais : sinon l'intercepteur renverrait `undefined` au
+        // code appelant, qui planterait avant que la redirection n'aboutisse.
+        forceLogout();
+        return new Promise(() => {});
       }
     }
     // If the server returns an error (500+),
