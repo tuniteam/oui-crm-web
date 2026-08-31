@@ -1,13 +1,30 @@
 import { AxiosError } from "axios";
 import { API_ERROR, ApiErrorCode } from "../constants/api-errors";
 
-type ApiErrorEnvelope = {
+/**
+ * Enveloppe d'erreur de l'API (contrat SPEC-07 §0). Definition unique : les
+ * features doivent l'importer, jamais la redeclarer.
+ *
+ * Attention aux deux pieges du contrat :
+ *  - le texte est dans `text`, PAS dans `message` ;
+ *  - `statusCode` est une chaine, et vit dans `messages`, pas a la racine.
+ *
+ * `meta` transporte les valeurs structurees accompagnant l'erreur (ex.
+ * `lockedUntil` sur un 423). Il est absent quand il n'y a rien a transporter :
+ * toujours le lire en optionnel.
+ */
+export type ApiErrorEnvelope = {
   messages?: {
-    statusCode?: string | number;
+    statusCode?: string;
     code?: string;
     text?: string;
     level?: string;
     details?: string[];
+    meta?: {
+      /** Fin du verrouillage, ISO 8601 UTC (423 AUTH_ACCOUNT_LOCKED). */
+      lockedUntil?: string;
+      [key: string]: unknown;
+    };
   };
 };
 

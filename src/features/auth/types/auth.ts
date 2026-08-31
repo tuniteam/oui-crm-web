@@ -1,3 +1,4 @@
+import type { ApiErrorEnvelope } from '@/shared/utils/api-error';
 export interface LoginPayload {
   email: string;
   password: string;
@@ -30,10 +31,5 @@ export type ActivationCompleteResponse = {
   email: string;
   status: string;
 };
-export type ApiErrorResponse = {
-  statusCode?: number;
-  messages?: {
-    code?: string;
-    message?: string;
-  };
-};
+/** @deprecated Alias de compatibilite — importer ApiErrorEnvelope directement. */
+export type ApiErrorResponse = ApiErrorEnvelope;

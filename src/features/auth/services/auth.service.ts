@@ -5,8 +5,8 @@ import { API_ERROR_CODE } from '@/shared/constants/api-errors';
 import { AUTH } from '../constants/auth.constants';
 import { AUTH_ROUTES } from '../constants/routes.constants';
 import { AuthLockedError } from '../errors/AuthLockedError';
+import type { ApiErrorEnvelope } from '@/shared/utils/api-error';
 import type {
-  ApiErrorResponse,
   LoginPayload,
   LoginResponse,
   RefreshTokenResponse,
@@ -22,30 +22,20 @@ const HTTP = {
 } as const;
 
 /**
- * Le back annonce le deverrouillage sous la forme `Account locked until <ISO>`.
- * On lit d'abord un eventuel champ dedie, puis on retombe sur l'extraction de
- * la date dans le texte. Si rien n'est exploitable, on renvoie null : l'appelant
- * affiche alors le message sans compte a rebours plutot qu'un decompte faux.
+ * Fin du verrouillage, lue sur le champ contractuel `messages.meta.lockedUntil`
+ * (ISO 8601 UTC). Ne jamais parser `messages.text` : ce texte est destine aux
+ * humains et peut changer sans preavis.
+ *
+ * Renvoie null si le champ est absent ou illisible — l'appelant affiche alors
+ * le message generique plutot qu'un compte a rebours faux.
  */
 function parseLockedUntil(data: unknown): Date | null {
-  const payload = data as
-    | (ApiErrorResponse & { messages?: { lockedUntil?: string } })
-    | undefined;
+  const raw = (data as ApiErrorEnvelope | undefined)?.messages?.meta
+    ?.lockedUntil;
+  if (!raw) return null;
 
-  const candidates = [
-    payload?.messages?.lockedUntil,
-    payload?.messages?.message?.match(
-      /\d{4}-\d{2}-\d{2}T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})/,
-    )?.[0],
-  ];
-
-  for (const value of candidates) {
-    if (!value) continue;
-    const date = new Date(value);
-    if (!Number.isNaN(date.getTime())) return date;
-  }
-
-  return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export const authService = {
@@ -93,7 +83,7 @@ export const authService = {
       // expiration, et merite d'etre distingue dans les logs.
       const code =
         err instanceof AxiosError
-          ? (err.response?.data as ApiErrorResponse | undefined)?.messages?.code
+          ? (err.response?.data as ApiErrorEnvelope | undefined)?.messages?.code
           : undefined;
 
       if (code === API_ERROR_CODE.REFRESH_TOKEN_INVALID_OR_USED) {
