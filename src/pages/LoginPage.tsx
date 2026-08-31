@@ -3,6 +3,8 @@ import { useMeStore } from '@/contexts/useMeStore';
 import { AuthLogo } from '@/features/auth/components/AuthLogo';
 import { AUTH } from '@/features/auth/constants/auth.constants';
 import { AUTH_ROUTES } from '@/features/auth/constants/routes.constants';
+import { AuthLockedError } from '@/features/auth/errors/AuthLockedError';
+import { useLockCountdown } from '@/features/auth/hooks/useLockCountdown';
 import { useLoginForm } from '@/features/auth/hooks/useLoginForm';
 import { getAfterLoginRedirect } from '@/features/auth/utils/getAfterLoginRedirect';
 import { useGetMe } from '@/features/user/hooks/useGetMe';
@@ -34,10 +36,15 @@ export function LoginPage() {
   const { refetch: fetchMe } = useGetMe();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Date de deverrouillage (423) : alimente le compte a rebours et desactive
+  // l'envoi tant qu'il court.
+  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
+  const countdown = useLockCountdown(lockedUntil);
   const accountDisabled = searchParams.get('reason') === 'account_disabled';
   async function onSubmit() {
     try {
       setError(null);
+      setLockedUntil(null);
 
       const res = await submit();
       if (!res) return;
@@ -46,6 +53,9 @@ export function LoginPage() {
       const redirectTo = getAfterLoginRedirect(useMeStore.getState());
       navigate(redirectTo, { replace: true });
     } catch (e) {
+      if (e instanceof AuthLockedError) {
+        setLockedUntil(e.lockedUntil);
+      }
       setError(e instanceof Error ? e.message : AUTH.ERRORS.SERVER);
     }
   }
@@ -87,7 +97,9 @@ export function LoginPage() {
             <AlertIcon>
               <AlertCircle />
             </AlertIcon>
-            <AlertTitle>{error}</AlertTitle>
+            <AlertTitle>
+              {countdown ? AUTH.ERRORS.ACCOUNT_LOCKED_UNTIL(countdown) : error}
+            </AlertTitle>
           </Alert>
         )}
 
@@ -185,7 +197,7 @@ export function LoginPage() {
         <Button
           type="submit"
           className="w-full"
-          disabled={loading}
+          disabled={loading || countdown !== null}
           data-testid="auth-login-submit-button"
         >
           {loading ? (

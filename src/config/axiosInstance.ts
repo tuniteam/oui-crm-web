@@ -3,7 +3,7 @@ import { AUTH } from '@/features/auth/constants/auth.constants';
 import { AUTH_ROUTES } from '@/features/auth/constants/routes.constants';
 import { authService } from '@/features/auth/services/auth.service';
 import { tokenService } from '@/features/auth/services/token.service';
-import { API_ERROR } from '@/shared/constants/api-errors';
+import { API_ERROR, API_ERROR_CODE } from '@/shared/constants/api-errors';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -49,8 +49,8 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const code = error?.response?.data?.messages?.code;
 
-    if (status === 403 && code === 'USER_SHOULD_BE_ACTIVE') {
-      toast.error(API_ERROR.USER_SHOULD_BE_ACTIVE);
+    if (status === 403 && code === API_ERROR_CODE.ACCOUNT_NOT_ACTIVE) {
+      toast.error(API_ERROR.AUTH_ACCOUNT_NOT_ACTIVE);
       forceLogout('?reason=account_disabled');
       return new Promise(() => {});
     }

@@ -1,7 +1,6 @@
 export const AUTH_ROUTES = {
   REFRESH: '/auth/refresh',
   LOGIN: '/auth/login',
-  AFTER_LOGIN: '/administration/clients',
   RESET_PASSWORD: '/auth/reset-password/request',
   LOGOUT: '/auth/logout',
   ACTIVATION_VALIDATE: '/auth/activation/validate',

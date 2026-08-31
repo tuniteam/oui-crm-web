@@ -10,6 +10,8 @@ export const API_ERROR = {
     'Accès refusé. Vous n’êtes pas autorisé à effectuer cette action.',
   AUTH_INVALID_CREDENTIALS: 'Email ou mot de passe incorrect.',
   AUTH_ACCOUNT_LOCKED: 'Votre compte est temporairement bloqué.',
+  AUTH_ACCOUNT_NOT_ACTIVE:
+    "Votre compte n'est pas actif. Contactez votre administrateur.",
   AUTH_USER_NOT_FOUND: 'Utilisateur introuvable.',
 
   JWT_ACCESS_SECRET_MISSING:
@@ -78,3 +80,17 @@ export const API_ERROR = {
 } as const;
 
 export type ApiErrorCode = keyof typeof API_ERROR;
+
+/**
+ * Codes d'erreur renvoyes par l'API dans `messages.code`.
+ * `satisfies` garantit qu'un code inexistant dans API_ERROR ne compile pas :
+ * une faute de frappe ici rendrait une branche de traitement inatteignable.
+ */
+export const API_ERROR_CODE = {
+  INVALID_CREDENTIALS: 'AUTH_INVALID_CREDENTIALS',
+  ACCOUNT_LOCKED: 'AUTH_ACCOUNT_LOCKED',
+  ACCOUNT_NOT_ACTIVE: 'AUTH_ACCOUNT_NOT_ACTIVE',
+  REFRESH_TOKEN_INVALID_OR_EXPIRED: 'REFRESH_TOKEN_INVALID_OR_EXPIRED',
+  REFRESH_TOKEN_INVALID_OR_USED: 'REFRESH_TOKEN_INVALID_OR_USED',
+  SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+} as const satisfies Record<string, ApiErrorCode>;

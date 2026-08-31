@@ -6,6 +6,8 @@ export interface LoginPayload {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  /** Duree de vie de l'access token, en secondes. */
+  expiresIn: number;
 }
 
 export interface RefreshTokenResponse {
