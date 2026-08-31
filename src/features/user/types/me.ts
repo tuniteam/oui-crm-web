@@ -1,4 +1,21 @@
-export type ContactType = 'BACKOFFICE' | 'CLIENT';
+/** BACKOFFICE = operateur de la plateforme (relations sans projet). */
+export const CONTACT_TYPE_VALUES = ['BACKOFFICE', 'PROJECT'] as const;
+export type ContactType = (typeof CONTACT_TYPE_VALUES)[number];
+
+export const CONTACT_TYPE = {
+  BACKOFFICE: CONTACT_TYPE_VALUES[0],
+  PROJECT: CONTACT_TYPE_VALUES[1],
+} as const;
+
+/** Acces aux donnees hors perimetre de la relation. */
+export const OUT_OF_SCOPE_ACCESS_VALUES = ['NONE', 'RESTRICTED', 'FULL'] as const;
+export type OutOfScopeAccess = (typeof OUT_OF_SCOPE_ACCESS_VALUES)[number];
+
+export const OUT_OF_SCOPE_ACCESS = {
+  NONE: OUT_OF_SCOPE_ACCESS_VALUES[0],
+  RESTRICTED: OUT_OF_SCOPE_ACCESS_VALUES[1],
+  FULL: OUT_OF_SCOPE_ACCESS_VALUES[2],
+} as const;
 
 /** Portee d'une permission : tout le perimetre, le projet, ou ses seules donnees. */
 export const PERMISSION_SCOPE_VALUES = ['ALL', 'PROJECT', 'OWN'] as const;
@@ -41,12 +58,13 @@ export type MeScope = {
  */
 export type MeRoleRelationship = {
   roleCode: string;
-  projectId: string;
-  projectName: string;
-  projectSlug: string;
+  /** null pour une relation BACKOFFICE : elle n'est rattachee a aucun projet. */
+  projectId: string | null;
+  projectName: string | null;
+  projectSlug: string | null;
   /** Ordre d'affichage du selecteur de projet ; croissant. */
   displayOrder: number;
-  outOfScopeAccess: boolean;
+  outOfScopeAccess: OutOfScopeAccess;
   permissions: MePermission[];
   /** Features activees du projet. Vide pour une relation backoffice. */
   modules: string[];

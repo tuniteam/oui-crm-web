@@ -1,4 +1,5 @@
 // src/contexts/useMeStore.ts
+import { CONTACT_TYPE } from '@/features/user/types/me';
 import type {
   MeResponse,
   MePermission,
@@ -78,7 +79,7 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
 
   clearMe: () => set({ me: null, activeProjectId: null }),
 
-  isBackoffice: () => get().me?.contactType === 'BACKOFFICE',
+  isBackoffice: () => get().me?.contactType === CONTACT_TYPE.BACKOFFICE,
 
   getActiveRoleRelationship: () => {
     const store = get();
@@ -94,7 +95,9 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
     if (!activeProjectId) return null;
 
     return (
-      me.roleRelationships.find((r) => r.projectId === activeProjectId) ?? null
+      me.roleRelationships.find(
+        (r) => r.projectId && r.projectId === activeProjectId,
+      ) ?? null
     );
   },
 

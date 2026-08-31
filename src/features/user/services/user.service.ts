@@ -15,8 +15,9 @@ import { UserListParams, UserListResponse } from '../types/userList';
 export const userService = {
   me: async (): Promise<MeResponse> => {
     try {
-      const res = await api.get<{ data: MeResponse }>(ME_ROUTES.ME_API);
-      return res.data.data;
+      // /profile/me repond a plat, sans enveloppe { data } (verifie en reel).
+      const res = await api.get<MeResponse>(ME_ROUTES.ME_API);
+      return res.data;
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }
