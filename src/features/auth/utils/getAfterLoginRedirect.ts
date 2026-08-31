@@ -9,7 +9,7 @@ export function getAfterLoginRedirect(meStore: MeStoreState): To {
   }
   
 
-  const permissions = meStore.getPermissions();
+  const permissions = meStore.getPermissionCodes();
   const menu=MENU_SIDEBAR;
 
   if (menu && permissions)

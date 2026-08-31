@@ -14,6 +14,12 @@ export const API_ERROR = {
     "Votre compte n'est pas actif. Contactez votre administrateur.",
   AUTH_USER_NOT_FOUND: 'Utilisateur introuvable.',
 
+  // Garde de projet (en-tete x-project-id)
+  PROJECT_IS_REQUIRED: 'Aucun projet sélectionné.',
+  PROJECT_MISMATCH: "Vous n'avez pas accès à ce projet.",
+  PROJECT_NOT_ACTIVE: 'Projet indisponible.',
+  USER_HAS_NO_PROJECT: "Aucun projet ne vous est affecté.",
+
   JWT_ACCESS_SECRET_MISSING:
     'Configuration du serveur invalide. Veuillez contacter l’administrateur.',
 
@@ -93,4 +99,8 @@ export const API_ERROR_CODE = {
   REFRESH_TOKEN_INVALID_OR_EXPIRED: 'REFRESH_TOKEN_INVALID_OR_EXPIRED',
   REFRESH_TOKEN_INVALID_OR_USED: 'REFRESH_TOKEN_INVALID_OR_USED',
   SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+  PROJECT_IS_REQUIRED: 'PROJECT_IS_REQUIRED',
+  PROJECT_MISMATCH: 'PROJECT_MISMATCH',
+  PROJECT_NOT_ACTIVE: 'PROJECT_NOT_ACTIVE',
+  USER_HAS_NO_PROJECT: 'USER_HAS_NO_PROJECT',
 } as const satisfies Record<string, ApiErrorCode>;

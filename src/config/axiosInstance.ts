@@ -1,3 +1,4 @@
+import { useMeStore } from '@/contexts/useMeStore';
 import { useServerErrorStore } from '@/contexts/useServerErrorStore';
 import { AUTH } from '@/features/auth/constants/auth.constants';
 import { AUTH_ROUTES } from '@/features/auth/constants/routes.constants';
@@ -16,13 +17,26 @@ const api = axios.create({
 });
 
 
-// Intercepteur REQUEST - Injection du Bearer token
+/**
+ * En-tete de portee multi-tenant. Le projet ne transite jamais par l'URL :
+ * l'API le lit uniquement ici. Les routes non scopees l'ignorent, on peut donc
+ * l'envoyer systematiquement des qu'un projet est actif.
+ */
+const PROJECT_HEADER = 'x-project-id';
+
+// Intercepteur REQUEST - Injection du Bearer token et du projet actif
 api.interceptors.request.use(
   (config) => {
     const token = tokenService.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const projectId = useMeStore.getState().getActiveProjectId();
+    if (projectId) {
+      config.headers[PROJECT_HEADER] = projectId;
+    }
+
     return config;
   },
   (error) => {
@@ -54,6 +68,9 @@ api.interceptors.response.use(
       forceLogout('?reason=account_disabled');
       return new Promise(() => {});
     }
+    // Le garde de projet renvoie des 403 qui ne sont PAS des problemes de
+    // session : projet indisponible ou non affecte. On les laisse remonter a
+    // l'appelant, surtout pas de deconnexion.
     // The original request that failed
     const prevRequest = error.config;
     // Check if the request was a login call

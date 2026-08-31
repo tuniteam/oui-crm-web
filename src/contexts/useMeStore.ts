@@ -1,5 +1,10 @@
 // src/contexts/useMeStore.ts
-import type { MeResponse, MeRoleRelationship } from '@/features/user/types/me';
+import type {
+  MeResponse,
+  MePermission,
+  MeRoleRelationship,
+  PermissionScope,
+} from '@/features/user/types/me';
 import { create } from 'zustand';
 
 /**
@@ -29,8 +34,13 @@ export type MeStoreState = {
   getActiveProjectId: () => string | null;
   getActiveProjectName: () => string | null;
 
-  getPermissions: () => string[];
+  /** Permissions effectives du projet actif, surcharges deja appliquees. */
+  getPermissions: () => MePermission[];
+  /** Codes seuls — pratique pour filtrer un menu. */
+  getPermissionCodes: () => string[];
   hasPermission: (permissionCode: string) => boolean;
+  /** Portee d'une permission accordee, null si elle ne l'est pas. */
+  getPermissionScope: (permissionCode: string) => PermissionScope | null;
 
   getActiveProjectModules: () => string[];
   hasModule: (moduleCode: string) => boolean;
@@ -84,9 +94,7 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
     if (!activeProjectId) return null;
 
     return (
-      me.roleRelationships.find(
-        (r) => r.projectId && r.projectId === activeProjectId,
-      ) ?? null
+      me.roleRelationships.find((r) => r.projectId === activeProjectId) ?? null
     );
   },
 
@@ -97,11 +105,13 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
 
   getPermissions: () => get().getActiveRoleRelationship()?.permissions ?? [],
 
-  hasPermission: (permissionCode) => {
-    const active = get().getActiveRoleRelationship();
-    if (!active) return false;
-    return (active.permissions ?? []).includes(permissionCode);
-  },
+  getPermissionCodes: () => get().getPermissions().map((p) => p.code),
+
+  hasPermission: (permissionCode) =>
+    get().getPermissions().some((p) => p.code === permissionCode),
+
+  getPermissionScope: (permissionCode) =>
+    get().getPermissions().find((p) => p.code === permissionCode)?.scope ?? null,
 
   getActiveProjectModules: () =>
     get().getActiveRoleRelationship()?.modules ?? [],
