@@ -8,7 +8,19 @@
   /* ========================================
    * Brand Colors - Oui Crm
    * ======================================== */
-  --brand-primary: #6C5CE7;      /* Violet */
+  /* ========================================
+   * Typography
+   * Plus Jakarta Sans pour l'interface, IBM Plex Mono pour les donnees
+   * alignees (references, montants, identifiants).
+   * ======================================== */
+  --font-oui-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-oui-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas,
+    monospace;
+
+  --brand-primary: #0369A1;      /* Azur */
+  --brand-primary-dark: #075985; /* Azur - survol / etat presse */
+  --brand-primary-soft: #E0F2FE; /* Azur - fond de pastille */
   --brand-secondary: #54A0FF;    /* Bleu Ciel */
   --brand-accent-rose: #FF6B6B;  /* Rose */
   --brand-accent-amber: #FDCB6E; /* Soleil */
@@ -40,15 +52,23 @@
   --border: var(--gray-300);
   --input: var(--gray-200);
 
-  /* Semantic Colors */
-  --success: #00B894;
+  /* Semantic Colors
+   * Valeurs propres, JAMAIS des alias des accents de marque : un etat doit
+   * rester lisible independamment de la charte. Les accents de marque restent
+   * disponibles en fond de pastille via --*-soft.
+   * Tous >= 4.5:1 sur blanc (WCAG AA, texte et icone). */
+  --success: #047857;
   --success-foreground: #FFFFFF;
-  --info: var(--brand-secondary);
+  --success-soft: #D1FAE5;
+  --info: #0F766E;
   --info-foreground: #FFFFFF;
-  --warning: var(--brand-accent-amber);
-  --warning-foreground: var(--gray-800);
-  --destructive: var(--brand-accent-rose);
+  --info-soft: #CCFBF1;
+  --warning: #B45309;
+  --warning-foreground: #FFFFFF;
+  --warning-soft: var(--brand-accent-cream);
+  --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
+  --destructive-soft: #FEE2E2;
 
   /* Chart Colors */
   --chart-1: var(--brand-primary);
@@ -72,7 +92,7 @@
    * Mirrors the values used by the back PDF template
    * to keep preview ↔ generated PDF in lockstep.
    * ======================================== */
-  --invoice-header-bg: #6C5CE7;
+  --invoice-header-bg: #0369A1;
   --invoice-header-fg: #FFFFFF;
   --invoice-header-muted: rgba(255, 255, 255, 0.78);
   --invoice-text: #333333;
@@ -81,7 +101,7 @@
   --invoice-border: #E2E8F0;
   --invoice-amber: #FDCB6E;
   --invoice-amber-fg: #333333;
-  --invoice-accent: #6C5CE7;
+  --invoice-accent: #0369A1;
 }
 
 /* ========================================
@@ -100,11 +120,13 @@
   --border: var(--gray-700);
   --input: var(--gray-700);
 
-  /* Semantic Colors - Dark */
-  --success: #00B894;
-  --info: var(--brand-secondary);
-  --warning: var(--brand-accent-amber);
-  --destructive: var(--brand-accent-rose);
+  /* Semantic Colors - Dark
+   * Variantes eclaircies : les valeurs du mode clair sont illisibles sur fond
+   * sombre. Tous >= 6.2:1 sur --gray-900. */
+  --success: #34D399;
+  --info: #2DD4BF;
+  --warning: #FBBF24;
+  --destructive: #F87171;
 }
 
 /* ========================================
