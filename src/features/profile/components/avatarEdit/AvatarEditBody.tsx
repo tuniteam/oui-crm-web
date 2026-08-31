@@ -117,7 +117,9 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
             </div>
           </div>
           {hasPendingChanges && (
-            <span className="text-xs text-muted-foreground italic">Aperçu</span>
+            <span className="text-xs text-muted-foreground italic">
+              {AVATAR_EDIT_SHEET.LABELS.PREVIEW}
+            </span>
           )}
         </div>
 

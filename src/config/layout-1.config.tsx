@@ -1,4 +1,4 @@
-import { MENU } from '@/constants';
+import { MENU, PERMISSIONS } from '@/constants';
 import {
   AlertCircle,
   Award,
@@ -8,7 +8,6 @@ import {
   Book,
   Briefcase,
   Building,
-  Building2,
   CalendarCheck,
   Captions,
   CheckCircle,
@@ -50,23 +49,10 @@ import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR: MenuConfig = [
   {
-    title: 'Tableau de bord',
-    icon: LayoutGrid,
-    path: '/dashboard',
-    readPermission:'dashboard:read'
-  },
-  { heading: 'Administration', path: '/administration' },
-  {
-    title: 'Clients',
-    icon: Building2,
-    path: '/administration/clients',
-    readPermission:'clients:read'
-  },
-  {
-    title: MENU.BACKOFFICE_USERS,
+    title: MENU.USERS,
     icon: Users,
-    path: '/administration/backoffice-users',
-    readPermission: 'userBackoffice:read',
+    path: '/users',
+    readPermission: PERMISSIONS.USERS.READ,
   },
 ];
 

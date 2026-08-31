@@ -23,4 +23,5 @@ export const NO_PERMISSIONS={
         LIGHT: '/media/illustrations/no-permission.svg',
         DARK: '/media/illustrations/no-permission.svg',
     },
-}
+    IMAGE_ALT: 'Illustration accès restreint',
+} as const

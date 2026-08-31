@@ -1,3 +1,4 @@
+import { PERMISSIONS } from '@/constants';
 import { useCallback, useMemo, useState } from 'react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { CirclePlus } from 'lucide-react';
@@ -58,7 +59,7 @@ export default function UsersTable({
   const meStore = useMeStore();
   const hasPermission = meStore.hasPermission;
 
-  const effectiveCreatePermission = createPermission ?? 'users:create';
+  const effectiveCreatePermission = createPermission ?? PERMISSIONS.USERS.CREATE;
   const effectiveColumns = columns ?? userColumns;
   const effectiveCreateButtonText = createButtonText ?? ACTIONS.NEW_USER;
 

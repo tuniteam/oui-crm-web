@@ -42,7 +42,7 @@ export const authService = {
         refreshToken,
       });
       tokenService.setTokens(res.data.accessToken, res.data.refreshToken);
-    } catch (err) {
+    } catch {
       throw new Error(AUTH.ERRORS.SERVER);
     }
   },

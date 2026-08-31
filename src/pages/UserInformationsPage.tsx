@@ -1,3 +1,4 @@
+import { PERMISSIONS } from '@/constants';
 import { useMemo, useState } from 'react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { CorrectEmailCard } from '@/features/user/components/correctEmail/CorrectEmailCard';
@@ -45,7 +46,7 @@ export function UserInformationsPage() {
       <>
         <DetailsPageHeaderSkeleton />
         <UserDetailsBodySkeleton />
-        {hasPermission('users:delete') && meStore.me?.email !== data?.email && (
+        {hasPermission(PERMISSIONS.USERS.DELETE) && meStore.me?.email !== data?.email && (
           <UserDeleteCardSkeleton />
         )}
       </>
@@ -61,7 +62,7 @@ export function UserInformationsPage() {
         backRoute={USER_ROUTES.USERS_LIST()}
         targetId={data?.id ?? ''}
         onEditClick={() => setOpenEdit(true)}
-        editPermission="users:update"
+        editPermission={PERMISSIONS.USERS.UPDATE}
       />
 
       <Card className="mb-4">
@@ -72,7 +73,7 @@ export function UserInformationsPage() {
       </Card>
 
       {data?.id &&
-        hasPermission('users:update') &&
+        hasPermission(PERMISSIONS.USERS.UPDATE) &&
         INVITABLE_STATUSES.includes(data.status) && (
           <UserInviteCard
             status={data.status}
@@ -81,7 +82,7 @@ export function UserInformationsPage() {
           />
         )}
 
-      {data?.id && hasPermission('users:update') && (
+      {data?.id && hasPermission(PERMISSIONS.USERS.UPDATE) && (
         <CorrectEmailCard
           status={data.status}
           onCorrectClick={() => setOpenCorrectEmail(true)}
@@ -89,7 +90,7 @@ export function UserInformationsPage() {
       )}
 
       {data?.id &&
-        hasPermission('users:delete') &&
+        hasPermission(PERMISSIONS.USERS.DELETE) &&
         meStore.me?.email !== data.email && (
           <UserDeleteCard
             user={{ id: data.id }}

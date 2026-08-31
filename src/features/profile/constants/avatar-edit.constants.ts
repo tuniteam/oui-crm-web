@@ -3,6 +3,7 @@ export const AVATAR_EDIT_SHEET = {
 
   LABELS: {
     CURRENT_PHOTO: 'Photo actuelle',
+    PREVIEW: 'Aperçu',
     DROP_AREA: 'Glisser-déposer',
     DROP_AREA_OR: 'ou',
     DELETE_SECTION: 'Supprimer la photo',

@@ -1,3 +1,4 @@
+import { PERMISSIONS } from '@/constants';
 import { NoPermissions } from '@/features/errors/components/no-permissions';
 import UsersTable from '@/features/user/components/UsersTable';
 import { GuestOnly } from '@/guards/GuestOnly';
@@ -31,7 +32,7 @@ export function AppRoutingSetup() {
           {/* Client no-permissions page */}
           <Route path="/no-permissions" element={<NoPermissions />} />
 
-          <Route element={<RequirePermission permission="users:read" />}>
+          <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>
             <Route path="/users" element={<UsersTable />} />
             <Route
               path="/users/:userId/informations"

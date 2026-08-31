@@ -16,12 +16,12 @@ export function NoPermissions() {
         <img
           src={toAbsoluteUrl(NO_PERMISSIONS.IMAGES.LIGHT)}
           className="dark:hidden max-h-[160px]"
-          alt="image"
+          alt={NO_PERMISSIONS.IMAGE_ALT}
         />
         <img
           src={toAbsoluteUrl(NO_PERMISSIONS.IMAGES.DARK)}
           className="light:hidden max-h-[160px]"
-          alt="image"
+          alt={NO_PERMISSIONS.IMAGE_ALT}
         />
         <Badge
           variant="destructive"
