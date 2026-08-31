@@ -1,4 +1,5 @@
 import { useTheme } from 'next-themes';
+import { AUTH } from '../constants/auth.constants';
 
 export function AuthLogo() {
   const { resolvedTheme } = useTheme();
@@ -9,7 +10,7 @@ export function AuthLogo() {
 
   return (
     <div className="flex justify-center mb-4">
-      <img src={logo} alt="SOFT-M" className="h-8 w-auto" />
+      <img src={logo} alt={AUTH.UI.LOGO_ALT} className="h-8 w-auto" />
     </div>
   );
 }

@@ -28,7 +28,7 @@ export const AUTH = {
         'Votre compte a été désactivé. Contactez votre administrateur.',
     },
 
-    FOOTER: '© 2025 SOFT-M — Gestion Périscolaire',
+    LOGO_ALT: 'OUI-CRM',
   },
 
   ZOD: {
