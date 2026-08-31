@@ -27,7 +27,7 @@ function findFirstAllowedPath(
   permissions: string[],
 ): To | undefined {
   for (const item of menu) {
-    if (item.activeClient) continue;
+    if (item.activeProject) continue;
 
     if (item.path && !item.heading && !item.disabled) {
       if (!item.readPermission || permissions.includes(item.readPermission)) {

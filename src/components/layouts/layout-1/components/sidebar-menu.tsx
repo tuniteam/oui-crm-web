@@ -115,10 +115,16 @@ export function SidebarMenu() {
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {
     return items
-      .filter((item: MenuItem) => !item.activeClient) // Exclude activeClient from scrollable menu
+      .filter((item: MenuItem) => !item.activeProject) // Exclude activeProject from scrollable menu
       .filter((item: MenuItem) => {
         if (!item.readPermission) return true;
         return meStore.hasPermission(item.readPermission);
+      })
+      // Un module desactive sur le projet actif masque l'entree, meme si la
+      // permission est accordee : le droit ne sert a rien sans le module.
+      .filter((item: MenuItem) => {
+        if (!item.requiredModule) return true;
+        return meStore.hasModule(item.requiredModule);
       })
       .map((item: MenuItem, index: number) => {
         if (item.heading && item.children) {
