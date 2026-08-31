@@ -36,16 +36,16 @@ Feature: Sign in, session and lock feedback (US-00-01)
   @nominal
   Scenario: Sign in successfully
     Given the API answers 200 to "/auth/login" with "accessToken", "refreshToken" and "expiresIn"
-    And the API answers 200 to "/profile/me" with a user holding the "users:read" permission
+    And the API answers 200 to "/me" with a user holding the "users:read" permission
     When I sign in with valid credentials
     Then both tokens are stored
-    And "/profile/me" is called before any redirect
+    And "/me" is called before any redirect
     And I land on "/users"
 
   @nominal
   Scenario: Signing in without any readable menu entry
     Given the API answers 200 to "/auth/login"
-    And the API answers 200 to "/profile/me" with a user holding no permission
+    And the API answers 200 to "/me" with a user holding no permission
     When I sign in with valid credentials
     Then I land on "/no-permissions"
 

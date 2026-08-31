@@ -1,5 +1,5 @@
 export const ME_ROUTES = {
-  ME_API: '/profile/me',
+  ME_API: '/me',
 };
 
 export const USER_ROUTES = {
