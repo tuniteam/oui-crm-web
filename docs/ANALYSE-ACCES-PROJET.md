@@ -153,23 +153,41 @@ marcheraient dessus — c'est précisément le scénario que le mode onglet cher
 
 Le socle est en place ; il manque le mode, le binder et le menu projet.
 
-### 2.3 Deux sources de modules, comme chez soft-m
+### 2.3 Permissions et modules : deux origines différentes
 
-`RequireModule` et le sidebar de soft-m gèrent deux origines :
+Vérifié dans `soft-m-web` — et la réponse est asymétrique, à raison.
 
-- utilisateur du client → modules de `/me` ;
-- back-office → `GET /clients/:clientId/modules`, car il n'a pas ces modules
-  dans son propre `/me`.
+**Les permissions ne sont jamais rechargées.** Il n'existe aucun endpoint
+`clients/:id/permissions`. Le menu de gestion client lit :
 
-Le cas se reproduira : un back-office ouvrant un projet n'a ni ses permissions
-ni ses modules dans `/profile/me`. Les fonctionnalités du projet sont dans
-`GET /projects/:id` (`features: [{code, enabled}]`), déjà typé côté front.
+```ts
+const permissions = meStore.getActiveClientPermissions() ?? [];
+```
 
-**Question ouverte** : avec quelles **permissions** un back-office travaille-t-il
-dans un projet ? Le handoff dit qu'il est accepté « dès lors que son rôle porte
-la permission de la route en scope `ALL` ». Le menu projet devra donc être filtré
-sur ses permissions à lui, pas sur celles d'une relation projet qu'il n'a pas.
-À clarifier avant de coder le menu.
+qui résout `getActiveRoleRelationship()?.permissions`. Or pour un back-office,
+ce getter renvoie **sa propre première relation** (triée par `displayOrder`).
+Un back-office navigue donc chez un client avec **ses permissions de
+back-office**, inchangées. C'est cohérent avec le handoff oui-crm : il est
+accepté « dès lors que son rôle porte la permission de la route en scope `ALL` ».
+
+**Les modules, eux, sont rechargés par client** :
+
+```ts
+const modules = isBackOffice
+  ? fetchedModules.filter((m) => m.enabled).map((m) => m.code)  // GET /clients/:id/modules
+  : storeModules;                                               // /me
+```
+
+**Pourquoi cette asymétrie** : une permission décrit ce que *l'utilisateur* a le
+droit de faire — elle le suit partout. Un module décrit ce que *le client* a
+activé — il appartient au client, pas à l'utilisateur. Les deux ne peuvent donc
+pas venir de la même source.
+
+**Transposition oui-crm** : le menu projet se filtre sur les permissions du
+back-office issues de `/profile/me`, et sur les fonctionnalités du projet issues
+de `GET /projects/:id` (`features: [{code, enabled}]`, déjà typé). Aucun appel
+supplémentaire à demander à l'API — l'équivalent de `/clients/:id/modules`
+existe déjà sous la forme du détail projet.
 
 ---
 
@@ -197,10 +215,11 @@ sur ses permissions à lui, pas sur celles d'une relation projet qu'il n'a pas.
 1. Option **A** (routes préfixées) ou **B** (projet implicite) ?
 2. Si A : préfixe par `slug` (lisible, `projectSlug` est fourni par
    `/profile/me` et `GET /projects`) ou par `id` (direct, aucune résolution) ?
-3. Le menu projet est-il filtré sur les permissions du back-office, ou sur un
-   jeu de permissions renvoyé par l'API pour le projet visé ?
-4. Le mode gestion et le mode configuration sont-ils distincts, comme le
+3. Le mode gestion et le mode configuration sont-ils distincts, comme le
    `enableClientManage` de soft-m ?
+
+La question des permissions du back-office est **tranchée** (§2.3) : ses propres
+permissions le suivent, seules les fonctionnalités du projet sont rechargées.
 
 ---
 
