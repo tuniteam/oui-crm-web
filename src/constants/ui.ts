@@ -2,9 +2,14 @@
  * Labels UI partagés (colonnes de table, placeholders)
  */
 export const UI = {
+  BRAND: {
+    /** Nom affiche dans le bloc de marque du rail. */
+    NAME: 'Oui CRM',
+  },
   SIDEBAR: {
     COLLAPSE: 'Réduire le menu',
     EXPAND: 'Agrandir le menu',
+    SWITCH_PROJECT: 'Changer de projet',
   },
   TIME_PICKER: {
     PICK_TIME: "Choisir l'heure",
