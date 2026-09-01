@@ -85,6 +85,22 @@ Distinguer toujours :
 - ce qui **cassera à la livraison** d'une story côté API ;
 - ce qui n'est **pas encore implémentable** (route inexistante).
 
+## Après avoir livré une feature
+
+Écrire ses scénarios BDD dans `docs/features/<domaine>.feature`, en nommant
+l'US couverte — même traçabilité que `oui-crm-api/docs/features/`.
+
+- `Feature: … (US-00-XX)` dans l'en-tête, tags `@nominal` / `@error` /
+  `@validation` / `@guard` comme côté API.
+- Rédiger en anglais ; garder en français les chaînes d'interface citées, ce
+  sont celles que l'utilisateur lit réellement.
+- Décrire ce que voit l'utilisateur, pas les appels HTTP : le contrat est déjà
+  couvert par la recette de l'API.
+- Écrire un scénario pour chaque piège identifié pendant le développement — une
+  règle serveur qu'on pourrait ré-implémenter côté front par erreur, une valeur
+  figée, un cas qui dégrade en silence.
+- Tenir à jour le tableau de `docs/features/README.md`.
+
 ## Quelle référence UI selon la zone
 
 | Zone | Référence |

@@ -8,9 +8,16 @@ Written in English, like the API ones. UI strings quoted in the scenarios stay
 in French — they are the actual strings the user reads, taken from the
 `constants/` files, and asserting on a translated copy would defeat the purpose.
 
-| File | Scope | API counterpart |
+| File | Scope | US |
 |---|---|---|
-| `auth.feature` | Sign in, session, lockout, guards (US-00-01) | `docs/features/auth.feature` |
+| `auth.feature` | Sign in, session, lockout, guards | US-00-01 |
+| `projects.feature` | Project administration, project workspace | US-00-04 |
+| `settings.feature` | Company, business rules, documents | US-00-08 |
+| `users-backoffice.feature` | Backoffice accounts | US-00-11 |
+
+Each file names the US it covers in its `Feature:` line, mirroring
+`oui-crm-api/docs/features/`. **A feature is not finished until its scenarios
+are written here.**
 
 ## No runner yet
 
