@@ -1,6 +1,8 @@
 import { PERMISSIONS } from '@/constants';
 import { NoPermissions } from '@/features/errors/components/no-permissions';
 import { ProjectInformationsPage } from '@/pages/ProjectInformationsPage';
+import { BackofficeUserInformationsPage } from '@/pages/BackofficeUserInformationsPage';
+import BackofficeUsersPage from '@/pages/BackofficeUsersPage';
 import ProjectsListPage from '@/pages/ProjectsListPage';
 import UsersTable from '@/features/user/components/UsersTable';
 import { GuestOnly } from '@/guards/GuestOnly';
@@ -43,6 +45,23 @@ export function AppRoutingSetup() {
             <Route
               path="/projects/:projectId/informations"
               element={<ProjectInformationsPage />}
+            />
+          </Route>
+
+          <Route
+            element={
+              <RequirePermission
+                permission={PERMISSIONS.USER_BACKOFFICE.READ}
+              />
+            }
+          >
+            <Route
+              path="/backoffice-users"
+              element={<BackofficeUsersPage />}
+            />
+            <Route
+              path="/backoffice-users/:userId/informations"
+              element={<BackofficeUserInformationsPage />}
             />
           </Route>
 

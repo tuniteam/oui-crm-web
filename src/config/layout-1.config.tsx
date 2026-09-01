@@ -36,6 +36,7 @@ import {
   Users as PeopleIcon,
   Plug,
   Share2,
+  ShieldCheck,
   ShieldOff,
   SquareMousePointer,
   Star,
@@ -54,6 +55,12 @@ export const MENU_SIDEBAR: MenuConfig = [
     icon: FolderKanban,
     path: '/projects',
     readPermission: PERMISSIONS.PROJECTS.READ,
+  },
+  {
+    title: MENU.BACKOFFICE_USERS,
+    icon: ShieldCheck,
+    path: '/backoffice-users',
+    readPermission: PERMISSIONS.USER_BACKOFFICE.READ,
   },
   {
     title: MENU.USERS,
