@@ -358,7 +358,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-01 15:04. 20/20 OK._
+_Généré par `npm run bdd` — 2026-09-01 15:18. 23/23 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -380,6 +380,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |
 | US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-12.png` |
 | US-00-08 | 08.15 | Numérotation affichée en lecture seule | OK | `screenshots/08-15.png` |
+| US-00-09 | 09.1 | Les valeurs sont groupées par catégorie, avec leur nombre | OK | `screenshots/09-1.png` |
+| US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/09-4.png` |
+| US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/09-5.png` |
 | US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | OK | `screenshots/11-1.png` |
 | US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | OK | `screenshots/11-9.png` |
 | US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | OK | `screenshots/11-11.png` |

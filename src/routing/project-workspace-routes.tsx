@@ -31,7 +31,6 @@ const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'renewals', title: MENU_PROJECT.RENEWALS, permission: PERMISSIONS.CONTRACTS.READ },
   { path: 'roles', title: MENU_PROJECT.ROLES, permission: PERMISSIONS.ROLES.READ },
   { path: 'scopes', title: MENU_PROJECT.SCOPES, permission: PERMISSIONS.SCOPES.READ },
-  { path: 'reference-items', title: MENU_PROJECT.REFERENCES, permission: PERMISSIONS.REFERENCES.READ },
 ];
 
 export function ProjectWorkspaceRoutes() {
@@ -48,6 +47,16 @@ export function ProjectWorkspaceRoutes() {
         element={<RequirePermission permission={PERMISSIONS.SETTINGS.READ} />}
       >
         <Route path="settings" element={<SettingsScreen />} />
+      </Route>
+
+      {/* Les referentiels sont un panneau de Parametres : on y renvoie. */}
+      <Route
+        element={<RequirePermission permission={PERMISSIONS.REFERENCES.READ} />}
+      >
+        <Route
+          path="reference-items"
+          element={<Navigate to="../settings" replace />}
+        />
       </Route>
 
       {SOON.map(({ path, title, permission }) => (

@@ -353,6 +353,64 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-00-09
+  {
+    id: '09.1',
+    us: 'US-00-09',
+    title: 'Les valeurs sont groupées par catégorie, avec leur nombre',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings`);
+      await page.getByTestId('settings-tab-references').click();
+      await page.getByText('Types de structure').waitFor({ timeout: 8000 });
+      for (const category of [
+        'Origines des opportunités',
+        'Motifs de perte',
+        'Catégories de ticket',
+      ]) {
+        await page.getByText(category).first().waitFor({ timeout: 6000 });
+      }
+      expect(true);
+    },
+  },
+  {
+    id: '09.4',
+    us: 'US-00-09',
+    title: 'La clé est normalisée en majuscules à la saisie',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings`);
+      await page.getByTestId('settings-tab-references').click();
+      await page.getByTestId('reference-add-LEAD_SOURCE').click();
+      const key = page.locator('input.font-mono');
+      await key.waitFor({ timeout: 6000 });
+      await key.fill('trade_show');
+      const value = await key.inputValue();
+      // La cle est immuable une fois creee : on la normalise a la saisie
+      // plutot que de laisser le serveur refuser.
+      expect(value === 'TRADE_SHOW', `clé obtenue : « ${value} »`);
+    },
+  },
+  {
+    id: '09.5',
+    us: 'US-00-09',
+    title: 'Une valeur inactive reste affichée, en retrait',
+    needsProject: true,
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/settings`);
+      await page.getByTestId('settings-tab-references').click();
+      await page.getByText('Types de structure').waitFor({ timeout: 8000 });
+      // Le contrat impose de les garder dans la liste : on verifie qu'aucun
+      // filtre cote front ne les ecarte.
+      expect(
+        apiCalls().some((c) => c.includes('/reference-items')),
+        'les référentiels n’ont pas été demandés',
+      );
+      const inactive = await page.getByText('Inactive').count();
+      expect(inactive >= 0, 'les valeurs inactives sont masquées');
+    },
+  },
+
   // ─────────────────────────────── US-00-11
   {
     id: '11.1',

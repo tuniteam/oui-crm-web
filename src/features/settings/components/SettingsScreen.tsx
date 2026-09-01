@@ -14,6 +14,7 @@ import { useSettings } from '../hooks/useSettings';
 import { BusinessRulesPane } from './panes/BusinessRulesPane';
 import { CompanyPane } from './panes/CompanyPane';
 import { DocumentsPane } from './panes/DocumentsPane';
+import { ReferenceItemsPane } from './panes/ReferenceItemsPane';
 
 type NavItem = {
   key: SettingsTab;
@@ -106,6 +107,16 @@ export function SettingsScreen() {
   const renderPane = () => {
     if (tab === T.DOCUMENTS) {
       return <DocumentsPane canUpdate={canUpdateSettings} />;
+    }
+
+    // Les referentiels ont leur propre permission : tous les roles lisent,
+    // seul l'admin de projet ecrit.
+    if (tab === T.REFERENCES) {
+      return (
+        <ReferenceItemsPane
+          canUpdate={hasPermission(PERMISSIONS.REFERENCES.UPDATE)}
+        />
+      );
     }
 
     if (needsSettings) {

@@ -19,7 +19,7 @@ export const PERMISSIONS = {
   TICKETS: { READ: 'tickets:read' },
   ROLES: { READ: 'roles:read' },
   SCOPES: { READ: 'scopes:read' },
-  REFERENCES: { READ: 'references:read' },
+  REFERENCES: { READ: 'references:read', UPDATE: 'references:update' },
   SETTINGS: { READ: 'settings:read', UPDATE: 'settings:update' },
   PRICING: { READ: 'pricing:read', UPDATE: 'pricing:update' },
   AUDIT_LOG: { READ: 'auditLog:read' },
