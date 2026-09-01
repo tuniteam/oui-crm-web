@@ -92,10 +92,10 @@ export default function ProjectsTable() {
         <EmptyTableComponent
           illustration="/media/illustrations/projects.svg"
           title={PROJECTS_TABLE_UI.EMPTY_STATE.TITLE}
-          description={PROJECTS_TABLE_UI.EMPTY_STATE.DESCRIPTION}
+          description={[...PROJECTS_TABLE_UI.EMPTY_STATE.DESCRIPTION]}
           tip={{
             title: PROJECTS_TABLE_UI.EMPTY_STATE.TIP.TITLE,
-            content: PROJECTS_TABLE_UI.EMPTY_STATE.TIP.CONTENT,
+            content: [...PROJECTS_TABLE_UI.EMPTY_STATE.TIP.CONTENT],
           }}
         />
       }

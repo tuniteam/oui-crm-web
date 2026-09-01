@@ -5,11 +5,13 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { useMeStore } from '@/contexts/useMeStore'
 import { Link, useLocation } from 'react-router-dom';
 import { MENU_SIDEBAR } from '@/config/layout-1.config';
+import { buildProjectMenu } from '@/config/menu-project';
+import { useProjectModeStore } from '@/contexts/useProjectModeStore';
+import { useProject } from '@/features/project/hooks/useProject';
 import { MenuConfig, MenuItem } from '@/config/types';
 import { cn } from '@/lib/utils';
 import {
@@ -22,7 +24,6 @@ import {
   AccordionMenuSubContent,
   AccordionMenuSubTrigger,
 } from '@/components/ui/accordion-menu';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarMenuSkeleton } from './SidebarMenuSkeleton';
 
@@ -70,26 +71,50 @@ export function SidebarMenu() {
     [pathname],
   );
 
+  // Menu projet quand un projet est ouvert, menu plateforme sinon.
+  // Les permissions restent celles de l'utilisateur : elles le suivent,
+  // seul le perimetre des ecrans change.
+  const isProjectMode = useProjectModeStore((s) => s.isProjectMode);
+  const activeProjectId = meStore.getActiveProjectId();
+  const { data: activeProject } = useProject(
+    isProjectMode ? (activeProjectId ?? undefined) : undefined,
+  );
+
+  const menuConfig = useMemo(() => {
+    if (!isProjectMode || !activeProjectId) return MENU_SIDEBAR;
+    return buildProjectMenu(
+      activeProjectId,
+      activeProject?.name ?? '',
+      meStore.getPermissionCodes(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProjectMode, activeProjectId, activeProject?.name, meStore.me]);
+
   // Collect section values for localStorage persistence
   const sectionValues = useMemo(
     () =>
-      MENU_SIDEBAR
+      menuConfig
         .filter((item) => item.heading && item.children && item.path)
         .map((item) => item.path!),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [menuConfig],
   );
 
   const storageKey = 'sidebar-open-sections';
-  const [openSections] = useState<string[]>(() => {
+
+  // L'etat memorise vaut pour le menu qui l'a produit. En passant du menu
+  // plateforme au menu projet, aucun de ses identifiants ne correspond : on
+  // ouvre alors tous les groupes plutot que de les laisser tous fermes.
+  const openSections = useMemo<string[]>(() => {
+    let saved: string[] = [];
     try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved) as string[];
+      const raw = localStorage.getItem(storageKey);
+      if (raw) saved = JSON.parse(raw) as string[];
     } catch {
       /* ignore */
     }
-    return sectionValues;
-  });
+    const known = saved.filter((v) => sectionValues.includes(v));
+    return known.length ? known : sectionValues;
+  }, [sectionValues]);
 
   const handleSectionsChange = useCallback((values: string[]) => {
     localStorage.setItem(storageKey, JSON.stringify(values));
@@ -216,11 +241,6 @@ export function SidebarMenu() {
       >
         {item.icon && <item.icon data-slot="accordion-menu-icon" />}
         <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto -me-2.5">
-            Soon
-          </Badge>
-        )}
       </AccordionMenuItem>
     );
   };
@@ -307,11 +327,6 @@ export function SidebarMenu() {
         className="text-[13px]"
       >
         <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto -me-2.5">
-            Soon
-          </Badge>
-        )}
       </AccordionMenuItem>
     );
   };
@@ -332,7 +347,7 @@ export function SidebarMenu() {
           defaultRootValue={openSections}
           onRootValueChange={handleSectionsChange}
         >
-          {buildMenu(MENU_SIDEBAR)}
+          {buildMenu(menuConfig)}
         </AccordionMenu>
       </ScrollArea>
     </div>

@@ -1,6 +1,7 @@
 # Handoff — Charte OUI-CRM à répercuter dans `oui-crm-api`
 
 **Émetteur :** `oui-crm-web` · **Destinataire :** `oui-crm-api` · **Date :** 2026-08-31
+**Révision 2026-09-01 :** ajout du §4 (surface des boutons) et renumérotation.
 
 Le front a changé de charte. Ce document liste les valeurs à appliquer côté API.
 **Aucune modification n'a été faite dans `oui-crm-api`** — l'application est à la
@@ -30,6 +31,10 @@ de la charte.
 
 ## 2. `src/mail/mail.constants.ts` → `EMAIL_THEME`
 
+> **Déjà appliqué côté API** (vérifié le 2026-09-01 dans
+> `oui-crm-api/src/mail/mail.constants.ts` : les six valeurs cibles y sont).
+> La colonne « Actuel » est conservée pour mémoire de ce qui a changé.
+
 Trois valeurs à changer. Le reste est déjà aligné sur la grille de gris du front
 et ne bouge pas.
 
@@ -38,7 +43,7 @@ et ne bouge pas.
 | `colorPrimary` | `#2563EB` | `#0369A1` | Teinte de marque. Contraste 5.93 sur blanc (AA) |
 | `colorWarning` | `#DC2626` | `#B45309` | `#DC2626` est la couleur d'**erreur**, pas d'alerte. Contraste 5.02 |
 | `colorBorder` | `#E2E8F0` | `#DEE2E6` | Aligne sur `--gray-300` du front |
-| `fontStack` | Inter | voir §3 | |
+| `fontStack` | Inter | voir « Valeur cible » ci-dessous | |
 
 Inchangés et corrects : `colorText: #333333`, `colorTextMuted: #6C757D`,
 `colorBgPage: #F8F9FA`, `displayLinkMaxLength: 60`.
@@ -79,6 +84,9 @@ back PDF template » (`src/styles/theme.oui-crm.css`). Ils ont été mis à jour
 | `--invoice-header-bg` | `#6C5CE7` | `#0369A1` |
 | `--invoice-accent` | `#6C5CE7` | `#0369A1` |
 
+> **Pas encore applicable** : au 2026-09-01, `oui-crm-api` n'embarque aucun
+> moteur de rendu PDF. Ce point vaut pour le jour où le template existera.
+
 Le template PDF côté API doit suivre, sinon l'aperçu front et le PDF généré
 divergeront. Les autres tokens de facture (`--invoice-text: #333333`,
 `--invoice-text-muted: #6C757D`, `--invoice-off: #F8F9FA`,
@@ -86,7 +94,57 @@ divergeront. Les autres tokens de facture (`--invoice-text: #333333`,
 
 ---
 
-## 4. Couleurs d'état, si l'API en produit
+## 4. Surface des boutons
+
+Le front s'est doté d'une surface de marque pour ses boutons primaires : un
+dégradé azur repris du logo, un rayon de 10 px et une ombre teintée plutôt que
+grise. Les valeurs vivent dans `--btn-*` (`src/styles/theme.oui-crm.css`).
+
+| Propriété | Valeur |
+|---|---|
+| Fond, extrémité sombre | `#0369A1` (contraste 5.93) |
+| Fond, extrémité claire | `#1B79BD` (contraste 4.65) |
+| Sens du dégradé | vers le bas à droite |
+| Rayon | `10px` |
+
+**Le CTA e-mail est déjà au bon rayon.** `src/mail/templates/email-layout.ts`
+pose `border-radius:10px` — rien à changer de ce côté.
+
+### Si vous portez le dégradé en e-mail
+
+C'est optionnel : l'aplat `#0369A1` reste conforme à la charte, et sur un bouton
+de 260 px le dégradé se remarque à peine. Si vous le faites, **jamais un dégradé
+seul** :
+
+```
+background-color: #0369A1;
+background-image: linear-gradient(to bottom right, #0369A1, #1B79BD);
+```
+
+Outlook sous Windows utilise le moteur de rendu de Word, qui ignore
+`background-image`. Un dégradé sans `background-color` de repli donne un CTA à
+fond transparent avec du texte blanc — invisible. L'ordre ci-dessus règle le
+problème : les clients modernes prennent le dégradé, Outlook garde l'aplat.
+
+### Deux limites à respecter
+
+- **Ne jamais étendre le dégradé jusqu'à `#54A0FF`.** Le bleu ciel de marque
+  plafonne à 2.68:1 avec du texte blanc. `#1B79BD` est le point le plus clair
+  qui tienne encore l'AA — c'est pour ça que le dégradé du bouton est plus court
+  que celui du logo, où aucun texte ne se superpose.
+- **Pas de dégradé sur les boutons destructifs.** `#DC2626` est à 4.83:1 : le
+  premier éclaircissement supportable est à 10 % du chemin, invisible à l'œil.
+  Le rouge reste un aplat, avec le même rayon et la même ombre.
+
+### Template PDF, le jour où il existe
+
+Le dégradé ne se porte que si le PDF est rendu par un moteur de navigateur
+(Puppeteer, Playwright). Avec une bibliothèque de dessin (PDFKit, pdfmake),
+s'en tenir à l'aplat `#0369A1` plutôt que de simuler un dégradé.
+
+---
+
+## 5. Couleurs d'état, si l'API en produit
 
 Si des couleurs d'état sont générées côté API (badges dans les e-mails, exports,
 documents), utiliser ces valeurs et **non** les accents de marque :
@@ -104,7 +162,7 @@ d'icône ou de fond de bouton : elles plafonnent entre 1.51 et 2.78 de contraste
 
 ---
 
-## 5. Palette de référence
+## 6. Palette de référence
 
 ```
 Marque
@@ -126,11 +184,12 @@ Source de vérité : `src/styles/theme.oui-crm.css` dans `oui-crm-web`.
 
 ---
 
-## 6. Checklist d'application
+## 7. Checklist d'application
 
-- [ ] `EMAIL_THEME` : `colorPrimary`, `colorWarning`, `colorBorder`, `fontStack`, `fontImportUrl`
+- [x] `EMAIL_THEME` : `colorPrimary`, `colorWarning`, `colorBorder`, `fontStack`, `fontImportUrl`
 - [ ] Template PDF de facture : en-tête et accent en `#0369A1`
 - [ ] Couleurs d'état découplées des accents de marque, si applicable
+- [ ] CTA e-mail : dégradé optionnel, mais toujours avec `background-color` de repli
 - [ ] Vérifier le rendu d'un e-mail d'activation dans Mailpit après changement
 - [ ] Vérifier qu'une facture générée correspond à l'aperçu du front
 

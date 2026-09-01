@@ -31,14 +31,15 @@ export function useValidateToken(token: string | null) {
     state = 'valid';
   } else if (query.isError) {
     const code = getApiErrorCode(query.error);
-    console.log(code)
-    // match your backend codes
+    // Codes du contrat US-00-02 : tout le reste est un lien inexploitable.
     if (code === 'ACTIVATION_TOKEN_EXPIRED') state = 'expired';
     else state = 'invalid';
   }
 
   return {
     state,
+    /** Identite et documents legaux a afficher, rendus par validate. */
+    account: query.data ?? null,
     isLoading: query.isLoading,
     refetch: query.refetch,
     error: query.error,

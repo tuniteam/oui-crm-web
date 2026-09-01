@@ -1,6 +1,6 @@
 // src/features/users/constants/editUser.constants.ts
 
-export const UPDATE_USER_SHEET = {
+export const UPDATE_USER_WINDOW = {
   TITLE: 'Modifier un utilisateur',
   LABELS: {
     FIRST_NAME: 'Prénom',

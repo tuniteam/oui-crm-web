@@ -4,7 +4,7 @@ export const USER_DELETE_CARD = {
   TITLE: 'Suppression',
   DESCRIPTION: 'Supprimer définitivement cet utilisateur',
 } as const;
-export const DELETE_USER_SHEET = {
+export const DELETE_USER_WINDOW = {
   TITLE: "Supprimer l'utilisateur",
   EXPECTED_ACTION:
     'Action exceptionnelle — assurez-vous d’avoir sauvegardé ce qui est nécessaire.',

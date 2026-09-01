@@ -86,10 +86,11 @@ export const userService = {
       throw new Error(getApiErrorMessage(err));
     }
   },
-  invite: async (userId: string): Promise<{ sent: boolean }> => {
+  /** Renvoie l'e-mail d'activation d'un compte encore PENDING. */
+  resendActivation: async (userId: string): Promise<{ sent: boolean }> => {
     try {
       const res = await api.post<{ sent: boolean }>(
-        USER_ROUTES.USER_INVITE_API(userId),
+        USER_ROUTES.USER_RESEND_ACTIVATION_API(userId),
       );
       return res.data;
     } catch (err) {

@@ -1,24 +1,29 @@
 // src/features/users/constants/constants.ts
+import { STATUS_CONFIG } from '@/components/shared/status-config';
 
-import { RelationshipStatus, UserStatus } from '../types/userList';
+import { UserStatus } from '../types/userList';
 
 // ==============================
 // STATUS VALUES (source de vérité)
 // ==============================
+/**
+ * Statut composite (US-00-05) : etat du compte (PENDING/ACTIVE/INACTIVE) ou
+ * affectation suspendue sur ce projet (SUSPENDED). Meme valeur pour le filtre.
+ */
 export const USER_STATUS_VALUES = [
-  'DRAFT',
-  'ACTIVE',
   'PENDING',
+  'ACTIVE',
   'INACTIVE',
+  'SUSPENDED',
 ] as const;
 
 // Accès nommé aux valeurs de statut (pour les comparaisons en logique métier).
 // `satisfies Record<string, UserStatus>` => une valeur invalide est rejetée par TS.
 export const USER_STATUS = {
-  DRAFT: 'DRAFT',
-  ACTIVE: 'ACTIVE',
   PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED',
 } as const satisfies Record<string, UserStatus>;
 
 // ==============================
@@ -29,8 +34,12 @@ export const TABLE_HEADERS = {
   EMAIL: 'Email',
   ROLE: 'Rôle',
   STATUS: 'Statut',
+  SCOPE: 'Périmètre',
   ACTIONS: 'Actions',
 } as const;
+
+/** Marqueur d'un acces a duree limitee (`expiresAt` renseigne cote serveur). */
+export const EXTERNAL_BADGE = 'Externe';
 
 // ==============================
 // ACTION LABELS
@@ -53,20 +62,16 @@ export const SEARCH = {
 // ==============================
 // STATUS LABELS (Prisma UserStatus)
 // ==============================
-export const USER_STATUS_LABELS: { value: UserStatus; label: string }[] = [
-  { value: 'DRAFT', label: 'Brouillon' },
-  { value: 'ACTIVE', label: 'Actif' },
-  { value: 'PENDING', label: 'En attente' },
-  { value: 'INACTIVE', label: 'Inactif' },
-] as const;
-
-export const RELATIONSHIP_STATUS_LABELS: {
-  value: RelationshipStatus;
-  label: string;
-}[] = [
-  { value: 'ACTIVE', label: 'Actif' },
-  { value: 'SUSPENDED', label: 'Suspendu' },
-] as const;
+/**
+ * Options des filtres. Les libelles derivent de STATUS_CONFIG, qui pilote deja
+ * les badges de toute l'application : une seule source pour le badge et pour
+ * le filtre.
+ */
+export const USER_STATUS_LABELS: { value: UserStatus; label: string }[] =
+  USER_STATUS_VALUES.map((value) => ({
+    value,
+    label: STATUS_CONFIG[value]?.label ?? value,
+  }));
 
 // ==============================
 // ERROR MESSAGES

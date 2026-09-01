@@ -6,37 +6,28 @@ import { LoaderCircleIcon, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/hooks/useContent';
 import { Button } from '@/components/ui/button';
-import { useLoginForm } from '../../hooks/useLoginForm';
 import { AuthStatusCard } from '../AuthStatusCard';
 import { AUTH_ROUTES } from '../../constants/routes.constants';
 
-type Props = {
-  email: string;
-  password: string;
-};
-
-export function ContinueAfterActivation({ email, password }: Props) {
+export function ContinueAfterActivation() {
   const content = useContent();
   const ui = content.activation.CONTINUE;
 
   const navigate = useNavigate();
   const meStore = useMeStore();
 
-  const { form, submit, loading: loginLoading } = useLoginForm();
   const { refetch: fetchMe } = useGetMe();
 
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleContinue = async () => {
     try {
       setError(null);
+      setLoading(true);
 
-      form.setValue('email', email, { shouldValidate: true });
-      form.setValue('password', password, { shouldValidate: true });
-
-      const res = await submit();
-      if (!res) return;
-
+      // La session est deja ouverte par POST /auth/activation/complete : il
+      // reste seulement a charger le profil pour connaitre la destination.
       await fetchMe();
 
       const redirectTo = getAfterLoginRedirect(meStore);
@@ -44,6 +35,8 @@ export function ContinueAfterActivation({ email, password }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : ui.ERROR_FALLBACK);
       navigate(AUTH_ROUTES.LOGIN, { replace: true });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,9 +49,9 @@ export function ContinueAfterActivation({ email, password }: Props) {
           type="button"
           className="w-full"
           onClick={handleContinue}
-          disabled={loginLoading}
+          disabled={loading}
         >
-          {loginLoading ? (
+          {loading ? (
             <span className="flex items-center justify-center gap-2">
               <LoaderCircleIcon
                 className="h-4 w-4 animate-spin"

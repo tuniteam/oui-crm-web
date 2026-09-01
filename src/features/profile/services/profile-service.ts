@@ -27,12 +27,12 @@ export const profileService = {
     payload: ChangePasswordPayload,
   ): Promise<ChangePasswordResponse> => {
     try {
-      const res = await api.patch<{ data: ChangePasswordResponse }>(
+      const res = await api.patch<ChangePasswordResponse>(
         PROFILE_ROUTES.PROFILE_PASSWORD_API,
         payload,
       );
 
-      return res.data.data;
+      return res.data;
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }
@@ -42,12 +42,12 @@ export const profileService = {
     payload: UpdateProfilePayload,
   ): Promise<UpdateProfileResponse> => {
     try {
-      const res = await api.patch<{ data: UpdateProfileResponse }>(
+      const res = await api.patch<UpdateProfileResponse>(
         PROFILE_ROUTES.PROFILE_API,
         payload,
       );
 
-      return res.data.data;
+      return res.data;
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }
@@ -56,17 +56,17 @@ export const profileService = {
   uploadAvatar: async (file: File): Promise<UploadAvatarResponse> => {
     try {
       const formData = new FormData();
+      // Le contrat n'attend que `file` : le type MIME et le nom d'origine sont
+      // lus sur la piece jointe elle-meme, les renvoyer a plat n'ajoute rien.
       formData.append('file', file);
-      formData.append('declaredMimeType', file.type);
-      formData.append('originalFileName', file.name);
 
-      const res = await api.patch<{ data: UploadAvatarResponse }>(
+      const res = await api.patch<UploadAvatarResponse>(
         PROFILE_ROUTES.PROFILE_AVATAR_API,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } },
       );
 
-      return res.data.data;
+      return res.data;
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }

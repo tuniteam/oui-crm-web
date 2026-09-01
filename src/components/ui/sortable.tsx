@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import {
+  closestCenter,
   defaultDropAnimation,
   defaultDropAnimationSideEffects,
   DndContext,
@@ -738,6 +739,11 @@ function Sortable<T>({
   return (
     <DndContext
       sensors={sensors}
+      // Sans detection explicite, dnd-kit retombe sur `rectIntersection` :
+      // une ligne de liste ne recouvre jamais assez sa voisine pour la
+      // designer, `over` reste vide et le depot ne produit rien. Le centre
+      // le plus proche est la strategie prevue pour les listes triables.
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >

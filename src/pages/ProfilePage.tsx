@@ -1,14 +1,14 @@
 // src/pages/ProfilePage.tsx
 import { useState } from 'react';
-import { ChangeEmailSheet } from '@/features/auth/components/email-change/ChangeEmailSheet';
-import { ChangePasswordSheet } from '@/features/profile/components/changePassword/ChangePasswordSheet';
+import { ChangeEmailWindow } from '@/features/auth/components/email-change/ChangeEmailWindow';
+import { ChangePasswordWindow } from '@/features/profile/components/changePassword/ChangePasswordWindow';
 import { AccessSection } from '@/features/profile/components/profileDetails/AccessSection';
 import { PersonalInformations } from '@/features/profile/components/profileDetails/PersonalInformations';
 import { SecuritySection } from '@/features/profile/components/profileDetails/SecuritySection';
 import { ProfilePageSkeleton } from '@/features/profile/components/profileDetails/skeleton/ProfilePageSkeleton';
 import { UserAvatar } from '@/features/profile/components/profileDetails/UserAvatar';
-import { AvatarEditSheet } from '@/features/profile/components/avatarEdit/AvatarEditSheet';
-import { UpdateProfileSheet } from '@/features/profile/components/updateProfile/UpdateProfileSheet';
+import { AvatarEditWindow } from '@/features/profile/components/avatarEdit/AvatarEditWindow';
+import { UpdateProfileWindow } from '@/features/profile/components/updateProfile/UpdateProfileWindow';
 import { useGetMyProfile } from '@/features/profile/hooks/useGetMyProfile';
 import { useContent } from '@/hooks/useContent';
 
@@ -78,22 +78,22 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <ChangePasswordSheet
+      <ChangePasswordWindow
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}
       />
 
-      <ChangeEmailSheet
+      <ChangeEmailWindow
         open={changeEmailOpen}
         onOpenChange={setChangeEmailOpen}
       />
 
-      <UpdateProfileSheet
+      <UpdateProfileWindow
         open={updateProfileOpen}
         onOpenChange={setUpdateProfileOpen}
       />
 
-      <AvatarEditSheet
+      <AvatarEditWindow
         open={avatarEditOpen}
         onOpenChange={setAvatarEditOpen}
         initialAvatarUrl={profile.avatarUrl}

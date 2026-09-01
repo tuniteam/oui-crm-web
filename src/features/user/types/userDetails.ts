@@ -1,25 +1,18 @@
-import type { RelationshipStatus, UserStatus } from './userList';
+import type { UserListItem } from './userList';
 
-export type UserRelationship = {
-  id: string;
-  roleCode: string;
-  roleLabel: string;
-  status: RelationshipStatus;
+/** Permission effective : issue du role ou d'un override d'affectation. */
+export type EffectivePermission = {
+  code: string;
+  scope: 'PROJECT' | 'OWN';
+  source: 'ROLE' | 'OVERRIDE';
 };
 
-export type UserDetailsResponse = {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  status: UserStatus;
-
-  relationShip: UserRelationship;
-
-  contactType: 'BACKOFFICE' | 'CLIENT';
-  lastLoginAt?: string;
-  failedLoginAttempts?: number;
-
-  createdAt: string;
-  updatedAt: string;
+/**
+ * GET /users/:id : la ligne de liste, plus le telephone et les permissions
+ * effectives. Le serveur ne rend ni `createdAt`/`updatedAt`, ni les compteurs
+ * de connexions echouees.
+ */
+export type UserDetailsResponse = UserListItem & {
+  phone: string | null;
+  permissions: EffectivePermission[];
 };

@@ -1,4 +1,4 @@
-export const CREATE_USER_SHEET = {
+export const CREATE_USER_WINDOW = {
   TITLE: 'Créer un utilisateur',
   LABELS: {
     FIRST_NAME: 'Prénom',
@@ -57,25 +57,28 @@ export const USER_INFORMATION_UI = {
     IDENTITY: 'Identité',
     ACCESS: 'Accès',
     SECURITY: 'Sécurité',
-    METADATA: 'Informations système',
   },
 
   FIELDS: {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
+    INITIALS: 'Initiales',
     EMAIL: 'Email',
+    PHONE: 'Téléphone',
 
     STATUS: 'Statut',
     ROLE: 'Rôle',
-    RELATION_STATUS: 'Statut relation',
+    SCOPE: 'Périmètre',
+    EXPIRES_AT: 'Accès valable jusqu’au',
+    OVERRIDES: 'Permissions ajustées',
 
-    CONTACT_TYPE: 'Type de contact',
     LAST_LOGIN: 'Dernière connexion',
-    FAILED_ATTEMPTS: 'Tentatives échouées',
-
-    CREATED_AT: 'Créé le',
-    UPDATED_AT: 'Modifié le',
   },
+
+  SCOPE_ALL: 'Tout le projet',
+  NO_EXPIRATION: 'Sans expiration',
+  OVERRIDES_FORMAT: (added: number, removed: number) =>
+    `+${added} / -${removed}`,
 
   FALLBACK: '-',
 } as const;

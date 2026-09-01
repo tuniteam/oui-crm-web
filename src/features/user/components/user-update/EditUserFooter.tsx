@@ -1,8 +1,8 @@
 import { LoaderCircleIcon, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EditUserHooks } from '../../hooks/useEditUserForm';
-import { UPDATE_USER_SHEET } from '../../constants/editUser.constants';
-import { SheetFooterSkeleton } from '@/components/skeleton/SheetFooterSkeleton';
+import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
+import { WindowFooterSkeleton } from '@/components/skeleton/WindowFooterSkeleton';
 
 type Props = {
   hooks: EditUserHooks;
@@ -20,12 +20,12 @@ export function EditUserFooter({ hooks, onClose }: Props) {
 
   if (loadingUser || fetchingUser) {
     return (
-      <SheetFooterSkeleton />
+      <WindowFooterSkeleton />
     );
   }
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button
         data-testid="user-edit-cancel-btn"
         type="button"
@@ -34,7 +34,7 @@ export function EditUserFooter({ hooks, onClose }: Props) {
         disabled={isBusy}
       >
         <X />
-        {UPDATE_USER_SHEET.ACTIONS.CANCEL}
+        {UPDATE_USER_WINDOW.ACTIONS.CANCEL}
       </Button>
 
       <Button
@@ -46,12 +46,12 @@ export function EditUserFooter({ hooks, onClose }: Props) {
         {isBusy ? (
           <span className="flex items-center gap-2">
             <LoaderCircleIcon className="h-4 w-4 animate-spin" />
-            {UPDATE_USER_SHEET.LOADING_LABELS.SAVING}
+            {UPDATE_USER_WINDOW.LOADING_LABELS.SAVING}
           </span>
         ) : (
           <span className="flex items-center gap-2">
             <Save />
-            {UPDATE_USER_SHEET.ACTIONS.SAVE}
+            {UPDATE_USER_WINDOW.ACTIONS.SAVE}
           </span>
         )}
       </Button>

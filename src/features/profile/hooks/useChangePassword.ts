@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CHANGE_PASSWORD_SHEET } from '../constants/change-password.constants';
+import { CHANGE_PASSWORD_WINDOW } from '../constants/change-password.constants';
 import { profileService } from '../services/profile-service';
 import {
   ChangePasswordPayload,
@@ -16,12 +16,12 @@ export function useChangePassword() {
     mutationFn: (payload) => profileService.changePassword(payload),
 
     onSuccess: () => {
-      toast.success(CHANGE_PASSWORD_SHEET.TOASTS.SUCCESS);
+      toast.success(CHANGE_PASSWORD_WINDOW.TOASTS.SUCCESS);
     },
 
     onError: (e) => {
       console.error(e);
-      toast.error(e?.message ?? CHANGE_PASSWORD_SHEET.TOASTS.ERROR);
+      toast.error(e?.message ?? CHANGE_PASSWORD_WINDOW.TOASTS.ERROR);
     },
   });
 

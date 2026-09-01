@@ -22,11 +22,11 @@ const PRIMARY_SURFACE = [
 ].join(' ');
 
 const DESTRUCTIVE_SURFACE = [
-  'bg-[linear-gradient(to_bottom_right,var(--btn-destructive-from),var(--btn-destructive-to))]',
+  'bg-[var(--btn-destructive-bg)]',
   'shadow-[var(--btn-destructive-shadow)]',
-  'hover:bg-[linear-gradient(to_bottom_right,var(--btn-destructive-from-hover),var(--btn-destructive-to-hover))]',
+  'hover:bg-[var(--btn-destructive-bg-hover)]',
   'hover:shadow-[var(--btn-destructive-shadow-hover)]',
-  'data-[state=open]:bg-[linear-gradient(to_bottom_right,var(--btn-destructive-from-hover),var(--btn-destructive-to-hover))]',
+  'data-[state=open]:bg-[var(--btn-destructive-bg-hover)]',
   'active:shadow-[var(--btn-destructive-shadow)]',
 ].join(' ');
 

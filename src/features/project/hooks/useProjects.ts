@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ERRORS } from '../constants/constants';
@@ -13,11 +14,14 @@ export const useProjects = (params: ProjectListParams) => {
     queryFn: () => projectService.getAll(params),
   });
 
-  if (query.isError) {
-    const msg =
-      query.error instanceof Error ? query.error.message : ERRORS.FETCH_PROJECTS;
-    toast.error(msg);
-  }
+  // Effet et non corps de rendu : sinon une requete en echec reaffiche un
+  // toast a chaque rendu, donc a chaque frappe dans la recherche.
+  useEffect(() => {
+    if (!query.isError) return;
+    toast.error(
+      query.error instanceof Error ? query.error.message : ERRORS.FETCH_PROJECTS,
+    );
+  }, [query.isError, query.error]);
 
   return {
     response: query.data ?? null,

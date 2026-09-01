@@ -20,9 +20,11 @@ export const resetPasswordService = {
   },
 
   validateToken: async (token: string): Promise<PasswordResetValidateResponse> => {
-    const res = await api.get<PasswordResetValidateResponse>(
+    // POST et non GET : meme raison que pour l'activation — le token ne doit
+    // jamais transiter par l'URL (logs, proxies, Referer).
+    const res = await api.post<PasswordResetValidateResponse>(
       AUTH_ROUTES.RESET_PASSWORD_VALIDATE,
-      { params: { token } },
+      { token },
     );
     return res.data;
   },

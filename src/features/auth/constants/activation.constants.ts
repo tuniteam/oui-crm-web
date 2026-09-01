@@ -21,6 +21,8 @@ export const ACTIVATION = {
   CREATE_PASSWORD: {
     ERROR_UNKNOWN: "Erreur inconnue",
     TITLE: 'Activation de votre compte',
+    IDENTITY_TITLE: 'Votre compte',
+    LEGAL_TITLE: 'Documents à consulter avant acceptation',
     SUBTITLE: 'Bienvenue ! Finalisez votre inscription pour accéder à Oui Crm.',
     LABELS: {
       PASSWORD: 'Mot de passe',
@@ -67,11 +69,6 @@ export const ACTIVATION = {
   SCHEMA: {
     PASSWORD: {
       REQUIRED: 'Champ requis',
-      MIN: 'Minimum 8 caractères',
-      UPPER: 'Au moins 1 majuscule',
-      LOWER: 'Au moins 1 minuscule',
-      NUMBER: 'Au moins 1 chiffre',
-      SPECIAL: 'Au moins 1 caractère spécial',
       MATCH: 'Les mots de passe ne correspondent pas',
     },
     CGU_REQUIRED: 'Vous devez accepter les CGU',

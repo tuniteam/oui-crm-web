@@ -1,6 +1,6 @@
 import { LoaderCircleIcon, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CREATE_USER_SHEET } from '../constants/users.constants';
+import { CREATE_USER_WINDOW } from '../constants/users.constants';
 import { CreateUserHooks } from './CreateUserBody';
 import { COMMON } from '@/constants';
 
@@ -23,7 +23,7 @@ export function CreateUserFooter({ hooks, onClose, onCreated }: Props) {
   };
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button type="button" variant="outline" onClick={onClose} disabled={isBusy}>
         <X aria-hidden="true" />
         {COMMON.ACTIONS.CANCEL}
@@ -33,7 +33,7 @@ export function CreateUserFooter({ hooks, onClose, onCreated }: Props) {
         {create.loading ? (
           <span className="flex items-center gap-2">
             <LoaderCircleIcon className="h-4 w-4 animate-spin" aria-hidden="true" />
-            {CREATE_USER_SHEET.LOADING_LABELS.CREATING}
+            {CREATE_USER_WINDOW.LOADING_LABELS.CREATING}
           </span>
         ) : (
           <>

@@ -2,7 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { COMMON } from '@/constants/common';
 import { CopyButton } from '@/components/shared/CopyButton';
-import { TABLE_HEADERS } from '../constants/userList.constants';
+import { EXTERNAL_BADGE, TABLE_HEADERS } from '../constants/userList.constants';
 import type { UserListItem } from '../types/userList';
 import { UserDetailsLink } from './UserDetailsLink';
 import { UserRoleBadge } from './UserRoleBadge';
@@ -28,9 +28,19 @@ export const userColumns: ColumnDef<UserListItem>[] = [
           <div className="space-y-px">
             <div
               data-testid={`user-name-${row.original.id}`}
-              className="font-medium text-foreground"
+              className="flex items-center gap-2 font-medium text-foreground"
             >
               {fullName || '-'}
+              {row.original.initials ? (
+                <span className="text-xs text-muted-foreground">
+                  {row.original.initials}
+                </span>
+              ) : null}
+              {row.original.isExternal ? (
+                <span className="rounded border px-1 text-[10px] uppercase text-muted-foreground">
+                  {EXTERNAL_BADGE}
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -73,7 +83,7 @@ export const userColumns: ColumnDef<UserListItem>[] = [
   },
 
   {
-    accessorKey: 'relationShip.roleLabel',
+    accessorKey: 'roleLabel',
     id: 'role',
     header: ({ column }) => (
       <DataGridColumnHeader
@@ -83,11 +93,31 @@ export const userColumns: ColumnDef<UserListItem>[] = [
       />
     ),
     cell: ({ row }) => (
-      <UserRoleBadge roleLabel={row.original.relationShip.roleLabel} />
+      <UserRoleBadge roleLabel={row.original.roleLabel} />
     ),
     size: 180,
     meta: { headerTitle: TABLE_HEADERS.ROLE },
     enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
+  },
+
+  {
+    accessorKey: 'scope',
+    id: 'scope',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.SCOPE}
+        visibility={true}
+        column={column}
+      />
+    ),
+    // `scope: null` = aucun perimetre restreint, l'utilisateur voit tout le
+    // projet dans la limite de ses permissions.
+    cell: ({ row }) => <span>{row.original.scope?.name ?? '-'}</span>,
+    size: 160,
+    meta: { headerTitle: TABLE_HEADERS.SCOPE },
+    enableSorting: false,
     enableHiding: true,
     enableResizing: true,
   },

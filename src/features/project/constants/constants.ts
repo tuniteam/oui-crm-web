@@ -49,6 +49,7 @@ export const TABLE_HEADERS = {
 export const ACTIONS = {
   NEW_PROJECT: 'Nouveau projet',
   VIEW_PROJECT: 'Voir le projet',
+  OPEN_PROJECT: 'Ouvrir le projet dans un onglet',
 } as const;
 
 export const SEARCH = {
@@ -104,6 +105,12 @@ export const PROJECT_INFORMATION_UI = {
     EMPTY: 'Aucune fonctionnalité déclarée.',
   },
   FALLBACK: '—',
+} as const;
+
+export const PROJECT_NOT_FOUND = {
+  TITLE: 'Projet introuvable',
+  DESCRIPTION: "Ce projet n'existe pas ou a été supprimé.",
+  BACK: 'Retour aux projets',
 } as const;
 
 export const ERRORS = {

@@ -1,4 +1,4 @@
-export const AVATAR_EDIT_SHEET = {
+export const AVATAR_EDIT_WINDOW = {
   TITLE: 'Photo de profil',
 
   LABELS: {

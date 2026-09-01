@@ -6,12 +6,15 @@ import type {
   ActivationValidateResponse,
 } from '../types/auth';
 import { AUTH_ROUTES } from '../constants/routes.constants';
+import { tokenService } from './token.service';
 
 export const activateAccountService = {
   validateToken: async (token: string): Promise<ActivationValidateResponse> => {
-    const res = await api.get<ActivationValidateResponse>(
+    // POST et non GET : un token en query string finit dans les logs serveur
+    // et les proxies. Le contrat (SPEC-11 US-00-02) l'exige dans le corps.
+    const res = await api.post<ActivationValidateResponse>(
       AUTH_ROUTES.ACTIVATION_VALIDATE,
-      { params: { token } },
+      { token },
     );
     return res.data;
   },
@@ -23,6 +26,12 @@ export const activateAccountService = {
       AUTH_ROUTES.ACTIVATION_COMPLETE,
       payload,
     );
+
+    // Le succes ouvre la session, exactement comme un login : on stocke les
+    // jetons ici plutot que de refaire un /auth/login avec le mot de passe
+    // garde en memoire.
+    tokenService.setTokens(res.data.accessToken, res.data.refreshToken);
+
     return res.data;
   },
 };

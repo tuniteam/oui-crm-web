@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Check, LoaderCircleIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/hooks/useContent';
+import { getApiErrorCode, getApiErrorMessage } from '@/shared/utils/api-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -14,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import type { ActivationValidateResponse } from '../../types/auth';
 import { AUTH_ROUTES } from '../../constants/routes.constants';
 import { useActivateAccount } from '../../hooks/useActivateAccount';
 import { useCreatePasswordForm } from '../../hooks/useCreatePasswordForm';
@@ -23,12 +25,15 @@ import { PasswordValidators } from './PasswordValidators';
 
 type Props = {
   token: string;
-  onActivated: (data: { email: string; password: string }) => void;
+  /** Identite et documents legaux rendus par validate ; null tant qu'absents. */
+  account: ActivationValidateResponse | null;
+  /** L'activation a ouvert la session : plus rien a re-saisir. */
+  onActivated: () => void;
 };
 
-type ActivationError = 'expired' | 'invalid' | 'unknown' | null;
+type ActivationError = 'expired' | 'invalid' | null;
 
-export function CreatePassword({ token, onActivated }: Props) {
+export function CreatePassword({ token, account, onActivated }: Props) {
   const content = useContent();
   const ui = content.activation.CREATE_PASSWORD;
 
@@ -37,6 +42,8 @@ export function CreatePassword({ token, onActivated }: Props) {
   const navigate = useNavigate();
 
   const [activationError, setActivationError] = useState<ActivationError>(null);
+  /** Message serveur des refus metier (consentement, politique de mot de passe). */
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isBusy = activate.loading;
   const canSubmit = form.formState.isValid && !isBusy;
@@ -45,21 +52,23 @@ export function CreatePassword({ token, onActivated }: Props) {
   const handleSubmit = async () => {
     const values = form.getValues();
     setActivationError(null);
+    setSubmitError(null);
 
+    // Les deux consentements font partie du contrat : sans eux le serveur
+    // repond 400 LEGAL_CONSENT_REQUIRED. Le schema les impose deja a `true`.
     const result = await activate.activate({
       token,
       password: values.password,
+      acceptCgu: values.acceptCgu,
+      acceptRgpd: values.acceptRgpd,
     });
 
     if (result.ok) {
-      onActivated({ email: result.data.email, password: values.password });
+      onActivated();
       return;
     }
 
-    const err = result.error as {
-      response?: { data?: { messages?: { code?: string } } };
-    };
-    const code = err?.response?.data?.messages?.code;
+    const code = getApiErrorCode(result.error);
     if (code === 'ACTIVATION_TOKEN_EXPIRED') {
       setActivationError('expired');
       return;
@@ -70,7 +79,9 @@ export function CreatePassword({ token, onActivated }: Props) {
       return;
     }
 
-    setActivationError('unknown');
+    // Mot de passe refuse, consentement manquant, panne : on montre le message
+    // du serveur plutot qu'un « erreur inconnue » qui ne dit rien.
+    setSubmitError(getApiErrorMessage(result.error));
   };
 
   if (activationError === 'expired' || activationError === 'invalid') {
@@ -91,9 +102,21 @@ export function CreatePassword({ token, onActivated }: Props) {
         {ui.SUBTITLE}
       </p>
 
-      {activationError === 'unknown' ? (
+      {submitError ? (
         <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-          {ui.ERROR_UNKNOWN}
+          {submitError}
+        </div>
+      ) : null}
+
+      {account ? (
+        <div className="mt-4 rounded-md border bg-muted/40 p-3 text-sm">
+          <div className="text-xs font-medium uppercase text-muted-foreground">
+            {ui.IDENTITY_TITLE}
+          </div>
+          <div className="mt-1 font-medium">
+            {account.firstName} {account.lastName}
+          </div>
+          <div className="text-muted-foreground">{account.email}</div>
         </div>
       ) : null}
 
@@ -143,6 +166,30 @@ export function CreatePassword({ token, onActivated }: Props) {
             />
 
             <PasswordValidators password={passwordValue} />
+
+            {account && account.legalDocuments.length > 0 ? (
+              <div className="pt-2">
+                <div className="text-xs font-medium uppercase text-muted-foreground">
+                  {ui.LEGAL_TITLE}
+                </div>
+                {/* La liste vient du serveur (code + version) : ne jamais la
+                    coder en dur, elle evolue avec les versions publiees. */}
+                <ul className="mt-2 space-y-1">
+                  {account.legalDocuments.map((doc) => (
+                    <li key={`${doc.code}-${doc.version}`}>
+                      <a
+                        className="text-sm text-primary underline underline-offset-2"
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {`${doc.code} (v${doc.version})`}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             <div className="space-y-3 pt-2">
               <FormField

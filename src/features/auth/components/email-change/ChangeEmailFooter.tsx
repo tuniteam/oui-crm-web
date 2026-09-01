@@ -29,7 +29,7 @@ export function ChangeEmailFooter({ hooks, onClose }: Props) {
   const disabled = isBusy || !form.formState.isValid;
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button
         variant="outline"
         className="min-w-0"

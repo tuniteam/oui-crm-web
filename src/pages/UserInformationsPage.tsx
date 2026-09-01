@@ -3,14 +3,14 @@ import { useMemo, useState } from 'react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { CorrectEmailCard } from '@/features/user/components/correctEmail/CorrectEmailCard';
 import { CorrectEmailDialog } from '@/features/user/components/correctEmail/CorrectEmailDialog';
-import { DeleteUserSheet } from '@/features/user/components/user-delete/DeleteUserSheet';
+import { DeleteUserWindow } from '@/features/user/components/user-delete/DeleteUserWindow';
 import { UserDeleteCardSkeleton } from '@/features/user/components/user-delete/skeleton/UserDeleteCardSkeleton';
 import { UserDeleteCard } from '@/features/user/components/user-delete/UserDeleteCard';
 import { UserDetailsBodySkeleton } from '@/features/user/components/user-details/skeleton/UserDetailsBodySkeleton';
 import { UserDetailsTabsNav } from '@/features/user/components/user-details/UserDetailsTabsNav';
 import { UserInformationsTab } from '@/features/user/components/user-details/UserInformationsTab';
 import { UserInviteCard } from '@/features/user/components/user-invite/UserInviteCard';
-import { EditUserSheet } from '@/features/user/components/user-update/EditUserSheet';
+import { EditUserWindow } from '@/features/user/components/user-update/EditUserWindow';
 import { INVITABLE_STATUSES } from '@/features/user/constants/invite-user.constants';
 import { USER_ROUTES } from '@/features/user/constants/user.routes';
 import { useInviteUser } from '@/features/user/hooks/useInviteUser';
@@ -76,7 +76,6 @@ export function UserInformationsPage() {
         hasPermission(PERMISSIONS.USERS.UPDATE) &&
         INVITABLE_STATUSES.includes(data.status) && (
           <UserInviteCard
-            status={data.status}
             onInviteClick={() => inviteUser(data.id)}
             isLoading={inviteLoading}
           />
@@ -99,7 +98,7 @@ export function UserInformationsPage() {
         )}
 
       {data?.id && expectedName ? (
-        <DeleteUserSheet
+        <DeleteUserWindow
           open={openDelete}
           onOpenChange={setOpenDelete}
           userId={data.id}
@@ -108,7 +107,7 @@ export function UserInformationsPage() {
       ) : null}
 
       {data?.id ? (
-        <EditUserSheet
+        <EditUserWindow
           open={openEdit}
           onOpenChange={setOpenEdit}
           userId={data.id}

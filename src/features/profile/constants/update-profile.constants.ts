@@ -1,4 +1,4 @@
-export const UPDATE_PROFILE_SHEET = {
+export const UPDATE_PROFILE_WINDOW = {
   TITLE: 'Modifier les informations personnelles',
 
   LABELS: {

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AVATAR_EDIT_SHEET } from '../constants/avatar-edit.constants';
+import { AVATAR_EDIT_WINDOW } from '../constants/avatar-edit.constants';
 import { profileService } from '../services/profile-service';
 import type { AvatarEditErrors, DraftAvatarFile } from '../types/avatar';
 import type { MyProfileResponse } from '../types/profile';
@@ -39,18 +39,18 @@ export function useAvatarEdit({ initialAvatarUrl, onClose }: UseAvatarEditOption
 
   const validateAndSetFile = useCallback(
     (file: File) => {
-      if (!AVATAR_EDIT_SHEET.ACCEPTED_MIME_TYPES.includes(file.type)) {
+      if (!AVATAR_EDIT_WINDOW.ACCEPTED_MIME_TYPES.includes(file.type)) {
         setErrors((prev) => ({
           ...prev,
-          type: AVATAR_EDIT_SHEET.ERRORS.INVALID_TYPE,
+          type: AVATAR_EDIT_WINDOW.ERRORS.INVALID_TYPE,
           size: undefined,
         }));
         return;
       }
-      if (file.size > AVATAR_EDIT_SHEET.MAX_FILE_SIZE_BYTES) {
+      if (file.size > AVATAR_EDIT_WINDOW.MAX_FILE_SIZE_BYTES) {
         setErrors((prev) => ({
           ...prev,
-          size: AVATAR_EDIT_SHEET.ERRORS.FILE_TOO_LARGE,
+          size: AVATAR_EDIT_WINDOW.ERRORS.FILE_TOO_LARGE,
           type: undefined,
         }));
         return;
@@ -132,10 +132,10 @@ export function useAvatarEdit({ initialAvatarUrl, onClose }: UseAvatarEditOption
       if (draftAvatarFile) {
         const response = await profileService.uploadAvatar(draftAvatarFile.file);
         nextAvatarUrl = response.avatarUrl;
-        toast.success(AVATAR_EDIT_SHEET.TOASTS.UPLOAD_SUCCESS);
+        toast.success(AVATAR_EDIT_WINDOW.TOASTS.UPLOAD_SUCCESS);
       } else if (draftDelete && initialAvatarUrl) {
         await profileService.deleteAvatar();
-        toast.success(AVATAR_EDIT_SHEET.TOASTS.DELETE_SUCCESS);
+        toast.success(AVATAR_EDIT_WINDOW.TOASTS.DELETE_SUCCESS);
       }
 
       queryClient.setQueryData<MyProfileResponse>(['my-profile'], (old) =>
@@ -150,7 +150,7 @@ export function useAvatarEdit({ initialAvatarUrl, onClose }: UseAvatarEditOption
       setErrors({});
       onClose();
     } catch {
-      setErrors((prev) => ({ ...prev, save: AVATAR_EDIT_SHEET.ERRORS.SAVE_FAILED }));
+      setErrors((prev) => ({ ...prev, save: AVATAR_EDIT_WINDOW.ERRORS.SAVE_FAILED }));
     } finally {
       setIsSaving(false);
     }

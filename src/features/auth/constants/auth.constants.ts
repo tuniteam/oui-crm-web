@@ -34,7 +34,6 @@ export const AUTH = {
   ZOD: {
     REQUIRED: 'Champ requis',
     INVALID_EMAIL: 'Adresse email invalide',
-    PASSWORD_MIN: 'Le mot de passe doit contenir au moins 8 caractères',
   },
 
   BRANDING: {
@@ -53,7 +52,7 @@ export const AUTH = {
     ACCOUNT_LOCKED_UNTIL: (delay: string) =>
       `Trop de tentatives. Réessayez dans ${delay}.`,
     ACCOUNT_NOT_ACTIVE:
-      "Votre compte n'est pas actif. Contactez votre administrateur.",
+      "Votre compte n'est pas actif. Vérifiez l'e-mail d'activation, ou contactez votre administrateur.",
     SERVER: 'Une erreur est survenue. Veuillez réessayer.',
     NO_REFRESH_TOKEN: 'Refresh Token non existant',
     NO_ACCESS_TOKEN: 'Access Token non existant',

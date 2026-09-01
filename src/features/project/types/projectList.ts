@@ -1,4 +1,5 @@
 import type { FEATURE_CODE_VALUES } from '../constants/constants';
+import type { PaginationMeta } from '@/features/user/types/userList';
 import type { ProjectStatus } from './project';
 
 export type FeatureCode = (typeof FEATURE_CODE_VALUES)[number];
@@ -15,13 +16,6 @@ export type ProjectListItem = {
   createdAt: string;
 };
 
-export type PaginationMeta = {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
-
 export type ProjectListResponse = {
   data: ProjectListItem[];
   meta: PaginationMeta;
@@ -33,3 +27,5 @@ export type ProjectListParams = {
   status?: ProjectStatus;
   search?: string;
 };
+
+export type { PaginationMeta };

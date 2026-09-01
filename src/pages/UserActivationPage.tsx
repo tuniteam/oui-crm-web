@@ -8,28 +8,21 @@ import { useValidateToken } from '@/features/auth/hooks/useValidateToken';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AUTH_ROUTES } from '@/features/auth/constants/routes.constants';
 
-type ActivatedCreds = { email: string; password: string };
-
 export default function UserActivationPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
   const token = useMemo(() => params.get('token'), [params]);
-  const { state } = useValidateToken(token);
+  const { state, account } = useValidateToken(token);
 
-  const [activated, setActivated] = useState<ActivatedCreds | null>(null);
+  const [activated, setActivated] = useState(false);
 
   const backToLogin = () => navigate(AUTH_ROUTES.LOGIN, { replace: true });
 
   let body = null;
 
   if (activated) {
-    body = (
-      <ContinueAfterActivation
-        email={activated.email}
-        password={activated.password}
-      />
-    );
+    body = <ContinueAfterActivation />;
   } else if (state === 'loading') {
     body = <ActivationLoadingSkeleton />;
   } else if (state === 'expired') {
@@ -38,7 +31,11 @@ export default function UserActivationPage() {
     body = <InvalidToken variant="invalid" onBackToLogin={backToLogin} />;
   } else {
     body = (
-      <CreatePassword token={token as string} onActivated={setActivated} />
+      <CreatePassword
+        token={token as string}
+        account={account}
+        onActivated={() => setActivated(true)}
+      />
     );
   }
 
