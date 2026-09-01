@@ -124,18 +124,43 @@ transposable tel quel si les routes ne portent pas l'identifiant. Deux options :
 
 | Option | Routes front | Repli possible | Lien partageable |
 |---|---|---|---|
-| **A** — routes préfixées | `/p/:projectSlug/users` | oui (résoudre le slug) | oui |
+| **A** — routes préfixées | `/:projectId/users` | oui | technique |
 | **B** — projet implicite | `/users` + store persisté | non | non |
 
-L'option A reproduit soft-m et donne des URL partageables, au prix d'une
-résolution slug → id. L'option B est plus simple mais un onglet rouvert perd son
-contexte, sauf persistance locale.
+**Décision : option A, avec le CUID du projet dans l'URL.**
 
-**L'ouverture dans un onglet dédié pousse vers A** : un nouvel onglet ne partage
-pas la mémoire du premier, seule l'URL peut lui dire sur quel projet il travaille.
-Avec B, les deux onglets partageraient un même `localStorage` et se
-marcheraient dessus — c'est précisément le scénario que le mode onglet cherche à
-éviter.
+L'ouverture en onglet dédié impose A : un nouvel onglet ne partage pas la mémoire
+du premier, seule l'URL peut lui dire sur quel projet il travaille. Avec B, deux
+onglets partageraient un même `localStorage` et se marcheraient dessus — le
+scénario que le mode onglet cherche justement à éviter.
+
+**Pourquoi le CUID et non le slug**, alors que le DTO de création décrit ce
+dernier comme « immutable identifier used in URLs » :
+
+1. **La résolution est asymétrique, au détriment de celui qui en a besoin.** Un
+   utilisateur projet a le couple `projectId` + `projectSlug` dans son
+   `/profile/me` : résoudre lui coûte zéro appel. Un **back-office ne l'a pas** —
+   ses relations n'ont pas de projet. Or c'est lui qui ouvre des projets.
+2. **L'API ne sait pas résoudre un slug.** `GET /projects/:id` est gardé par un
+   `ParseCuidPipe` : un slug y est rejeté en `400 INVALID_CUID`. Il n'existe
+   aucune route de résolution ; seul `GET /projects?search=` existe, et sa
+   recherche est **floue** (slug, nom et nom de produit), donc inapte à un
+   lookup exact.
+3. **Un aller-retour au lieu de deux.** Le menu a de toute façon besoin de
+   `GET /projects/:id` pour le nom et les fonctionnalités. Avec un CUID, cet
+   appel sert aussi de validation. Avec un slug, il faudrait résoudre d'abord,
+   appeler ensuite.
+4. **Le nouvel onglet démarre immédiatement** : la valeur de l'URL *est* celle de
+   l'en-tête `x-project-id`, sans attente ni gestion d'échec de résolution.
+
+C'est aussi le choix de soft-m, dont les routes portent un cuid
+(`/:clientId/dashboard`) et non un nom.
+
+**Ce qui ferait changer d'avis** : que l'API accepte le slug sur le détail
+(`GET /projects/:idOrSlug`, en assouplissant le `ParseCuidPipe` — le
+`findUnique({ where: { slug } })` existe déjà dans le service). On gagnerait des
+URL lisibles et dictables. À demander si le besoin de partager des liens
+apparaît ; inutile tant que les projets s'ouvrent depuis la liste.
 
 ### 2.2 Correspondance des pièces
 
@@ -212,11 +237,11 @@ existe déjà sous la forme du détail projet.
 
 ## 4. Décisions à prendre avant de coder
 
-1. Option **A** (routes préfixées) ou **B** (projet implicite) ?
-2. Si A : préfixe par `slug` (lisible, `projectSlug` est fourni par
-   `/profile/me` et `GET /projects`) ou par `id` (direct, aucune résolution) ?
-3. Le mode gestion et le mode configuration sont-ils distincts, comme le
+1. Le mode gestion et le mode configuration sont-ils distincts, comme le
    `enableClientManage` de soft-m ?
+
+Tranché : **routes préfixées par le CUID du projet** (§2.1), et **permissions du
+back-office inchangées, fonctionnalités rechargées par projet** (§2.3).
 
 La question des permissions du back-office est **tranchée** (§2.3) : ses propres
 permissions le suivent, seules les fonctionnalités du projet sont rechargées.
