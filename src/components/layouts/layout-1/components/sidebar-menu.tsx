@@ -10,6 +10,9 @@ import {
 import { useMeStore } from '@/contexts/useMeStore'
 import { Link, useLocation } from 'react-router-dom';
 import { MENU_SIDEBAR } from '@/config/layout-1.config';
+import { buildProjectMenu } from '@/config/menu-project';
+import { useProjectModeStore } from '@/contexts/useProjectModeStore';
+import { useProject } from '@/features/project/hooks/useProject';
 import { MenuConfig, MenuItem } from '@/config/types';
 import { cn } from '@/lib/utils';
 import {
@@ -69,6 +72,25 @@ export function SidebarMenu() {
       (path.length > 1 && pathname.startsWith(path) && path !== '/layout-1'),
     [pathname],
   );
+
+  // Menu projet quand un projet est ouvert, menu plateforme sinon.
+  // Les permissions restent celles de l'utilisateur : elles le suivent,
+  // seul le perimetre des ecrans change.
+  const isProjectMode = useProjectModeStore((s) => s.isProjectMode);
+  const activeProjectId = meStore.getActiveProjectId();
+  const { data: activeProject } = useProject(
+    isProjectMode ? (activeProjectId ?? undefined) : undefined,
+  );
+
+  const menuConfig = useMemo(() => {
+    if (!isProjectMode || !activeProjectId) return MENU_SIDEBAR;
+    return buildProjectMenu(
+      activeProjectId,
+      activeProject?.name ?? '',
+      meStore.getPermissionCodes(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProjectMode, activeProjectId, activeProject?.name, meStore.me]);
 
   // Collect section values for localStorage persistence
   const sectionValues = useMemo(
@@ -332,7 +354,7 @@ export function SidebarMenu() {
           defaultRootValue={openSections}
           onRootValueChange={handleSectionsChange}
         >
-          {buildMenu(MENU_SIDEBAR)}
+          {buildMenu(menuConfig)}
         </AccordionMenu>
       </ScrollArea>
     </div>

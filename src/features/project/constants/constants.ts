@@ -49,6 +49,7 @@ export const TABLE_HEADERS = {
 export const ACTIONS = {
   NEW_PROJECT: 'Nouveau projet',
   VIEW_PROJECT: 'Voir le projet',
+  OPEN_PROJECT: 'Ouvrir le projet dans un onglet',
 } as const;
 
 export const SEARCH = {

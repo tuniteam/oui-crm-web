@@ -24,6 +24,17 @@ const api = axios.create({
  */
 const PROJECT_HEADER = 'x-project-id';
 
+/**
+ * Le projectId est un CUID (25 caracteres, commence par 'c'). En mode projet,
+ * c'est le 1er segment de l'URL front.
+ */
+const PROJECT_ID_RE = /^c[a-z0-9]{24}$/;
+
+function projectIdFromPath(): string | null {
+  const segment = window.location.pathname.split('/')[1];
+  return segment && PROJECT_ID_RE.test(segment) ? segment : null;
+}
+
 /** Prefixes des flux publics a jeton, non couverts par AUTH_ROUTES. */
 const PASSWORD_RESET_PATH = '/auth/password-reset';
 const EMAIL_CHANGE_PATH = '/auth/email-change';
@@ -36,7 +47,12 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const projectId = useMeStore.getState().getActiveProjectId();
+    // Le store est la source normale ; on retombe sur l'URL quand il est
+    // momentanement vide — au remontage en StrictMode, le nettoyage du
+    // ProjectScopeBinder l'efface juste avant qu'une requete reparte, et
+    // l'appel partirait alors sans en-tete (400 PROJECT_IS_REQUIRED).
+    const projectId =
+      useMeStore.getState().getActiveProjectId() ?? projectIdFromPath();
     if (projectId) {
       config.headers[PROJECT_HEADER] = projectId;
     }

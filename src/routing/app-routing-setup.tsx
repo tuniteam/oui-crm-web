@@ -9,6 +9,7 @@ import { GuestOnly } from '@/guards/GuestOnly';
 import { RequireAuth } from '@/guards/RequireAuth';
 import { RequirePermission } from '@/guards/RequirePermission';
 import { RequireValidPath } from '@/guards/RequireValidPath';
+import { ProjectScopeBinder } from '@/tenant/ProjectScopeBinder';
 import EmailChangeConfirmationPage from '@/pages/EmailChangeConfirmationPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import UserActivationPage from '@/pages/UserActivationPage';
@@ -83,6 +84,21 @@ export function AppRoutingSetup() {
             <Route
               path="/users/:userId/informations"
               element={<UserInformationsPage />}
+            />
+          </Route>
+
+          {/* Mode projet : le projet est dans l'URL du front (nouvel onglet),
+              jamais dans l'appel API — l'en-tete x-project-id le porte. */}
+          <Route
+            element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}
+          >
+            <Route
+              path="/:projectId/users"
+              element={
+                <ProjectScopeBinder enableProjectMode>
+                  <UsersTable />
+                </ProjectScopeBinder>
+              }
             />
           </Route>
 

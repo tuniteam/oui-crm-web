@@ -5,6 +5,23 @@
  * (`'users:delte'`) échouerait silencieusement côté `hasPermission`.
  */
 export const PERMISSIONS = {
+  DASHBOARD: { READ: 'dashboard:read' },
+  STATS: { READ: 'stats:read' },
+  ACTIVITIES: { READ: 'activities:read' },
+  ORGANIZATIONS: { READ: 'organizations:read' },
+  CAMPAIGNS: { READ: 'campaigns:read' },
+  OPPORTUNITIES: { READ: 'opportunities:read' },
+  QUOTES: { READ: 'quotes:read' },
+  CONTRACTS: { READ: 'contracts:read' },
+  INVOICES: { READ: 'invoices:read' },
+  DEPLOYMENTS: { READ: 'deployments:read' },
+  TRAININGS: { READ: 'trainings:read' },
+  TICKETS: { READ: 'tickets:read' },
+  ROLES: { READ: 'roles:read' },
+  SCOPES: { READ: 'scopes:read' },
+  REFERENCES: { READ: 'references:read' },
+  SETTINGS: { READ: 'settings:read' },
+  AUDIT_LOG: { READ: 'auditLog:read' },
   /** Comptes back-office — routes plateforme, sans projet. */
   USER_BACKOFFICE: {
     READ: 'userBackoffice:read',

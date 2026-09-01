@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
+import { ExternalLink, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Tooltip,
@@ -142,6 +142,23 @@ export const projectColumns: ColumnDef<ProjectListItem>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-3">
+        {/* Ouvrir le projet dans un onglet dedie : l'administration reste
+            disponible dans l'onglet courant, les deux contextes coexistent. */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              data-testid={`project-open-${row.original.id}`}
+              to={PROJECT_ROUTES.PROJECT_WORKSPACE(row.original.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-primary hover:opacity-80"
+            >
+              <ExternalLink size={18} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>{ACTIONS.OPEN_PROJECT}</TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
