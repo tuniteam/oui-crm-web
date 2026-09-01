@@ -21,6 +21,7 @@
   --brand-primary: #0369A1;      /* Azur */
   --brand-primary-dark: #075985; /* Azur - survol / etat presse */
   --brand-primary-soft: #E0F2FE; /* Azur - fond de pastille */
+  --brand-primary-light: #38BDF8; /* Azur eclairci - premier plan en sombre */
   --brand-secondary: #54A0FF;    /* Bleu Ciel */
   --brand-accent-rose: #FF6B6B;  /* Rose */
   --brand-accent-amber: #FDCB6E; /* Soleil */
@@ -137,15 +138,18 @@
  * Dark Mode Overrides
  * ======================================== */
 .dark {
-  --primary: var(--brand-primary);
-  --primary-foreground: #FFFFFF;
+  /* L'azur de marque est sombre : en texte, lien ou anneau de focus il donne
+   * 2.51 sur le fond sombre. On prend la variante eclaircie (6.95 en texte,
+   * 8.12 en aplat sous l'encre) et le premier plan passe en encre. */
+  --primary: var(--brand-primary-light);
+  --primary-foreground: var(--gray-900);
   --secondary: var(--gray-800);
   --secondary-foreground: var(--gray-100);
   --accent: var(--gray-800);
   --accent-foreground: var(--gray-100);
   --foreground: var(--gray-100);
   --muted-foreground: var(--gray-400);
-  --ring: var(--brand-primary);
+  --ring: var(--brand-primary-light);
   --border: var(--gray-700);
   --input: var(--gray-700);
 
@@ -248,6 +252,21 @@
     border-color: var(--invoice-accent);
   }
 }
+/* En mode sombre, ces utilitaires servent de PREMIER PLAN (icone d'action,
+ * lien, filet) : l'azur de marque y tombe a 2.51. Seul bg-brand-primary reste
+ * inchange, un aplat sombre sous du texte blanc etant lisible. */
+@layer utilities {
+  .dark .text-brand-primary {
+    color: var(--brand-primary-light);
+  }
+  .dark .border-brand-primary {
+    border-color: var(--brand-primary-light);
+  }
+  .dark .ring-brand-primary {
+    --tw-ring-color: var(--brand-primary-light);
+  }
+}
+
 
 /* ========================================
  * Toast Overrides
