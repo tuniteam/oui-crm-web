@@ -22,7 +22,7 @@ import { resolve } from 'node:path';
 
 const FRONT = process.env.PROBE_FRONT ?? 'http://localhost:5174';
 const API_PATH = '/api/v1';
-const OUT = process.env.PROBE_OUT ?? '.probe';
+const OUT = process.env.PROBE_OUT ?? 'docs/probe';
 const EMAIL =
   process.env.PROBE_EMAIL ?? 'email.ouicrm+superadmin@gmail.com';
 

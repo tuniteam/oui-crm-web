@@ -54,5 +54,7 @@ docs/assets/
 
 CLAUDE.md
 
-# Sorties de la sonde d'interface (captures locales)
-.probe/
+# Sorties de vérification : captures de la sonde et du runner BDD.
+# Régénérées par `npm run probe` / `npm run bdd`, jamais versionnées.
+docs/screenshots/
+docs/probe/

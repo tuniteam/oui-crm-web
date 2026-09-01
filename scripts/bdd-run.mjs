@@ -5,8 +5,8 @@
  *   npm run bdd -- --us=08      # une US
  *   npm run bdd -- --id=01.9    # un scénario
  *
- * Produit une capture par scénario dans docs/screenshots/ et réinjecte le
- * résultat dans la recette : chaque ligne porte son statut et sa capture.
+ * Produit une capture par scénario dans docs/screenshots/ — non versionnées,
+ * régénérées à chaque exécution — et réinjecte le résultat dans la recette.
  *
  * Les cas d'erreur (compte verrouillé, e-mail déjà pris, 404) sont simulés en
  * interceptant la réponse de l'API : ils seraient sinon impossibles à
@@ -131,15 +131,34 @@ let md = readFileSync(RECIPE, 'utf8');
 const START = '<!-- bdd:auto:start -->';
 const END = '<!-- bdd:auto:end -->';
 
-const rows = results
-  .map(
-    (r) =>
-      `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? '✅' : '❌'} | [capture](${r.file.replace('docs/', '')}) |`,
-  )
+const row = (r) =>
+  `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? '✅' : '❌'} | \`${r.file.replace('docs/', '')}\` |`;
+
+/**
+ * Fusionne avec le tableau existant : une exécution filtrée (--us, --id) ne
+ * doit pas effacer le résultat des scénarios qu'elle n'a pas joués.
+ */
+const previous = new Map();
+if (md.includes(START) && md.includes(END)) {
+  const existing = md.slice(md.indexOf(START), md.indexOf(END));
+  for (const line of existing.split('\n')) {
+    const m = line.match(/^\|\s*US-\d\d-\d\d\s*\|\s*([\d.]+)\s*\|/);
+    if (m) previous.set(m[1], line);
+  }
+}
+for (const r of results) previous.set(r.id, row(r));
+
+const rows = [...previous.entries()]
+  .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
+  .map(([, line]) => line)
   .join('\n');
 
+const total = previous.size;
+const green = [...previous.values()].filter((l) => l.includes('✅')).length;
+
 const block = `${START}
-_Généré par \`npm run bdd\` — ${new Date().toISOString().slice(0, 16).replace('T', ' ')}. ${passed}/${results.length} au vert._
+_Généré par \`npm run bdd\` — ${new Date().toISOString().slice(0, 16).replace('T', ' ')}. ${green}/${total} au vert._
+_Les captures sont locales et non versionnées : relancer \`npm run bdd\` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
 |---|---|---|---|---|
