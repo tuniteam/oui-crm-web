@@ -53,3 +53,6 @@ pnpm-debug.log*
 docs/assets/
 
 CLAUDE.md
+
+# Sorties de la sonde d'interface (captures locales)
+.probe/

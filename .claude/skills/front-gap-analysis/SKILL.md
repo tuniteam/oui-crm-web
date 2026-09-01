@@ -85,6 +85,37 @@ Distinguer toujours :
 - ce qui **cassera à la livraison** d'une story côté API ;
 - ce qui n'est **pas encore implémentable** (route inexistante).
 
+## Étapes de chaque développement
+
+À dérouler dans cet ordre, sans en sauter.
+
+1. **Lire les deux références** avant de coder : le contrat de l'US dans le
+   handoff, la disposition dans la maquette (ou le pattern soft-m pour le
+   back-office).
+2. **Développer** en suivant le pattern feature-based du projet.
+3. **`npm run build`** — il type réellement depuis le passage à `tsc -b` ; un
+   `tsc` nu ne suivrait pas les références du tsconfig et ne vérifierait rien.
+4. **`npm run lint`** — zéro erreur.
+5. **Vérifier dans le navigateur** avec la sonde. C'est l'étape qui distingue
+   « ça compile » de « ça marche ».
+
+   ```bash
+   npm run probe                                   # parcours par défaut
+   node scripts/ui-probe.mjs --routes=/projects    # écrans touchés
+   ```
+
+   Elle se connecte, parcourt les écrans et produit pour chacun une capture,
+   les erreurs de console, les appels d'API en échec et un détecteur de page
+   quasi vide. **Lire les captures** : une page blanche ne casse jamais le
+   build, et c'est le symptôme le plus fréquent.
+
+   Prérequis : front sur 5174 et API sur 3001. Sous Git Bash, préfixer par
+   `MSYS_NO_PATHCONV=1`, sinon `/projects` est converti en chemin Windows.
+6. **Vérifier le contrat en direct** quand un doute subsiste : un `curl` ou un
+   court script Node contre l'API tranche mieux qu'une lecture de DTO.
+7. **Mettre à jour la recette BDD** (section suivante).
+8. **Committer**, en disant ce qui a été vérifié et ce qui ne l'a pas été.
+
 ## Après chaque développement
 
 Mettre à jour **`docs/RECETTE-BDD-FRONT.md`**, le document unique de recette
