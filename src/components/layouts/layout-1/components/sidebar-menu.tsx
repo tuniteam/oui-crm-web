@@ -5,7 +5,6 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { useMeStore } from '@/contexts/useMeStore'
 import { Link, useLocation } from 'react-router-dom';
@@ -94,23 +93,28 @@ export function SidebarMenu() {
   // Collect section values for localStorage persistence
   const sectionValues = useMemo(
     () =>
-      MENU_SIDEBAR
+      menuConfig
         .filter((item) => item.heading && item.children && item.path)
         .map((item) => item.path!),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [menuConfig],
   );
 
   const storageKey = 'sidebar-open-sections';
-  const [openSections] = useState<string[]>(() => {
+
+  // L'etat memorise vaut pour le menu qui l'a produit. En passant du menu
+  // plateforme au menu projet, aucun de ses identifiants ne correspond : on
+  // ouvre alors tous les groupes plutot que de les laisser tous fermes.
+  const openSections = useMemo<string[]>(() => {
+    let saved: string[] = [];
     try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved) as string[];
+      const raw = localStorage.getItem(storageKey);
+      if (raw) saved = JSON.parse(raw) as string[];
     } catch {
       /* ignore */
     }
-    return sectionValues;
-  });
+    const known = saved.filter((v) => sectionValues.includes(v));
+    return known.length ? known : sectionValues;
+  }, [sectionValues]);
 
   const handleSectionsChange = useCallback((values: string[]) => {
     localStorage.setItem(storageKey, JSON.stringify(values));

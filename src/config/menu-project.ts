@@ -30,6 +30,10 @@ import { PROJECT_ROUTES } from '@/features/project/constants/routes.constants';
  * Menu affiche quand un projet est ouvert. Structure reprise de la maquette
  * V8 : cinq groupes, dans son ordre.
  *
+ * Chaque groupe est un bloc repliable (`heading` + `children`), comme le menu
+ * de gestion client de soft-m. Un groupe pousse a plat rendrait un simple
+ * intertitre, non repliable.
+ *
  * Toutes les entrees sont navigables. Celles dont l'ecran n'existe pas encore
  * menent a un ecran d'attente qui l'explique : desactiver l'entree laissait
  * l'utilisateur devant un element grise, sans savoir ni pourquoi ni quand.
@@ -50,6 +54,7 @@ export const buildProjectMenu = (
   const P = PERMISSIONS;
 
   const groups: {
+    key: string;
     heading: string;
     items: {
       title: string;
@@ -59,6 +64,7 @@ export const buildProjectMenu = (
     }[];
   }[] = [
     {
+      key: 'steering',
       heading: MENU_PROJECT.GROUPS.STEERING,
       items: [
         { title: MENU_PROJECT.DASHBOARD, icon: LayoutDashboard, path: '/dashboard', permission: P.DASHBOARD.READ },
@@ -67,6 +73,7 @@ export const buildProjectMenu = (
       ],
     },
     {
+      key: 'prospecting',
       heading: MENU_PROJECT.GROUPS.PROSPECTING,
       items: [
         { title: MENU_PROJECT.ORGANIZATIONS, icon: Building2, path: '/organizations', permission: P.ORGANIZATIONS.READ },
@@ -75,6 +82,7 @@ export const buildProjectMenu = (
       ],
     },
     {
+      key: 'sales',
       heading: MENU_PROJECT.GROUPS.SALES,
       items: [
         { title: MENU_PROJECT.OPPORTUNITIES, icon: Target, path: '/opportunities', permission: P.OPPORTUNITIES.READ },
@@ -84,6 +92,7 @@ export const buildProjectMenu = (
       ],
     },
     {
+      key: 'customers',
       heading: MENU_PROJECT.GROUPS.CUSTOMERS,
       items: [
         { title: MENU_PROJECT.PORTFOLIO, icon: Wallet, path: '/portfolio', permission: P.ORGANIZATIONS.READ },
@@ -94,6 +103,7 @@ export const buildProjectMenu = (
       ],
     },
     {
+      key: 'administration',
       heading: MENU_PROJECT.GROUPS.ADMINISTRATION,
       items: [
         // Seul ecran de projet deja porte cote front.
@@ -110,15 +120,18 @@ export const buildProjectMenu = (
     const visible = group.items.filter((i) => can(i.permission));
     if (!visible.length) continue;
 
-    menu.push({ heading: group.heading });
-    for (const item of visible) {
-      menu.push({
+    menu.push({
+      heading: group.heading,
+      // Identifiant du bloc repliable, memorise en localStorage. Ce n'est pas
+      // une route : les ecrans sont a plat sous /:projectId.
+      path: `${at('')}#${group.key}`,
+      children: visible.map((item) => ({
         title: item.title,
         icon: item.icon,
         path: at(item.path),
         readPermission: item.permission,
-      });
-    }
+      })),
+    });
   }
 
   return menu;
