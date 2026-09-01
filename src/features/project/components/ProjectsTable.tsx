@@ -90,6 +90,7 @@ export default function ProjectsTable() {
     >
       emptyTableMessage={
         <EmptyTableComponent
+          illustration="/media/illustrations/projects.svg"
           title={PROJECTS_TABLE_UI.EMPTY_STATE.TITLE}
           description={PROJECTS_TABLE_UI.EMPTY_STATE.DESCRIPTION}
           tip={{
