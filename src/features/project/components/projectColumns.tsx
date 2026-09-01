@@ -1,7 +1,15 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { TABLE_HEADERS } from '../constants/constants';
+import { ACTIONS, TABLE_HEADERS } from '../constants/constants';
+import { PROJECT_ROUTES } from '../constants/routes.constants';
 import type { ProjectListItem } from '../types/projectList';
 import { ProjectFeatureBadges } from './ProjectFeatureBadges';
 
@@ -123,5 +131,34 @@ export const projectColumns: ColumnDef<ProjectListItem>[] = [
     enableSorting: true,
     enableHiding: true,
     enableResizing: true,
+  },
+  {
+    accessorKey: 'actions',
+    id: 'actions',
+    header: () => (
+      <span className="flex justify-center w-full">
+        {TABLE_HEADERS.ACTIONS}
+      </span>
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center gap-3">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              data-testid={`project-view-${row.original.id}`}
+              to={PROJECT_ROUTES.PROJECT_DETAILS(row.original.id)}
+              className="text-brand-primary hover:opacity-80"
+            >
+              <Eye size={18} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>{ACTIONS.VIEW_PROJECT}</TooltipContent>
+        </Tooltip>
+      </div>
+    ),
+    size: 100,
+    enableSorting: false,
+    enableHiding: false,
+    enableResizing: false,
   },
 ];

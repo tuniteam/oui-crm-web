@@ -1,5 +1,6 @@
 import { PERMISSIONS } from '@/constants';
 import { NoPermissions } from '@/features/errors/components/no-permissions';
+import { ProjectInformationsPage } from '@/pages/ProjectInformationsPage';
 import ProjectsListPage from '@/pages/ProjectsListPage';
 import UsersTable from '@/features/user/components/UsersTable';
 import { GuestOnly } from '@/guards/GuestOnly';
@@ -39,6 +40,10 @@ export function AppRoutingSetup() {
             }
           >
             <Route path="/projects" element={<ProjectsListPage />} />
+            <Route
+              path="/projects/:projectId/informations"
+              element={<ProjectInformationsPage />}
+            />
           </Route>
 
           <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>

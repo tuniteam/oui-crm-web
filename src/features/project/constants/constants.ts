@@ -43,10 +43,12 @@ export const TABLE_HEADERS = {
   FEATURES: 'Fonctionnalités',
   USER_COUNT: 'Utilisateurs',
   CREATED_AT: 'Créé le',
+  ACTIONS: 'Actions',
 } as const;
 
 export const ACTIONS = {
   NEW_PROJECT: 'Nouveau projet',
+  VIEW_PROJECT: 'Voir le projet',
 } as const;
 
 export const SEARCH = {
@@ -71,6 +73,37 @@ export const PROJECTS_TABLE_UI = {
     },
   },
   NO_FEATURE: 'Aucune',
+} as const;
+
+export const PROJECT_INFORMATION_UI = {
+  TABS: {
+    INFORMATION: {
+      VALUE: 'informations',
+      LABEL: 'Informations',
+    },
+  },
+  SECTIONS: {
+    IDENTITY: 'Identité',
+    ACTIVITY: 'Activité',
+    FEATURES: 'Fonctionnalités',
+  },
+  FIELDS: {
+    NAME: 'Nom',
+    SLUG: 'Identifiant',
+    PRODUCT: 'Produit',
+    DESCRIPTION: 'Description',
+    STATUS: 'Statut',
+    USER_COUNT: 'Utilisateurs',
+    ACTIVATED_AT: 'Activé le',
+    CREATED_AT: 'Créé le',
+    UPDATED_AT: 'Modifié le',
+  },
+  FEATURES: {
+    ENABLED: 'Activée',
+    DISABLED: 'Désactivée',
+    EMPTY: 'Aucune fonctionnalité déclarée.',
+  },
+  FALLBACK: '—',
 } as const;
 
 export const ERRORS = {
