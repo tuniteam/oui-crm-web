@@ -8,19 +8,11 @@ type RequirePermissionProps = {
   fallbackTo?: string;
 };
 
-export function RequirePermission({ permission, fallbackTo }: RequirePermissionProps) {
+export function RequirePermission({
+  permission,
+  fallbackTo,
+}: RequirePermissionProps) {
   const meStore = useMeStore();
-
-  const hasRelationship =
-   
-    (meStore.me?.roleRelationships?.[0] ?? false);
-
-
-
- 
-  if (!hasRelationship) {
-    return <Navigate to={fallbackTo ?? getAfterLoginRedirect(meStore)} replace />;
-  }
 
   // Check if the user has the required permission
   // (based on the active role relationship)
@@ -28,7 +20,9 @@ export function RequirePermission({ permission, fallbackTo }: RequirePermissionP
 
   // If permission is missing, redirect away
   if (!has) {
-    return <Navigate to={fallbackTo ?? getAfterLoginRedirect(meStore)} replace />;
+    return (
+      <Navigate to={fallbackTo ?? getAfterLoginRedirect(meStore)} replace />
+    );
   }
 
   // If everything is OK, render the protected route

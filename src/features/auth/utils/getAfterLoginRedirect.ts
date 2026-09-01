@@ -9,7 +9,7 @@ export function getAfterLoginRedirect(meStore: MeStoreState): To {
   }
   
 
-  const permissions = meStore.getPermissions();
+  const permissions = meStore.getPermissionCodes();
   const menu=MENU_SIDEBAR;
 
   if (menu && permissions)
@@ -27,7 +27,7 @@ function findFirstAllowedPath(
   permissions: string[],
 ): To | undefined {
   for (const item of menu) {
-    if (item.activeClient) continue;
+    if (item.activeProject) continue;
 
     if (item.path && !item.heading && !item.disabled) {
       if (!item.readPermission || permissions.includes(item.readPermission)) {

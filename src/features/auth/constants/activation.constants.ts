@@ -86,12 +86,7 @@ export const ACTIVATION = {
       MEDIUM: 'Moyen',
       STRONG: 'Fort',
     },
-    RULES: {
-      MIN: 'Min. 8 caractères',
-      UPPER: 'Au moins 1 majuscule (A-Z)',
-      LOWER: 'Au moins 1 minuscule (a-z)',
-      NUMBER: 'Au moins 1 chiffre (0-9)',
-      SPECIAL: 'Au moins 1 caractère spécial',
-    },
+    // Les libelles des criteres viennent de @/shared/constants/password-policy :
+    // une seule source pour la validation Zod et pour l'affichage.
   },
 } as const;

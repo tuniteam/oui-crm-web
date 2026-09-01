@@ -10,7 +10,15 @@ export const API_ERROR = {
     'Accès refusé. Vous n’êtes pas autorisé à effectuer cette action.',
   AUTH_INVALID_CREDENTIALS: 'Email ou mot de passe incorrect.',
   AUTH_ACCOUNT_LOCKED: 'Votre compte est temporairement bloqué.',
+  AUTH_ACCOUNT_NOT_ACTIVE:
+    "Votre compte n'est pas actif. Contactez votre administrateur.",
   AUTH_USER_NOT_FOUND: 'Utilisateur introuvable.',
+
+  // Garde de projet (en-tete x-project-id)
+  PROJECT_IS_REQUIRED: 'Aucun projet sélectionné.',
+  PROJECT_MISMATCH: "Vous n'avez pas accès à ce projet.",
+  PROJECT_NOT_ACTIVE: 'Projet indisponible.',
+  USER_HAS_NO_PROJECT: "Aucun projet ne vous est affecté.",
 
   JWT_ACCESS_SECRET_MISSING:
     'Configuration du serveur invalide. Veuillez contacter l’administrateur.',
@@ -29,6 +37,8 @@ export const API_ERROR = {
   // Validation / Générique
   // ==============================
   INVALID_DATA: 'Données invalides.',
+  PASSWORD_TOO_WEAK:
+    'Le mot de passe doit contenir au moins 10 caractères, une lettre et un chiffre.',
   INVALID_CUID: 'Identifiant invalide.',
   INVALID_DATE_RANGE: 'La date de début doit être antérieure à la date de fin.',
   INTERNAL_ERROR: 'Erreur interne du serveur.',
@@ -78,3 +88,22 @@ export const API_ERROR = {
 } as const;
 
 export type ApiErrorCode = keyof typeof API_ERROR;
+
+/**
+ * Codes d'erreur renvoyes par l'API dans `messages.code`.
+ * `satisfies` garantit qu'un code inexistant dans API_ERROR ne compile pas :
+ * une faute de frappe ici rendrait une branche de traitement inatteignable.
+ */
+export const API_ERROR_CODE = {
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  INVALID_CREDENTIALS: 'AUTH_INVALID_CREDENTIALS',
+  ACCOUNT_LOCKED: 'AUTH_ACCOUNT_LOCKED',
+  ACCOUNT_NOT_ACTIVE: 'AUTH_ACCOUNT_NOT_ACTIVE',
+  REFRESH_TOKEN_INVALID_OR_EXPIRED: 'REFRESH_TOKEN_INVALID_OR_EXPIRED',
+  REFRESH_TOKEN_INVALID_OR_USED: 'REFRESH_TOKEN_INVALID_OR_USED',
+  SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+  PROJECT_IS_REQUIRED: 'PROJECT_IS_REQUIRED',
+  PROJECT_MISMATCH: 'PROJECT_MISMATCH',
+  PROJECT_NOT_ACTIVE: 'PROJECT_NOT_ACTIVE',
+  USER_HAS_NO_PROJECT: 'USER_HAS_NO_PROJECT',
+} as const satisfies Record<string, ApiErrorCode>;

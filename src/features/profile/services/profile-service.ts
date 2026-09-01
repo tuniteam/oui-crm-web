@@ -15,10 +15,9 @@ import type { UploadAvatarResponse } from '../types/avatar';
 export const profileService = {
   getMyProfile: async (): Promise<MyProfileResponse> => {
     try {
-      const res = await api.get<{ data: MyProfileResponse }>(
-        PROFILE_ROUTES.PROFILE_API,
-      );
-      return res.data.data;
+      // GET /profile n'existe pas : le profil se lit sur /profile/me, a plat.
+      const res = await api.get<MyProfileResponse>(PROFILE_ROUTES.PROFILE_ME_API);
+      return res.data;
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }

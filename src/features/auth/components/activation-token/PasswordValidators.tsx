@@ -1,3 +1,4 @@
+import { PASSWORD_RULES } from '@/shared/constants/password-policy';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useContent } from '@/hooks/useContent'; // ✅ adjust path
@@ -14,13 +15,15 @@ export function PasswordValidators({ password }: { password: string }) {
   const content = useContent();
   const ui = content.activation.PASSWORD_VALIDATORS;
 
-  const rules: Rule[] = [
-    { id: 'min', label: ui.RULES.MIN, ok: (password?.length ?? 0) >= 8 },
-    { id: 'upper', label: ui.RULES.UPPER, ok: /[A-Z]/.test(password ?? '') },
-    { id: 'lower', label: ui.RULES.LOWER, ok: /[a-z]/.test(password ?? '') },
-    { id: 'number', label: ui.RULES.NUMBER, ok: /[0-9]/.test(password ?? '') },
-    { id: 'special', label: ui.RULES.SPECIAL, ok: /[^A-Za-z0-9]/.test(password ?? '') },
-  ];
+  // Les criteres affiches sont exactement ceux que le serveur applique.
+  // Avant, cette liste exigeait majuscule et caractere special que l'API ne
+  // demande pas, et annoncait 8 caracteres la ou elle en exige 10 : elle
+  // decourageait des mots de passe valides et en laissait passer d'invalides.
+  const rules: Rule[] = PASSWORD_RULES.map((rule) => ({
+    id: rule.id,
+    label: rule.label,
+    ok: rule.test(password ?? ''),
+  }));
 
   const passed = rules.filter((r) => r.ok).length;
   const total = rules.length;

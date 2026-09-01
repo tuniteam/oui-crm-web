@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  PASSWORD_POLICY,
+  PASSWORD_POLICY_MESSAGES,
+} from '@/shared/constants/password-policy';
+
 import { ACTIVATION } from '../constants/activation.constants';
 const M = ACTIVATION.SCHEMA;
 
@@ -7,11 +12,12 @@ export const resetPasswordSchema = z
     password: z
       .string()
       .min(1, M.PASSWORD.REQUIRED)
-      .min(8, M.PASSWORD.MIN)
-      .regex(/[A-Z]/, M.PASSWORD.UPPER)
-      .regex(/[a-z]/, M.PASSWORD.LOWER)
-      .regex(/[0-9]/, M.PASSWORD.NUMBER)
-      .regex(/[^A-Za-z0-9]/, M.PASSWORD.SPECIAL),
+      .min(
+        PASSWORD_POLICY.MIN_LENGTH,
+        PASSWORD_POLICY_MESSAGES.MIN_LENGTH,
+      )
+      .regex(PASSWORD_POLICY.LETTER, PASSWORD_POLICY_MESSAGES.LETTER)
+      .regex(PASSWORD_POLICY.DIGIT, PASSWORD_POLICY_MESSAGES.DIGIT),
 
     confirmPassword: z.string().min(1, M.PASSWORD.REQUIRED),
   })

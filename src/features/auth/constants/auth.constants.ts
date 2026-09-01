@@ -28,7 +28,7 @@ export const AUTH = {
         'Votre compte a été désactivé. Contactez votre administrateur.',
     },
 
-    FOOTER: '© 2025 SOFT-M — Gestion Périscolaire',
+    LOGO_ALT: 'OUI-CRM',
   },
 
   ZOD: {
@@ -48,7 +48,12 @@ export const AUTH = {
 
   ERRORS: {
     INVALID_CREDENTIALS: 'Email ou mot de passe incorrect.',
-    ACCOUNT_LOCKED: 'Compte temporairement bloqué.',
+    ACCOUNT_LOCKED:
+      'Trop de tentatives. Votre compte est temporairement bloqué.',
+    ACCOUNT_LOCKED_UNTIL: (delay: string) =>
+      `Trop de tentatives. Réessayez dans ${delay}.`,
+    ACCOUNT_NOT_ACTIVE:
+      "Votre compte n'est pas actif. Contactez votre administrateur.",
     SERVER: 'Une erreur est survenue. Veuillez réessayer.',
     NO_REFRESH_TOKEN: 'Refresh Token non existant',
     NO_ACCESS_TOKEN: 'Access Token non existant',

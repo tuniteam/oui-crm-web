@@ -12,8 +12,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Police de l'app (Inter, chargée dans index.html).
-const FONT_FAMILY = "'Inter', sans-serif";
+// Police de l'app : reprend la pile du thème plutôt que de la redéclarer,
+// pour que MUI suive automatiquement tout changement de charte.
+const FONT_FAMILY = 'var(--font-oui-sans)';
 
 // Radius (rounded-md = 6px, charte) + police ; les couleurs (clair/sombre)
 // sont pilotées via les variables du thème en sx (var(--brand-primary)…).

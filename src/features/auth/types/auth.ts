@@ -1,3 +1,4 @@
+import type { ApiErrorEnvelope } from '@/shared/utils/api-error';
 export interface LoginPayload {
   email: string;
   password: string;
@@ -6,6 +7,8 @@ export interface LoginPayload {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  /** Duree de vie de l'access token, en secondes. */
+  expiresIn: number;
 }
 
 export interface RefreshTokenResponse {
@@ -28,10 +31,5 @@ export type ActivationCompleteResponse = {
   email: string;
   status: string;
 };
-export type ApiErrorResponse = {
-  statusCode?: number;
-  messages?: {
-    code?: string;
-    message?: string;
-  };
-};
+/** @deprecated Alias de compatibilite — importer ApiErrorEnvelope directement. */
+export type ApiErrorResponse = ApiErrorEnvelope;

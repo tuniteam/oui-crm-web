@@ -16,7 +16,7 @@ export interface MenuItem {
   expandTitle?: string;
   badge?: string;
   separator?: boolean;
-  activeClient?: string;
+  activeProject?: string;
   readPermission?: string;
   requiredModule?: string;
 }

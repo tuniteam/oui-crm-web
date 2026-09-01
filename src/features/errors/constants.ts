@@ -7,7 +7,7 @@ export const ERROR_500={
     },
     IMAGES: {
         LIGHT: '/media/illustrations/error_500.svg',
-        DARK: '/media/illustrations/error_500_dark.svg',
+        DARK: '/media/illustrations/error_500.svg',
     },
     IMAGE_ALT: 'Illustration erreur serveur',
 } as const;
@@ -23,4 +23,5 @@ export const NO_PERMISSIONS={
         LIGHT: '/media/illustrations/no-permission.svg',
         DARK: '/media/illustrations/no-permission.svg',
     },
-}
+    IMAGE_ALT: 'Illustration accès restreint',
+} as const

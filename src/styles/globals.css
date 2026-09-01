@@ -74,6 +74,10 @@ input[type="password"]::-ms-clear {
 
 /** Theme Setup **/
 @theme inline {
+  /** Typography **/
+  --font-sans: var(--font-oui-sans);
+  --font-mono: var(--font-oui-mono);
+
   /** Base Colors **/
   --color-background: var(--background);
   --color-foreground: var(--foreground);

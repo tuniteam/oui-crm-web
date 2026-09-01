@@ -1,19 +1,12 @@
-export type ContactType = 'BACKOFFICE' | 'CLIENT';
+import type { MeResponse } from '@/features/user/types/me';
 
-export type ProfileRoleRelationship = {
-  roleCode: string;
-  roleLabel: string;
-  clientName: string | null;
-};
+// Definition canonique dans user/types/me : BACKOFFICE | PROJECT.
+export type { ContactType } from '@/features/user/types/me';
 
-export type MyProfileResponse = {
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  phone: string | null;
-  status: string;
-  avatarUrl: string | null;
-  updatedAt: string;
-  contactType: ContactType;
-  roleRelationships: ProfileRoleRelationship[];
-};
+
+/**
+ * GET /profile/me est la source unique du profil et des droits. On alias
+ * MeResponse plutot que de redeclarer une forme divergente : c'est
+ * exactement la meme reponse.
+ */
+export type MyProfileResponse = MeResponse;

@@ -1,4 +1,7 @@
+import { PERMISSIONS } from '@/constants';
 import { NoPermissions } from '@/features/errors/components/no-permissions';
+import { ProjectInformationsPage } from '@/pages/ProjectInformationsPage';
+import ProjectsListPage from '@/pages/ProjectsListPage';
 import UsersTable from '@/features/user/components/UsersTable';
 import { GuestOnly } from '@/guards/GuestOnly';
 import { RequireAuth } from '@/guards/RequireAuth';
@@ -28,53 +31,28 @@ export function AppRoutingSetup() {
         <Route element={<Layout1 />}>
           <Route path="/profile" element={<ProfilePage />} />
 
+          {/* Client no-permissions page */}
           <Route path="/no-permissions" element={<NoPermissions />} />
 
-
           <Route
-            path="/profile"
             element={
-             
-                <ProfilePage />
-              
+              <RequirePermission permission={PERMISSIONS.PROJECTS.READ} />
             }
-          />
-
-
-          
-
-          <Route element={<RequirePermission permission="users:read" />}>
+          >
+            <Route path="/projects" element={<ProjectsListPage />} />
             <Route
-              path="/users"
-              element={
-               
-                  <UsersTable />
-              
-              }
+              path="/projects/:projectId/informations"
+              element={<ProjectInformationsPage />}
             />
-            <Route
-              path="/users/:userId/informations"
-              element={
-             
-                  <UserInformationsPage />
-               
-              }
-            />
-           
           </Route>
 
-        
-
-         
-          {/* Client no-permissions page */}
-          <Route
-            path="/no-permissions"
-            element={
-             
-                <NoPermissions />
-             
-            }
-          />
+          <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>
+            <Route path="/users" element={<UsersTable />} />
+            <Route
+              path="/users/:userId/informations"
+              element={<UserInformationsPage />}
+            />
+          </Route>
 
           {/* Default / unknown paths inside layout */}
           <Route path="*" element={<RequireValidPath />} />

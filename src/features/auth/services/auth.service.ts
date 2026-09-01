@@ -1,14 +1,42 @@
 // features/auth/services/auth.service.ts
 import { AxiosError } from 'axios';
 import api from '@/config/axiosInstance';
+import { API_ERROR_CODE } from '@/shared/constants/api-errors';
 import { AUTH } from '../constants/auth.constants';
 import { AUTH_ROUTES } from '../constants/routes.constants';
+import { AuthLockedError } from '../errors/AuthLockedError';
+import type { ApiErrorEnvelope } from '@/shared/utils/api-error';
 import type {
   LoginPayload,
   LoginResponse,
   RefreshTokenResponse,
 } from '../types/auth';
 import { tokenService } from './token.service';
+
+/** Statuts HTTP du contrat d'authentification. */
+const HTTP = {
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  LOCKED: 423,
+  SERVER_ERROR: 500,
+} as const;
+
+/**
+ * Fin du verrouillage, lue sur le champ contractuel `messages.meta.lockedUntil`
+ * (ISO 8601 UTC). Ne jamais parser `messages.text` : ce texte est destine aux
+ * humains et peut changer sans preavis.
+ *
+ * Renvoie null si le champ est absent ou illisible — l'appelant affiche alors
+ * le message generique plutot qu'un compte a rebours faux.
+ */
+function parseLockedUntil(data: unknown): Date | null {
+  const raw = (data as ApiErrorEnvelope | undefined)?.messages?.meta
+    ?.lockedUntil;
+  if (!raw) return null;
+
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<LoginResponse> => {
@@ -22,11 +50,15 @@ export const authService = {
     } catch (err) {
       if (err instanceof AxiosError) {
         switch (err.response?.status) {
-          case 401:
+          // E-mail inconnu et mauvais mot de passe renvoient la meme erreur :
+          // ne jamais distinguer les deux cas cote UI (enumeration de comptes).
+          case HTTP.UNAUTHORIZED:
             throw new Error(AUTH.ERRORS.INVALID_CREDENTIALS);
-          case 403:
-            throw new Error(AUTH.ERRORS.ACCOUNT_LOCKED);
-          case 500:
+          case HTTP.FORBIDDEN:
+            throw new Error(AUTH.ERRORS.ACCOUNT_NOT_ACTIVE);
+          case HTTP.LOCKED:
+            throw new AuthLockedError(parseLockedUntil(err.response?.data));
+          case HTTP.SERVER_ERROR:
             throw new Error(AUTH.ERRORS.SERVER);
         }
       }
@@ -35,14 +67,31 @@ export const authService = {
   },
 
   refresh: async (): Promise<void> => {
+    const refreshToken = tokenService.getRefreshToken();
+    if (!refreshToken) throw new Error(AUTH.ERRORS.NO_REFRESH_TOKEN);
+
     try {
-      const refreshToken = tokenService.getRefreshToken();
-      if (!refreshToken) throw new Error(AUTH.ERRORS.NO_REFRESH_TOKEN);
+      // Rotation single-use cote back : l'ancien couple meurt des que celui-ci
+      // repond. Ne jamais rejouer cet appel (cf. single-flight de l'intercepteur).
       const res = await api.post<RefreshTokenResponse>(AUTH_ROUTES.REFRESH, {
         refreshToken,
       });
       tokenService.setTokens(res.data.accessToken, res.data.refreshToken);
     } catch (err) {
+      // Tous les cas menent au login, mais on conserve le code : un refresh
+      // deja consomme signale un vol de token possible, pas une simple
+      // expiration, et merite d'etre distingue dans les logs.
+      const code =
+        err instanceof AxiosError
+          ? (err.response?.data as ApiErrorEnvelope | undefined)?.messages?.code
+          : undefined;
+
+      if (code === API_ERROR_CODE.REFRESH_TOKEN_INVALID_OR_USED) {
+        console.warn(
+          '[auth] refresh token deja consomme — rejeu ou vol possible',
+        );
+      }
+
       throw new Error(AUTH.ERRORS.SERVER);
     }
   },
@@ -51,9 +100,11 @@ export const authService = {
     try {
       await api.post(AUTH_ROUTES.LOGOUT);
     } catch {
+      // 401 SESSION_NOT_FOUND = deja deconnecte : c'est un succes.
+      // Toute autre erreur ne doit pas empecher la purge locale non plus.
     } finally {
       tokenService.clearTokens();
-      window.location.href = '/auth/login';
+      window.location.href = AUTH_ROUTES.LOGIN;
     }
   },
 };
