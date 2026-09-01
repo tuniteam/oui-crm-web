@@ -37,6 +37,8 @@ export const API_ERROR = {
   // Validation / Générique
   // ==============================
   INVALID_DATA: 'Données invalides.',
+  PASSWORD_TOO_WEAK:
+    'Le mot de passe doit contenir au moins 10 caractères, une lettre et un chiffre.',
   INVALID_CUID: 'Identifiant invalide.',
   INVALID_DATE_RANGE: 'La date de début doit être antérieure à la date de fin.',
   INTERNAL_ERROR: 'Erreur interne du serveur.',
@@ -93,6 +95,7 @@ export type ApiErrorCode = keyof typeof API_ERROR;
  * une faute de frappe ici rendrait une branche de traitement inatteignable.
  */
 export const API_ERROR_CODE = {
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   INVALID_CREDENTIALS: 'AUTH_INVALID_CREDENTIALS',
   ACCOUNT_LOCKED: 'AUTH_ACCOUNT_LOCKED',
   ACCOUNT_NOT_ACTIVE: 'AUTH_ACCOUNT_NOT_ACTIVE',

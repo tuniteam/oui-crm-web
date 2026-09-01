@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { CHANGE_PASSWORD_SHEET } from '../constants/change-password.constants';
+import {
+  PASSWORD_POLICY,
+  PASSWORD_POLICY_MESSAGES,
+} from '@/shared/constants/password-policy';
 
-const PASSWORD_REGEX =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/;
+import { CHANGE_PASSWORD_SHEET } from '../constants/change-password.constants';
 
 export const getChangePasswordSchema = () =>
   z
@@ -13,12 +15,13 @@ export const getChangePasswordSchema = () =>
 
       newPassword: z
         .string()
-        .min(8, CHANGE_PASSWORD_SHEET.ERRORS.PASSWORD_MIN)
+        .min(
+          PASSWORD_POLICY.MIN_LENGTH,
+          PASSWORD_POLICY_MESSAGES.MIN_LENGTH,
+        )
         .max(100, CHANGE_PASSWORD_SHEET.ERRORS.PASSWORD_MAX)
-        .regex(
-          PASSWORD_REGEX,
-          CHANGE_PASSWORD_SHEET.ERRORS.PASSWORD_COMPLEXITY,
-        ),
+        .regex(PASSWORD_POLICY.LETTER, PASSWORD_POLICY_MESSAGES.LETTER)
+        .regex(PASSWORD_POLICY.DIGIT, PASSWORD_POLICY_MESSAGES.DIGIT),
 
       confirmNewPassword: z.string(),
     })

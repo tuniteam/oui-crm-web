@@ -24,6 +24,10 @@ const api = axios.create({
  */
 const PROJECT_HEADER = 'x-project-id';
 
+/** Prefixes des flux publics a jeton, non couverts par AUTH_ROUTES. */
+const PASSWORD_RESET_PATH = '/auth/password-reset';
+const EMAIL_CHANGE_PATH = '/auth/email-change';
+
 // Intercepteur REQUEST - Injection du Bearer token et du projet actif
 api.interceptors.request.use(
   (config) => {
@@ -71,45 +75,39 @@ api.interceptors.response.use(
     // Le garde de projet renvoie des 403 qui ne sont PAS des problemes de
     // session : projet indisponible ou non affecte. On les laisse remonter a
     // l'appelant, surtout pas de deconnexion.
-    // The original request that failed
     const prevRequest = error.config;
-    // Check if the request was a login call
-    const isLogin = prevRequest?.url?.includes(AUTH_ROUTES.LOGIN);
-    // Check if the request was a refresh token call
-    const isRefresh = prevRequest?.url?.includes(AUTH_ROUTES.REFRESH);
-    // If the access token is invalid/expired (401)
-    // and we are NOT already retrying
-    // and this is NOT a login or refresh request
+    const url: string = prevRequest?.url ?? '';
 
-    const isActivationValidate = prevRequest?.url?.includes(
-      AUTH_ROUTES.ACTIVATION_VALIDATE,
-    );
-    const isActivationComplete = prevRequest?.url?.includes(
-      AUTH_ROUTES.ACTIVATION_COMPLETE,
-    );
-    const isResetPasswordFlow = prevRequest?.url?.includes(
-      '/password-reset',
-    );
-    const isEmailChangeFlow = prevRequest?.url?.includes(
-      '/auth/email-change',
-    );
-    const isActivationFlow = isActivationValidate || isActivationComplete;
+    /**
+     * Routes d'authentification ou un 401 est une reponse metier, pas une
+     * session morte : identifiants faux, jeton de lien invalide, mot de passe
+     * re-saisi errone sur la demande de changement d'e-mail. Elles ne doivent
+     * ni declencher de refresh, ni deconnecter.
+     */
+    const isAuthFlow =
+      url.includes(AUTH_ROUTES.LOGIN) ||
+      url.includes(AUTH_ROUTES.REFRESH) ||
+      url.includes(AUTH_ROUTES.ACTIVATION_VALIDATE) ||
+      url.includes(AUTH_ROUTES.ACTIVATION_COMPLETE) ||
+      url.includes(PASSWORD_RESET_PATH) ||
+      url.includes(EMAIL_CHANGE_PATH);
 
-    if (
-      status === 401 &&
-      !prevRequest?.sent &&
-      !isLogin &&
-      !isRefresh &&
-      !isActivationFlow &&
-      !isResetPasswordFlow &&
-      !isEmailChangeFlow
-
-    ) {
-      // Déconnexion déjà en cours : on laisse la requête échouer sans
-      // redéclencher un refresh ni une seconde redirection.
+    if (status === 401 && !isAuthFlow) {
+      // Deconnexion deja en cours : on laisse echouer sans rien redeclencher.
       if (loggingOut) return Promise.reject(error);
 
-      // Mark the request as already retried
+      // Contrat : seul TOKEN_EXPIRED se rejoue apres refresh. Tout autre 401
+      // sur une route authentifiee est une session morte -> deconnexion.
+      // Rafraichir sur n'importe quel 401 consommerait un refresh token pour
+      // rien, et la rotation est a usage unique.
+      const isExpired = code === API_ERROR_CODE.TOKEN_EXPIRED;
+
+      if (!isExpired || prevRequest?.sent) {
+        forceLogout();
+        return new Promise(() => {});
+      }
+
+      // Ne rejoue cette requete qu'une seule fois.
       prevRequest.sent = true;
       try {
         // If no refresh is running, start one
