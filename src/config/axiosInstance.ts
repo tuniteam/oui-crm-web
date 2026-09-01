@@ -81,11 +81,6 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const code = error?.response?.data?.messages?.code;
 
-    if (status === 403 && code === API_ERROR_CODE.ACCOUNT_NOT_ACTIVE) {
-      toast.error(API_ERROR.AUTH_ACCOUNT_NOT_ACTIVE);
-      forceLogout('?reason=account_disabled');
-      return new Promise(() => {});
-    }
     // Le garde de projet renvoie des 403 qui ne sont PAS des problemes de
     // session : projet indisponible ou non affecte. On les laisse remonter a
     // l'appelant, surtout pas de deconnexion.
@@ -108,6 +103,20 @@ api.interceptors.response.use(
       url.includes(AUTH_ROUTES.RESET_PASSWORD_COMPLETE) ||
       url.includes(AUTH_ROUTES.EMAIL_CHANGE_REQUEST) ||
       url.includes(AUTH_ROUTES.EMAIL_CHANGE_CONFIRM);
+
+    // Compte desactive en cours de session : on deconnecte. Mais PAS sur le
+    // login : la, un 403 est la reponse metier « compte non actif », que le
+    // formulaire doit afficher. Deconnecter y viderait la saisie et annoncerait
+    // a tort une desactivation a un compte simplement pas encore active.
+    if (
+      status === 403 &&
+      code === API_ERROR_CODE.ACCOUNT_NOT_ACTIVE &&
+      !isAuthFlow
+    ) {
+      toast.error(API_ERROR.AUTH_ACCOUNT_NOT_ACTIVE);
+      forceLogout('?reason=account_disabled');
+      return new Promise(() => {});
+    }
 
     if (status === 401 && !isAuthFlow) {
       // Deconnexion deja en cours : on laisse echouer sans rien redeclencher.

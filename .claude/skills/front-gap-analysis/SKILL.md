@@ -113,7 +113,20 @@ Distinguer toujours :
    `MSYS_NO_PATHCONV=1`, sinon `/projects` est converti en chemin Windows.
 6. **Vérifier le contrat en direct** quand un doute subsiste : un `curl` ou un
    court script Node contre l'API tranche mieux qu'une lecture de DTO.
-7. **Mettre à jour la recette BDD** (section suivante).
+7. **Mettre à jour la recette BDD** (section suivante), puis **l'exécuter** :
+
+   ```bash
+   npm run bdd                  # tout
+   npm run bdd -- --us=08       # une US
+   npm run bdd -- --id=01.9     # un scénario
+   ```
+
+   Les scénarios exécutables vivent dans `scripts/bdd/scenarios.mjs`, chacun
+   portant le `id` de sa ligne dans la recette. Le lancement réinjecte le
+   résultat et la capture dans `docs/RECETTE-BDD-FRONT.md`. Ajouter un
+   scénario pour ce qui vient d'être développé, en priorité pour les pièges
+   identifiés. Les cas d'erreur se simulent en interceptant la réponse de
+   l'API : c'est ce qui rend testables un compte verrouillé ou un 409.
 8. **Committer**, en disant ce qui a été vérifié et ce qui ne l'a pas été.
 
 ## Après chaque développement

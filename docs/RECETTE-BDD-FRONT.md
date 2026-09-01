@@ -352,3 +352,34 @@ décision sera prise, le découpage naturel est :
   réponses d'API décrites ici. Couvre la validation, le décompte, l'intercepteur.
 - **navigateur** — Playwright, pour les scénarios de garde et de redirection qui
   dépendent d'une navigation réelle.
+
+---
+
+## Scénarios exécutés
+
+<!-- bdd:auto:start -->
+_Généré par `npm run bdd` — 2026-09-01 14:30. 20/20 au vert._
+
+| US | # | Scénario | Résultat | Capture |
+|---|---|---|---|---|
+| US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | ✅ | [capture](screenshots/01-1.png) |
+| US-00-01 | 01.2 | E-mail malformé refusé avant envoi | ✅ | [capture](screenshots/01-2.png) |
+| US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | ✅ | [capture](screenshots/01-6.png) |
+| US-00-01 | 01.8 | Compte non actif : message dédié, sans mention de blocage | ✅ | [capture](screenshots/01-8.png) |
+| US-00-01 | 01.9 | Compte verrouillé : compte à rebours, bouton désactivé | ✅ | [capture](screenshots/01-9.png) |
+| US-00-01 | 01.11 | Le décompte suit meta.lockedUntil, jamais le texte | ✅ | [capture](screenshots/01-11.png) |
+| US-00-01 | 01.22 | Page protégée sans jeton : redirection vers le login | ✅ | [capture](screenshots/01-22.png) |
+| US-00-04 | 04.1 | Un back-office atterrit sur la liste des projets | ✅ | [capture](screenshots/04-1.png) |
+| US-00-04 | 04.3 | La liste affiche projet, produit, statut et fonctionnalités | ✅ | [capture](screenshots/04-3.png) |
+| US-00-04 | 04.11 | Projet inconnu : écran dédié, jamais de page blanche | ✅ | [capture](screenshots/04-11.png) |
+| US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | ✅ | [capture](screenshots/04-13.png) |
+| US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | ✅ | [capture](screenshots/04-14.png) |
+| US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | ✅ | [capture](screenshots/04-16.png) |
+| US-00-08 | 08.1 | Les quatre groupes de la V8, Société ouverte par défaut | ✅ | [capture](screenshots/08-1.png) |
+| US-00-08 | 08.7 | SIREN invalide refusé avant envoi | ✅ | [capture](screenshots/08-7.png) |
+| US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | ✅ | [capture](screenshots/08-12.png) |
+| US-00-08 | 08.15 | Numérotation affichée en lecture seule | ✅ | [capture](screenshots/08-15.png) |
+| US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | ✅ | [capture](screenshots/11-1.png) |
+| US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | ✅ | [capture](screenshots/11-9.png) |
+| US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | ✅ | [capture](screenshots/11-11.png) |
+<!-- bdd:auto:end -->
