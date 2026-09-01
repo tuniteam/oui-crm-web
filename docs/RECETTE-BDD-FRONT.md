@@ -358,29 +358,29 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-01 14:43. 20/20 au vert._
+_Généré par `npm run bdd` — 2026-09-01 15:04. 20/20 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
 |---|---|---|---|---|
-| US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | ✅ | `screenshots/01-1.png` |
-| US-00-01 | 01.2 | E-mail malformé refusé avant envoi | ✅ | `screenshots/01-2.png` |
-| US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | ✅ | `screenshots/01-6.png` |
-| US-00-01 | 01.8 | Compte non actif : message dédié, sans mention de blocage | ✅ | `screenshots/01-8.png` |
-| US-00-01 | 01.9 | Compte verrouillé : compte à rebours, bouton désactivé | ✅ | `screenshots/01-9.png` |
-| US-00-01 | 01.11 | Le décompte suit meta.lockedUntil, jamais le texte | ✅ | `screenshots/01-11.png` |
-| US-00-01 | 01.22 | Page protégée sans jeton : redirection vers le login | ✅ | `screenshots/01-22.png` |
-| US-00-04 | 04.1 | Un back-office atterrit sur la liste des projets | ✅ | `screenshots/04-1.png` |
-| US-00-04 | 04.3 | La liste affiche projet, produit, statut et fonctionnalités | ✅ | `screenshots/04-3.png` |
-| US-00-04 | 04.11 | Projet inconnu : écran dédié, jamais de page blanche | ✅ | `screenshots/04-11.png` |
-| US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | ✅ | `screenshots/04-13.png` |
-| US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | ✅ | `screenshots/04-14.png` |
-| US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | ✅ | `screenshots/04-16.png` |
-| US-00-08 | 08.1 | Les quatre groupes de la V8, Société ouverte par défaut | ✅ | `screenshots/08-1.png` |
-| US-00-08 | 08.7 | SIREN invalide refusé avant envoi | ✅ | `screenshots/08-7.png` |
-| US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | ✅ | `screenshots/08-12.png` |
-| US-00-08 | 08.15 | Numérotation affichée en lecture seule | ✅ | `screenshots/08-15.png` |
-| US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | ✅ | `screenshots/11-1.png` |
-| US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | ✅ | `screenshots/11-9.png` |
-| US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | ✅ | `screenshots/11-11.png` |
+| US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
+| US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
+| US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |
+| US-00-01 | 01.8 | Compte non actif : message dédié, sans mention de blocage | OK | `screenshots/01-8.png` |
+| US-00-01 | 01.9 | Compte verrouillé : compte à rebours, bouton désactivé | OK | `screenshots/01-9.png` |
+| US-00-01 | 01.11 | Le décompte suit meta.lockedUntil, jamais le texte | OK | `screenshots/01-11.png` |
+| US-00-01 | 01.22 | Page protégée sans jeton : redirection vers le login | OK | `screenshots/01-22.png` |
+| US-00-04 | 04.1 | Un back-office atterrit sur la liste des projets | OK | `screenshots/04-1.png` |
+| US-00-04 | 04.3 | La liste affiche projet, produit, statut et fonctionnalités | OK | `screenshots/04-3.png` |
+| US-00-04 | 04.11 | Projet inconnu : écran dédié, jamais de page blanche | OK | `screenshots/04-11.png` |
+| US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
+| US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
+| US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
+| US-00-08 | 08.1 | Les quatre groupes de la V8, Société ouverte par défaut | OK | `screenshots/08-1.png` |
+| US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |
+| US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-12.png` |
+| US-00-08 | 08.15 | Numérotation affichée en lecture seule | OK | `screenshots/08-15.png` |
+| US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | OK | `screenshots/11-1.png` |
+| US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | OK | `screenshots/11-9.png` |
+| US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | OK | `screenshots/11-11.png` |
 <!-- bdd:auto:end -->

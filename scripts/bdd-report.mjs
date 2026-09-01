@@ -110,8 +110,8 @@ const covered = passed + failed;
 const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
 
 const LABEL = {
-  [STATUS.PASSED]: 'Vert',
-  [STATUS.FAILED]: 'Échec',
+  [STATUS.PASSED]: 'OK',
+  [STATUS.FAILED]: 'KO',
   [STATUS.PENDING]: 'Non exécuté',
 };
 
@@ -142,7 +142,7 @@ const sectionsHtml = sections
         <h2>
           <span class="us">${esc(section.us)}</span>
           ${esc(section.title)}
-          <span class="counts">${p}/${n} exécutés au vert${f ? ` · ${f} en échec` : ''}</span>
+          <span class="counts">${p}/${n} OK${f ? ` · ${f} KO` : ''}</span>
         </h2>
         <table>
           <thead><tr><th>#</th><th>Scénario</th><th>Résultat</th><th>Capture</th></tr></thead>
@@ -228,20 +228,20 @@ const html = `<!doctype html>
 
   <div class="summary">
     <div class="card"><span>Total</span><b>${total}</b></div>
-    <div class="card"><span>Au vert</span><b style="color:var(--ok)">${passed}</b></div>
-    <div class="card"><span>En échec</span><b style="color:var(--ko)">${failed}</b></div>
+    <div class="card"><span>OK</span><b style="color:var(--ok)">${passed}</b></div>
+    <div class="card"><span>KO</span><b style="color:var(--ko)">${failed}</b></div>
     <div class="card"><span>Non exécutés</span><b>${pending}</b></div>
     <div class="card"><span>Couverture</span><b>${pct(covered)}%</b></div>
   </div>
 
-  <div class="bar" role="img" aria-label="${passed} au vert, ${failed} en échec, ${pending} non exécutés">
+  <div class="bar" role="img" aria-label="${passed} OK, ${failed} KO, ${pending} non exécutés">
     <i class="p" style="width:${pct(passed)}%"></i><i class="f" style="width:${pct(failed)}%"></i>
   </div>
 
   <div class="filters">
     <button data-filter="all" aria-pressed="true">Tout (${total})</button>
-    <button data-filter="passed" aria-pressed="false">Au vert (${passed})</button>
-    <button data-filter="failed" aria-pressed="false">En échec (${failed})</button>
+    <button data-filter="passed" aria-pressed="false">OK (${passed})</button>
+    <button data-filter="failed" aria-pressed="false">KO (${failed})</button>
     <button data-filter="pending" aria-pressed="false">Non exécutés (${pending})</button>
   </div>
 
@@ -273,5 +273,5 @@ const html = `<!doctype html>
 mkdirSync('docs', { recursive: true });
 writeFileSync(OUT, html);
 console.log(
-  `Rapport : ${OUT} — ${passed} au vert, ${failed} en échec, ${pending} non exécutés (${total} scénarios).`,
+  `Rapport : ${OUT} — ${passed} OK, ${failed} KO, ${pending} non exécutés (${total} scénarios).`,
 );

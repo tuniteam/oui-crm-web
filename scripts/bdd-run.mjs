@@ -122,7 +122,7 @@ for (const scenario of selected) {
 await browser.close();
 
 const passed = results.filter((r) => r.ok).length;
-console.log(`\n${passed}/${results.length} scénario(s) au vert.`);
+console.log(`\n${passed}/${results.length} scénario(s) OK.`);
 
 // ── Réinjection dans la recette ────────────────────────────────────────────
 const RECIPE = 'docs/RECETTE-BDD-FRONT.md';
@@ -132,7 +132,7 @@ const START = '<!-- bdd:auto:start -->';
 const END = '<!-- bdd:auto:end -->';
 
 const row = (r) =>
-  `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? '✅' : '❌'} | \`${r.file.replace('docs/', '')}\` |`;
+  `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? 'OK' : 'KO'} | \`${r.file.replace('docs/', '')}\` |`;
 
 /**
  * Fusionne avec le tableau existant : une exécution filtrée (--us, --id) ne
@@ -154,10 +154,10 @@ const rows = [...previous.entries()]
   .join('\n');
 
 const total = previous.size;
-const green = [...previous.values()].filter((l) => l.includes('✅')).length;
+const green = [...previous.values()].filter((l) => / OK /.test(l)).length;
 
 const block = `${START}
-_Généré par \`npm run bdd\` — ${new Date().toISOString().slice(0, 16).replace('T', ' ')}. ${green}/${total} au vert._
+_Généré par \`npm run bdd\` — ${new Date().toISOString().slice(0, 16).replace('T', ' ')}. ${green}/${total} OK._
 _Les captures sont locales et non versionnées : relancer \`npm run bdd\` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
