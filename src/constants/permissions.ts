@@ -20,7 +20,8 @@ export const PERMISSIONS = {
   ROLES: { READ: 'roles:read' },
   SCOPES: { READ: 'scopes:read' },
   REFERENCES: { READ: 'references:read' },
-  SETTINGS: { READ: 'settings:read' },
+  SETTINGS: { READ: 'settings:read', UPDATE: 'settings:update' },
+  PRICING: { READ: 'pricing:read', UPDATE: 'pricing:update' },
   AUDIT_LOG: { READ: 'auditLog:read' },
   /** Comptes back-office — routes plateforme, sans projet. */
   USER_BACKOFFICE: {
