@@ -1,19 +1,37 @@
 ---
 name: front-gap-analysis
-description: Identifier le développement front restant en confrontant le code à SPEC-11-HANDOFF-FRONT.md, le contrat d'API de référence. À utiliser quand on demande « qu'est-ce qui reste à faire », « quoi ensuite », un écart front/API, ou avant d'implémenter un écran consommant l'API oui-crm.
+description: Identifier le développement front restant en confrontant le code aux deux références du projet — SPEC-11-HANDOFF-FRONT.md (contrat d'API) et Periscolia_OUICRM_V8.html (maquette UI/UX), tous deux dans oui-crm-api/docs. À utiliser quand on demande « qu'est-ce qui reste à faire », « quoi ensuite », un écart front/API, ou avant d'implémenter ou concevoir un écran de oui-crm.
 ---
 
 # Identifier le dev front à faire
 
-La source de vérité du contrat d'API est :
+Deux sources, complémentaires. **Toujours consulter les deux** : le handoff dit
+ce que l'API accepte et renvoie, la maquette dit à quoi l'écran ressemble et
+quel est le parcours. L'une sans l'autre produit soit un écran juste et
+inutilisable, soit un écran crédible et faux.
 
 ```
-C:\back\oui-crm\oui-crm-api\docs\SPEC-11-HANDOFF-FRONT.md
+C:\back\oui-crm\oui-crm-api\docs\SPEC-11-HANDOFF-FRONT.md      contrat d'API
+C:\back\oui-crm\oui-crm-api\docs\Periscolia_OUICRM_V8.html     maquette UI/UX
 ```
 
-Elle est mise à jour **à chaque story livrée** et donne, par route : payloads,
-tableau exhaustif des erreurs, effets de session et limites. Chaque section se
-termine par sa recette BDD (`docs/features/*.feature`).
+**Le handoff** est mis à jour à chaque story livrée et donne, par route :
+payloads, tableau exhaustif des erreurs, effets de session et limites. Chaque
+section se termine par sa recette BDD (`docs/features/*.feature`).
+
+**La maquette** (~660 Ko) fait foi pour les écrans métier : dispositions,
+parcours, et surtout les **vocabulaires métier complets** — statuts
+d'opportunité, étapes de déploiement, types de structure, motifs de perte…
+À reprendre tels quels en tableaux `as const` plutôt qu'à réinventer.
+
+Deux pièges avec la maquette :
+
+- Elle est **templatée en JS** : les écrans se génèrent à l'exécution, une
+  lecture statique du HTML ne montre pas grand-chose. Extraire plutôt les
+  tableaux de libellés et les blocs de rendu.
+- Elle n'a **pas de `charset` déclaré** alors qu'elle est en UTF-8 : forcer
+  l'encodage à la lecture, sinon les accents sont illisibles.
+- Elle **ne couvre pas le back-office** (projets, utilisateurs backoffice).
 
 `oui-crm-api` est en **lecture seule** : on y lit, on n'y écrit jamais. Un
 changement côté API se transmet par un document de handoff dans `oui-crm-web`.
@@ -67,14 +85,24 @@ Distinguer toujours :
 - ce qui **cassera à la livraison** d'une story côté API ;
 - ce qui n'est **pas encore implémentable** (route inexistante).
 
-## Références UI
+## Quelle référence UI selon la zone
 
-Le handoff donne le contrat, pas l'apparence.
+| Zone | Référence |
+|---|---|
+| Écrans **métier** (organismes, opportunités, devis, contrats, activités, tickets…) | maquette **V8** |
+| Écrans **back-office** (projets, utilisateurs backoffice) | pattern **soft-m-web** |
 
-- Écrans **métier** → maquette `oui-crm-api/docs/Periscolia_OUICRM_V8.html`.
-- Écrans **back-office** (projets, utilisateurs) → pattern de `soft-m-web`
-  (feature `client` : table, colonnes, page de détail à onglets, sheets,
-  skeletons). Le back-office est absent de la maquette V8.
+Le back-office étant absent de la maquette, il suit la feature `client` de
+`soft-m-web` : table + colonnes (`DataGridColumnHeader`, `size`, `meta`,
+tri/masquage/redimensionnement), page de détail à onglets, sheets de
+création/édition/suppression, skeletons en fichiers dédiés. `soft-m-web` est
+lui aussi en **lecture seule**.
 
-Ne jamais reprendre les couleurs de la maquette : elle est en violet Periscolia,
-la charte oui-crm est en azur `#0369A1`.
+Ne jamais reprendre les **couleurs** de la maquette : elle est en violet
+Periscolia (`#5a45d6`), la charte oui-crm est en azur (`#0369A1`). On en reprend
+les dispositions, les parcours et les vocabulaires — pas la palette.
+
+Les illustrations se piochent dans `docs/assets/` (unDraw, accent déjà en azur)
+et se déplacent dans `public/media/illustrations/` sous un nom métier. Ne pas
+ajouter de visuels Freepik/Storyset : leur licence gratuite impose un crédit
+visible.
