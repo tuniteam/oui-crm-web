@@ -13,6 +13,7 @@ import {
 import { useSettings } from '../hooks/useSettings';
 import { BusinessRulesPane } from './panes/BusinessRulesPane';
 import { CompanyPane } from './panes/CompanyPane';
+import { DocumentsPane } from './panes/DocumentsPane';
 
 type NavItem = {
   key: SettingsTab;
@@ -103,6 +104,10 @@ export function SettingsScreen() {
   )?.label;
 
   const renderPane = () => {
+    if (tab === T.DOCUMENTS) {
+      return <DocumentsPane canUpdate={canUpdateSettings} />;
+    }
+
     if (needsSettings) {
       if (loading || !settings) return <PaneSkeleton />;
       return tab === T.COMPANY ? (

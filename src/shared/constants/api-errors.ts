@@ -37,6 +37,12 @@ export const API_ERROR = {
   // Validation / Générique
   // ==============================
   INVALID_DATA: 'Données invalides.',
+  TEMPLATE_INVALID: 'Le gabarit ne respecte pas le format attendu.',
+  STORAGE_FILE_REQUIRED: 'Aucun fichier sélectionné.',
+  STORAGE_FILE_TOO_LARGE: 'Le fichier dépasse la taille maximale autorisée.',
+  STORAGE_INVALID_MIME_TYPE: "Le type de fichier n'est pas accepté.",
+  STORAGE_INVALID_MAGIC_BYTES: "Ce fichier n'est pas une image valide.",
+  SETTINGS_NOT_FOUND: 'Réglages introuvables pour ce projet.',
   PASSWORD_TOO_WEAK:
     'Le mot de passe doit contenir au moins 10 caractères, une lettre et un chiffre.',
   INVALID_CUID: 'Identifiant invalide.',
@@ -102,6 +108,7 @@ export const API_ERROR_CODE = {
   REFRESH_TOKEN_INVALID_OR_EXPIRED: 'REFRESH_TOKEN_INVALID_OR_EXPIRED',
   REFRESH_TOKEN_INVALID_OR_USED: 'REFRESH_TOKEN_INVALID_OR_USED',
   SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
+  TEMPLATE_INVALID: 'TEMPLATE_INVALID',
   PROJECT_IS_REQUIRED: 'PROJECT_IS_REQUIRED',
   PROJECT_MISMATCH: 'PROJECT_MISMATCH',
   PROJECT_NOT_ACTIVE: 'PROJECT_NOT_ACTIVE',

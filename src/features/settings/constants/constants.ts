@@ -92,6 +92,54 @@ export const STAGE_LABELS: Record<Stage, string> = {
 
 export const STAGE_ORDER = STAGE_VALUES;
 
+export const DOCUMENTS_UI = {
+  NUMBERING: {
+    TITLE: 'Numérotation',
+    DESCRIPTION:
+      'Format en service : année, quantième du jour, initiales du commercial, séquence du jour.',
+    QUOTE: 'Devis',
+    CONTRACT: 'Contrat',
+    INVOICE: 'Facture',
+    NOTE: 'La séquence des factures repart à 1 au 1er janvier. Celle des devis repart à 1 chaque jour.',
+    READ_ONLY: 'Exemples calculés par le serveur : ces formats ne se saisissent pas.',
+  },
+
+  TEMPLATES: {
+    TITLE: 'Gabarits',
+    DESCRIPTION:
+      'Un gabarit HTML par type de document. Le dernier téléversé devient le gabarit actif.',
+    QUOTE: 'Devis',
+    CONTRACT: "Contrat d'abonnement",
+    NONE: 'Aucun gabarit téléversé',
+    VERSION: (n: number) => `Version ${n}`,
+    UPLOADED_AT: (date: string) => `Téléversé le ${date}`,
+    DOWNLOAD: 'Télécharger',
+    REPLACE: 'Remplacer',
+    UPLOAD: 'Téléverser',
+    ACCEPT: '.html',
+    MAX_SIZE_HINT: 'Fichier HTML, 1 Mo maximum.',
+    INVALID_TITLE: 'Gabarit refusé',
+    INVALID_HINT:
+      'Corrigez le fichier puis téléversez-le à nouveau. Détail renvoyé par le serveur :',
+  },
+
+  SIGNATURE: {
+    TITLE: 'Cachet et signature',
+    DESCRIPTION:
+      "Image apposée sur les devis et contrats générés. Une seule par projet : un nouveau dépôt remplace l'ancienne.",
+    NONE: 'Aucun cachet déposé',
+    UPLOAD: 'Déposer une image',
+    REPLACE: 'Remplacer',
+    ACCEPT: 'image/png,image/jpeg',
+    MAX_SIZE_HINT: 'PNG ou JPEG, 2 Mo maximum.',
+  },
+
+  TOASTS: {
+    TEMPLATE_UPLOADED: 'Gabarit mis à jour.',
+    SIGNATURE_UPLOADED: 'Cachet mis à jour.',
+  },
+} as const;
+
 export const SETTINGS_ACTIONS = {
   SAVE: 'Enregistrer',
   SAVING: 'Enregistrement...',
