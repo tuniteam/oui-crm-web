@@ -1,3 +1,4 @@
+import { Check, X } from 'lucide-react';
 import { DetailsField } from '@/components/layouts/layout-1/shared/details-page/DetailsField';
 import { DetailsSection } from '@/components/layouts/layout-1/shared/details-page/DetailsSection';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -72,22 +73,35 @@ export function ProjectInformationsTab({
       </DetailsSection>
 
       {/* Le detail liste TOUTES les fonctionnalites, activees ou non : c'est
-          l'ecran ou l'on constate ce qui est ouvert sur le projet. */}
+          l'ecran ou l'on constate ce qui est ouvert sur le projet. L'etat est
+          porte par la couleur et l'icone ; le repeter en toutes lettres sur
+          chaque badge n'ajoute rien. Le titre accessible reste explicite. */}
       <DetailsSection title={SECTIONS.FEATURES}>
         {project.features?.length ? (
           <div className="flex flex-wrap gap-2">
-            {project.features.map((feature) => (
-              <Badge
-                key={feature.code}
-                variant={feature.enabled ? 'success' : 'secondary'}
-                appearance="light"
-              >
-                {FEATURE_LABELS[feature.code] ?? feature.code}
-                <span className="ms-1 opacity-70">
-                  {feature.enabled ? FEATURES.ENABLED : FEATURES.DISABLED}
-                </span>
-              </Badge>
-            ))}
+            {project.features.map((feature) => {
+              const label = FEATURE_LABELS[feature.code] ?? feature.code;
+              const state = feature.enabled
+                ? FEATURES.ENABLED
+                : FEATURES.DISABLED;
+
+              return (
+                <Badge
+                  key={feature.code}
+                  variant={feature.enabled ? 'success' : 'secondary'}
+                  appearance="light"
+                  title={`${label} — ${state}`}
+                  className={feature.enabled ? undefined : 'opacity-60'}
+                >
+                  {feature.enabled ? (
+                    <Check size={12} aria-hidden="true" />
+                  ) : (
+                    <X size={12} aria-hidden="true" />
+                  )}
+                  {label}
+                </Badge>
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{FEATURES.EMPTY}</p>
