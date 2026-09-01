@@ -6,6 +6,7 @@ export type UpdateProfilePayload = {
 
 export type UpdateProfileResponse = {
   id: string;
+  email: string;
   firstName: string;
   lastName: string;
   phone: string | null;

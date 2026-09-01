@@ -6,6 +6,7 @@ import type {
   ActivationValidateResponse,
 } from '../types/auth';
 import { AUTH_ROUTES } from '../constants/routes.constants';
+import { tokenService } from './token.service';
 
 export const activateAccountService = {
   validateToken: async (token: string): Promise<ActivationValidateResponse> => {
@@ -25,6 +26,12 @@ export const activateAccountService = {
       AUTH_ROUTES.ACTIVATION_COMPLETE,
       payload,
     );
+
+    // Le succes ouvre la session, exactement comme un login : on stocke les
+    // jetons ici plutot que de refaire un /auth/login avec le mot de passe
+    // garde en memoire.
+    tokenService.setTokens(res.data.accessToken, res.data.refreshToken);
+
     return res.data;
   },
 };

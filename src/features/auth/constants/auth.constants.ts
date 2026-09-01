@@ -34,7 +34,6 @@ export const AUTH = {
   ZOD: {
     REQUIRED: 'Champ requis',
     INVALID_EMAIL: 'Adresse email invalide',
-    PASSWORD_MIN: 'Le mot de passe doit contenir au moins 8 caractères',
   },
 
   BRANDING: {

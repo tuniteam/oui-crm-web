@@ -41,7 +41,7 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
   const roles = useRoles({ isBackoffice: rolesFilter }, { enabled: open });
 
   const currentRoleId =
-    roles.data.find((r) => r.code === user?.relationShip?.roleCode)?.id ?? '';
+    roles.data.find((r) => r.code === user?.roleCode)?.id ?? '';
 
   if ((loadingUser || fetchingUser) && !update.loading) {
     return <EditUserBodySkeleton />;

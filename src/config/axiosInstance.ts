@@ -35,9 +35,7 @@ function projectIdFromPath(): string | null {
   return segment && PROJECT_ID_RE.test(segment) ? segment : null;
 }
 
-/** Prefixes des flux publics a jeton, non couverts par AUTH_ROUTES. */
-const PASSWORD_RESET_PATH = '/auth/password-reset';
-const EMAIL_CHANGE_PATH = '/auth/email-change';
+
 
 // Intercepteur REQUEST - Injection du Bearer token et du projet actif
 api.interceptors.request.use(
@@ -105,8 +103,11 @@ api.interceptors.response.use(
       url.includes(AUTH_ROUTES.REFRESH) ||
       url.includes(AUTH_ROUTES.ACTIVATION_VALIDATE) ||
       url.includes(AUTH_ROUTES.ACTIVATION_COMPLETE) ||
-      url.includes(PASSWORD_RESET_PATH) ||
-      url.includes(EMAIL_CHANGE_PATH);
+      url.includes(AUTH_ROUTES.RESET_PASSWORD_REQUEST) ||
+      url.includes(AUTH_ROUTES.RESET_PASSWORD_VALIDATE) ||
+      url.includes(AUTH_ROUTES.RESET_PASSWORD_COMPLETE) ||
+      url.includes(AUTH_ROUTES.EMAIL_CHANGE_REQUEST) ||
+      url.includes(AUTH_ROUTES.EMAIL_CHANGE_CONFIRM);
 
     if (status === 401 && !isAuthFlow) {
       // Deconnexion deja en cours : on laisse echouer sans rien redeclencher.

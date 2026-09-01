@@ -33,7 +33,7 @@ export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,curren
       firstName: u.firstName ?? '',
       lastName: u.lastName ?? '',
       status: u.status ?? 'PENDING',
-      roleId: u.relationShip?.roleCode ? '' : '', 
+      roleId: '',
     });
   }, [userQuery.data, form]);
 

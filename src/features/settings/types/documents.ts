@@ -52,3 +52,9 @@ export type UploadSignatureResponse = {
   fileId: string;
   fileName: string;
 };
+
+/** GET /files/:fileId/download — URL presignee, valable jusqu'a `expiresAt`. */
+export type FileDownloadUrl = {
+  url: string;
+  expiresAt: string;
+};

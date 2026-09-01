@@ -4,8 +4,11 @@ import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { DOCUMENTS_UI } from '../../constants/constants';
 import { documentsService } from '../../services/documents.service';
+import { useFileUrl } from '../../hooks/useFileUrl';
 import {
   useSettingsDocuments,
   useUploadSignature,
@@ -54,6 +57,22 @@ function TemplateRow({
 }) {
   const { upload, loading } = useUploadTemplate();
   const [invalidDetails, setInvalidDetails] = useState<string[]>([]);
+  const [downloading, setDownloading] = useState(false);
+
+  // L'URL presignee se resout a la demande : elle expire, et la route qui la
+  // fournit exige le jeton, ce qu'un simple lien ne peut pas porter.
+  const onDownload = async () => {
+    if (!template) return;
+    setDownloading(true);
+    try {
+      const { url } = await documentsService.getDownloadUrl(template.fileId);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : UI.TEMPLATES.INVALID_TITLE);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const picker = useFilePicker(async (file) => {
     setInvalidDetails([]);
@@ -81,15 +100,14 @@ function TemplateRow({
         </div>
 
         {template ? (
-          <Button variant="outline" size="sm" asChild>
-            <a
-              href={documentsService.downloadUrl(template.fileId)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Download className="h-4 w-4" aria-hidden="true" />
-              {UI.TEMPLATES.DOWNLOAD}
-            </a>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={downloading}
+            onClick={onDownload}
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            {UI.TEMPLATES.DOWNLOAD}
           </Button>
         ) : null}
 
@@ -143,6 +161,8 @@ export function DocumentsPane({ canUpdate }: { canUpdate: boolean }) {
   const signaturePicker = useFilePicker((file) => {
     void uploadSignature(file);
   });
+
+  const { url: signatureUrl } = useFileUrl(documents?.signatureImage?.fileId);
 
   if (loading || !documents) {
     return (
@@ -231,14 +251,14 @@ export function DocumentsPane({ canUpdate }: { canUpdate: boolean }) {
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-4">
-            {documents.signatureImage ? (
+            {documents.signatureImage && signatureUrl ? (
               <img
-                src={documentsService.downloadUrl(
-                  documents.signatureImage.fileId,
-                )}
+                src={signatureUrl}
                 alt={documents.signatureImage.fileName}
                 className="h-20 w-auto rounded border border-border bg-white p-2"
               />
+            ) : documents.signatureImage ? (
+              <Skeleton className="h-20 w-32" />
             ) : (
               <span className="text-sm text-muted-foreground">
                 {UI.SIGNATURE.NONE}

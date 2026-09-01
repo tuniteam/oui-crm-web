@@ -34,12 +34,7 @@ export const CHANGE_PASSWORD_WINDOW = {
     OLD_PASSWORD_REQUIRED: 'Mot de passe actuel requis',
     NEW_PASSWORD_REQUIRED: 'Nouveau mot de passe requis',
     CONFIRM_PASSWORD_REQUIRED: 'Confirmation requise',
-
-    PASSWORD_MIN: 'Minimum 8 caractères',
     PASSWORD_MAX: 'Maximum 100 caractères',
-
-    PASSWORD_COMPLEXITY:
-      'Le mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial',
 
     PASSWORD_DIFFERENT:
       'Le nouveau mot de passe doit être différent du mot de passe actuel',

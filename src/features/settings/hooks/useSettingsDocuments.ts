@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMeStore } from '@/contexts/useMeStore';
 import { toast } from 'sonner';
 import { DOCUMENTS_UI, SETTINGS_ERRORS } from '../constants/constants';
 import { TemplateInvalidError } from '../errors/TemplateInvalidError';
@@ -9,11 +10,12 @@ import type {
   TemplateType,
 } from '../types/documents';
 
-const KEY = ['settings', 'documents'];
+const keyFor = (projectId: string | null) => ['settings', 'documents', projectId];
 
 export function useSettingsDocuments(enabled: boolean = true) {
+  const projectId = useMeStore((s) => s.activeProjectId);
   const query = useQuery<SettingsDocumentsResponse>({
-    queryKey: KEY,
+    queryKey: keyFor(projectId),
     queryFn: () => documentsService.get(),
     enabled,
   });
@@ -33,6 +35,7 @@ export function useSettingsDocuments(enabled: boolean = true) {
 }
 
 export function useUploadTemplate() {
+  const projectId = useMeStore((s) => s.activeProjectId);
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -40,7 +43,7 @@ export function useUploadTemplate() {
       documentsService.uploadTemplate(type, file),
     onSuccess: () => {
       toast.success(DOCUMENTS_UI.TOASTS.TEMPLATE_UPLOADED);
-      queryClient.invalidateQueries({ queryKey: KEY });
+      queryClient.invalidateQueries({ queryKey: keyFor(projectId) });
     },
   });
 
@@ -68,13 +71,14 @@ export function useUploadTemplate() {
 }
 
 export function useUploadSignature() {
+  const projectId = useMeStore((s) => s.activeProjectId);
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (file: File) => documentsService.uploadSignature(file),
     onSuccess: () => {
       toast.success(DOCUMENTS_UI.TOASTS.SIGNATURE_UPLOADED);
-      queryClient.invalidateQueries({ queryKey: KEY });
+      queryClient.invalidateQueries({ queryKey: keyFor(projectId) });
     },
     onError: (err: Error) => toast.error(err.message),
   });

@@ -12,7 +12,7 @@ export function useInviteUser() {
     Error,
     { userId: string }
   >({
-    mutationFn: ({ userId }) => userService.invite(userId),
+    mutationFn: ({ userId }) => userService.resendActivation(userId),
 
     onSuccess: (_data, variables) => {
       toast.success(INVITE_USER_CARD.TOASTS.SUCCESS);

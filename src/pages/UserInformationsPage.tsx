@@ -76,7 +76,6 @@ export function UserInformationsPage() {
         hasPermission(PERMISSIONS.USERS.UPDATE) &&
         INVITABLE_STATUSES.includes(data.status) && (
           <UserInviteCard
-            status={data.status}
             onInviteClick={() => inviteUser(data.id)}
             isLoading={inviteLoading}
           />

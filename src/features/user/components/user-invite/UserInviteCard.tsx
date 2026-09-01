@@ -2,24 +2,19 @@ import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { INVITE_USER_CARD } from '../../constants/invite-user.constants';
-import type { UserStatus } from '../../types/userList';
 
 type Props = {
-  status: UserStatus;
   onInviteClick: () => void;
   isLoading: boolean;
 };
 
-export function UserInviteCard({ status, onInviteClick, isLoading }: Props) {
-  const isDraft = status === 'DRAFT';
-
-  const description = isDraft
-    ? INVITE_USER_CARD.DESCRIPTION_DRAFT
-    : INVITE_USER_CARD.DESCRIPTION_PENDING;
-
-  const buttonLabel = isDraft
-    ? INVITE_USER_CARD.BUTTON_DRAFT
-    : INVITE_USER_CARD.BUTTON_PENDING;
+/**
+ * Renvoi du lien d'activation. Il n'y a plus d'etat DRAFT au contrat : un
+ * compte cree part deja avec son e-mail, la carte ne fait que relancer.
+ */
+export function UserInviteCard({ onInviteClick, isLoading }: Props) {
+  const description = INVITE_USER_CARD.DESCRIPTION_PENDING;
+  const buttonLabel = INVITE_USER_CARD.BUTTON_PENDING;
 
   return (
     <Card className="my-4">

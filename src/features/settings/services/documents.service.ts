@@ -13,6 +13,7 @@ import type {
   UploadSignatureResponse,
   UploadTemplateResponse,
 } from '../types/documents';
+import type { FileDownloadUrl } from '../types/documents';
 
 /** Le serveur n'accepte qu'un champ multipart nomme `file`. */
 const FILE_FIELD = 'file';
@@ -71,6 +72,21 @@ export const documentsService = {
     }
   },
 
-  /** URL presignee de telechargement d'un fichier stocke. */
-  downloadUrl: (fileId: string): string => SETTINGS_API.FILE_DOWNLOAD(fileId),
+  /**
+   * Resout l'URL presignee d'un fichier stocke.
+   *
+   * La route renvoie `{ url, expiresAt }` en JSON, pas le fichier : on ne peut
+   * donc pas pointer un `href` ou un `src` dessus. Elle exige de surcroit le
+   * jeton et l'en-tete de projet, que seul l'intercepteur pose.
+   */
+  getDownloadUrl: async (fileId: string): Promise<FileDownloadUrl> => {
+    try {
+      const res = await api.get<FileDownloadUrl>(
+        SETTINGS_API.FILE_DOWNLOAD(fileId),
+      );
+      return res.data;
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err));
+    }
+  },
 };

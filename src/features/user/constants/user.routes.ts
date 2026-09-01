@@ -12,7 +12,10 @@ export const USER_ROUTES = {
   
   USER_UPDATE_API: (userId: string) => `/users/${userId}`,
   USER_CORRECT_EMAIL_API: (userId: string) => `/users/${userId}/email`,
-  USER_INVITE_API: (userId: string) => `/users/${userId}/invite`,
+
+  /** Renvoi du lien d'activation (US-00-05). Il n'y a pas de route /invite. */
+  USER_RESEND_ACTIVATION_API: (userId: string) =>
+    `/users/${userId}/resend-activation`,
   
 } as const;
 

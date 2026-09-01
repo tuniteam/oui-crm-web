@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SETTINGS_ZOD } from '../constants/constants';
+import { STAGE_VALUES } from '../types/settings';
 
 const intPositive = z
   .number({ message: SETTINGS_ZOD.INTEGER_POSITIVE })
@@ -25,8 +26,10 @@ export const businessRulesSchema = z.object({
   defaultCommitmentMonths: intPositive,
   retentionMonths: intPositive,
   // Les 7 etapes, WON et LOST comprises (figees, rendues en lecture seule).
+  // z.enum et non z.record(z.string()) : une etape inconnue doit etre refusee
+  // ici plutot que par le serveur.
   stageProbabilities: z.record(
-    z.string(),
+    z.enum(STAGE_VALUES),
     percent.int(SETTINGS_ZOD.RANGE_0_100),
   ),
 });

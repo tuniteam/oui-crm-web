@@ -1,13 +1,18 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useMeStore } from '@/contexts/useMeStore';
 import { toast } from 'sonner';
 import { SETTINGS_ERRORS } from '../constants/constants';
 import { settingsService } from '../services/settings.service';
 import type { SettingsResponse } from '../types/settings';
 
 export function useSettings(enabled: boolean = true) {
+  const projectId = useMeStore((s) => s.activeProjectId);
+
   const query = useQuery<SettingsResponse>({
-    queryKey: ['settings'],
+    // Scopee par projet : sans cela, ouvrir un second projet servirait les
+    // reglages du premier depuis le cache.
+    queryKey: ['settings', 'detail', projectId],
     queryFn: () => settingsService.get(),
     enabled,
   });
