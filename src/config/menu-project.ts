@@ -30,9 +30,9 @@ import { PROJECT_ROUTES } from '@/features/project/constants/routes.constants';
  * Menu affiche quand un projet est ouvert. Structure reprise de la maquette
  * V8 : cinq groupes, dans son ordre.
  *
- * Les entrees dont l'ecran n'existe pas encore sont marquees `disabled` :
- * elles montrent la cible sans mener a une page vide. Le sidebar les rend
- * grisees et `getAfterLoginRedirect` les ignore.
+ * Toutes les entrees sont navigables. Celles dont l'ecran n'existe pas encore
+ * menent a un ecran d'attente qui l'explique : desactiver l'entree laissait
+ * l'utilisateur devant un element grise, sans savoir ni pourquoi ni quand.
  */
 export const buildProjectMenu = (
   projectId: string,
@@ -56,7 +56,6 @@ export const buildProjectMenu = (
       icon: MenuConfig[number]['icon'];
       path: string;
       permission?: string;
-      ready?: boolean;
     }[];
   }[] = [
     {
@@ -98,7 +97,7 @@ export const buildProjectMenu = (
       heading: MENU_PROJECT.GROUPS.ADMINISTRATION,
       items: [
         // Seul ecran de projet deja porte cote front.
-        { title: MENU_PROJECT.USERS, icon: Users, path: '/users', permission: P.USERS.READ, ready: true },
+        { title: MENU_PROJECT.USERS, icon: Users, path: '/users', permission: P.USERS.READ },
         { title: MENU_PROJECT.ROLES, icon: UserCog, path: '/roles', permission: P.ROLES.READ },
         { title: MENU_PROJECT.SCOPES, icon: ShieldCheck, path: '/scopes', permission: P.SCOPES.READ },
         { title: MENU_PROJECT.REFERENCES, icon: Contact, path: '/reference-items', permission: P.REFERENCES.READ },
@@ -118,7 +117,6 @@ export const buildProjectMenu = (
         icon: item.icon,
         path: at(item.path),
         readPermission: item.permission,
-        disabled: !item.ready,
       });
     }
   }

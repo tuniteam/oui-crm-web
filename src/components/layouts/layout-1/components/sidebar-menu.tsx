@@ -25,7 +25,6 @@ import {
   AccordionMenuSubContent,
   AccordionMenuSubTrigger,
 } from '@/components/ui/accordion-menu';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarMenuSkeleton } from './SidebarMenuSkeleton';
 
@@ -238,11 +237,6 @@ export function SidebarMenu() {
       >
         {item.icon && <item.icon data-slot="accordion-menu-icon" />}
         <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto -me-2.5">
-            Soon
-          </Badge>
-        )}
       </AccordionMenuItem>
     );
   };
@@ -329,11 +323,6 @@ export function SidebarMenu() {
         className="text-[13px]"
       >
         <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto -me-2.5">
-            Soon
-          </Badge>
-        )}
       </AccordionMenuItem>
     );
   };
