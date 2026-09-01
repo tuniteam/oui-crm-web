@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { PROJECT_ERRORS } from '../constants/project.constants';
-import { projectService } from '../services/project.service';
-import type { ProjectListParams, ProjectListResponse } from '../types/project';
+import { ERRORS } from '../constants/constants';
+import { projectService } from '../services/projectService';
+import type {
+  ProjectListParams,
+  ProjectListResponse,
+} from '../types/projectList';
 
 export const useProjects = (params: ProjectListParams) => {
   const query = useQuery<ProjectListResponse>({
@@ -12,9 +15,7 @@ export const useProjects = (params: ProjectListParams) => {
 
   if (query.isError) {
     const msg =
-      query.error instanceof Error
-        ? query.error.message
-        : PROJECT_ERRORS.FETCH_PROJECTS;
+      query.error instanceof Error ? query.error.message : ERRORS.FETCH_PROJECTS;
     toast.error(msg);
   }
 

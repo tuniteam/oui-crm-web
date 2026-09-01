@@ -1,84 +1,127 @@
-import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
-import {
-  FEATURE_LABELS,
-  PROJECT_STATUS,
-  PROJECT_STATUS_LABELS,
-  PROJECTS_TABLE_UI,
-} from '../constants/project.constants';
-import type { ProjectListItem, ProjectStatus } from '../types/project';
-
-const COLUMNS = PROJECTS_TABLE_UI.COLUMNS;
-
-/** Le statut porte une couleur : un projet archivé ou brouillon doit se voir. */
-function statusAppearance(status: ProjectStatus) {
-  if (status === PROJECT_STATUS.ACTIVE) return 'success' as const;
-  if (status === PROJECT_STATUS.DRAFT) return 'warning' as const;
-  return 'secondary' as const;
-}
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { TABLE_HEADERS } from '../constants/constants';
+import type { ProjectListItem } from '../types/projectList';
+import { ProjectFeatureBadges } from './ProjectFeatureBadges';
 
 export const projectColumns: ColumnDef<ProjectListItem>[] = [
   {
     accessorKey: 'name',
-    header: COLUMNS.NAME,
+    id: 'name',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.NAME}
+        visibility={true}
+        column={column}
+      />
+    ),
     cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="font-medium">{row.original.name}</span>
-        <span className="text-xs text-muted-foreground">
+      <div className="space-y-px">
+        <div
+          data-testid={`project-name-${row.original.id}`}
+          className="font-medium text-foreground"
+        >
+          {row.original.name}
+        </div>
+        <div className="text-xs text-muted-foreground">
           {row.original.slug}
-        </span>
+        </div>
       </div>
     ),
+    size: 260,
+    enableSorting: true,
+    enableHiding: false,
+    enableResizing: true,
   },
   {
     accessorKey: 'productName',
-    header: COLUMNS.PRODUCT,
+    id: 'productName',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.PRODUCT}
+        visibility={true}
+        column={column}
+      />
+    ),
     cell: ({ row }) => row.original.productName,
+    size: 220,
+    meta: { headerTitle: TABLE_HEADERS.PRODUCT },
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: 'status',
-    header: COLUMNS.STATUS,
-    cell: ({ row }) => (
-      <Badge variant={statusAppearance(row.original.status)} appearance="light">
-        {PROJECT_STATUS_LABELS[row.original.status]}
-      </Badge>
+    id: 'status',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.STATUS}
+        visibility={true}
+        column={column}
+      />
     ),
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    size: 120,
+    meta: { headerTitle: TABLE_HEADERS.STATUS },
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: 'features',
-    header: COLUMNS.FEATURES,
+    id: 'features',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.FEATURES}
+        visibility={true}
+        column={column}
+      />
+    ),
+    cell: ({ row }) => (
+      <ProjectFeatureBadges features={row.original.features} />
+    ),
+    size: 240,
+    meta: { headerTitle: TABLE_HEADERS.FEATURES },
     enableSorting: false,
-    cell: ({ row }) => {
-      const features = row.original.features ?? [];
-      if (!features.length) {
-        return (
-          <span className="text-muted-foreground">
-            {PROJECTS_TABLE_UI.NO_FEATURE}
-          </span>
-        );
-      }
-      return (
-        <div className="flex flex-wrap gap-1">
-          {features.map((f) => (
-            <Badge key={f} variant="secondary" appearance="outline">
-              {FEATURE_LABELS[f] ?? f}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: 'userCount',
-    header: COLUMNS.USER_COUNT,
+    id: 'userCount',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.USER_COUNT}
+        visibility={true}
+        column={column}
+      />
+    ),
     cell: ({ row }) => (
       <span className="tabular-nums">{row.original.userCount}</span>
     ),
+    size: 120,
+    meta: { headerTitle: TABLE_HEADERS.USER_COUNT, cellClassName: 'text-start' },
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: 'createdAt',
-    header: COLUMNS.CREATED_AT,
+    id: 'createdAt',
+    header: ({ column }) => (
+      <DataGridColumnHeader
+        title={TABLE_HEADERS.CREATED_AT}
+        visibility={true}
+        column={column}
+      />
+    ),
     cell: ({ row }) =>
       new Date(row.original.createdAt).toLocaleDateString('fr-FR'),
+    size: 140,
+    meta: { headerTitle: TABLE_HEADERS.CREATED_AT },
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
 ];
