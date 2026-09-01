@@ -7,6 +7,7 @@ export const MENU = {
  
   DASHBOARD: 'Tableau de bord',
   
+  PROJECTS: 'Projets',
   USERS: 'Utilisateurs',
 
 } as const;

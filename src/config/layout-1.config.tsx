@@ -19,6 +19,7 @@ import {
   FileQuestion,
   FileText,
   Flag,
+  FolderKanban,
   Ghost,
   Gift,
   Grid,
@@ -48,6 +49,12 @@ import {
 import { MenuConfig } from '@/config/types';
 
 export const MENU_SIDEBAR: MenuConfig = [
+  {
+    title: MENU.PROJECTS,
+    icon: FolderKanban,
+    path: '/projects',
+    readPermission: PERMISSIONS.PROJECTS.READ,
+  },
   {
     title: MENU.USERS,
     icon: Users,

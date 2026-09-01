@@ -5,6 +5,11 @@
  * (`'users:delte'`) échouerait silencieusement côté `hasPermission`.
  */
 export const PERMISSIONS = {
+  PROJECTS: {
+    READ: 'projects:read',
+    CREATE: 'projects:create',
+    UPDATE: 'projects:update',
+  },
   USERS: {
     READ: 'users:read',
     CREATE: 'users:create',
