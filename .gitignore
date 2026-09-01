@@ -48,7 +48,8 @@ pnpm-debug.log*
 .claude/*
 !.claude/skills/
 
-# Documentation (wireframes, guides)
-docs/
+# Documentation — versionnée. Seule la banque d'illustrations reste locale :
+# c'est un vivier de fichiers sources dans lequel on pioche, pas une livraison.
+docs/assets/
 
 CLAUDE.md

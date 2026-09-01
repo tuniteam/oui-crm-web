@@ -1,6 +1,6 @@
 ---
 name: front-gap-analysis
-description: Identifier le développement front restant en confrontant le code aux deux références du projet — SPEC-11-HANDOFF-FRONT.md (contrat d'API) et Periscolia_OUICRM_V8.html (maquette UI/UX), tous deux dans oui-crm-api/docs. À utiliser quand on demande « qu'est-ce qui reste à faire », « quoi ensuite », un écart front/API, ou avant d'implémenter ou concevoir un écran de oui-crm.
+description: Identifier le développement front restant en confrontant le code aux deux références du projet — le contrat d'API SPEC-11-HANDOFF-FRONT.md (dans oui-crm-api/docs) et la maquette UI/UX docs/OuiCRM_V8.html (dans ce repo). À utiliser quand on demande « qu'est-ce qui reste à faire », « quoi ensuite », un écart front/API, ou avant d'implémenter ou concevoir un écran de oui-crm.
 ---
 
 # Identifier le dev front à faire
@@ -11,15 +11,15 @@ quel est le parcours. L'une sans l'autre produit soit un écran juste et
 inutilisable, soit un écran crédible et faux.
 
 ```
-C:\back\oui-crm\oui-crm-api\docs\SPEC-11-HANDOFF-FRONT.md      contrat d'API
-C:\back\oui-crm\oui-crm-api\docs\Periscolia_OUICRM_V8.html     maquette UI/UX
+../oui-crm-api/docs/SPEC-11-HANDOFF-FRONT.md   contrat d'API (repo API, lecture seule)
+docs/OuiCRM_V8.html                            maquette UI/UX (dans ce repo)
 ```
 
 **Le handoff** est mis à jour à chaque story livrée et donne, par route :
 payloads, tableau exhaustif des erreurs, effets de session et limites. Chaque
 section se termine par sa recette BDD (`docs/features/*.feature`).
 
-**La maquette** (~660 Ko) fait foi pour les écrans métier : dispositions,
+**La maquette** (~660 Ko, versionnée dans ce repo) fait foi pour les écrans métier : dispositions,
 parcours, et surtout les **vocabulaires métier complets** — statuts
 d'opportunité, étapes de déploiement, types de structure, motifs de perte…
 À reprendre tels quels en tableaux `as const` plutôt qu'à réinventer.

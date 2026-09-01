@@ -1,6 +1,6 @@
 # Front-side counterpart of oui-crm-api docs/features/auth.feature.
 # The API feature covers the contract; this one covers what the user sees.
-# No runner is wired yet — see features/README.md.
+# No runner is wired yet — see docs/features/README.md.
 @auth @front @l0
 Feature: Sign in, session and lock feedback (US-00-01)
 
