@@ -1,5 +1,5 @@
 
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { ChangePasswordBody } from './ChangePasswordBody';
 import { ChangePasswordFooter } from './ChangePasswordFooter';
 import {
@@ -17,7 +17,7 @@ export function ChangePasswordSheet({ open, onOpenChange }: Props) {
   const { changePassword } = useContent();
 
   return (
-    <ReusableSheet<ChangePasswordHooks>
+    <ReusableWindow<ChangePasswordHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={changePassword.TITLE}

@@ -1,5 +1,5 @@
 // src/features/user/components/user-delete/DeleteUserSheet.tsx
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { DeleteUserBody } from './DeleteUserBody';
 import { DeleteUserFooter } from './DeleteUserFooter';
 import { useContent } from '@/hooks/useContent';
@@ -24,7 +24,7 @@ export function DeleteUserSheet({
 }: Props) {
   const content = useContent();
   return (
-    <ReusableSheet<Record<string, never>>
+    <ReusableWindow<Record<string, never>>
       open={open}
       onOpenChange={onOpenChange}
       title={title ?? content.user.delete.sheet.TITLE}

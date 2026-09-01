@@ -1,4 +1,4 @@
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { CREATE_USER_SHEET } from '../constants/users.constants';
 import { useCreateUserForm } from '../hooks/useCreateUserForm';
 import { CreateUserBody, CreateUserHooks } from './CreateUserBody';
@@ -15,7 +15,7 @@ type Props = {
 
 export function CreateUserSheet({ open, onOpenChange, onCreated, hooksFactory, rolesFilter, title }: Props) {
   return (
-    <ReusableSheet<CreateUserHooks>
+    <ReusableWindow<CreateUserHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={title ?? CREATE_USER_SHEET.TITLE}

@@ -1,5 +1,5 @@
 // src/features/users/components/EditUserSheet.tsx
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { EditUserBody } from './EditUserBody';
 import { EditUserFooter } from './EditUserFooter';
 import { EditUserHooks, useEditUserForm } from '../../hooks/useEditUserForm';
@@ -20,7 +20,7 @@ export function EditUserSheet({ open, onOpenChange, userId, hooksFactory, rolesF
   const { me } = useMeStore();
   const currentUserEmail = me?.email;
   return (
-    <ReusableSheet<EditUserHooks>
+    <ReusableWindow<EditUserHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={title ?? UPDATE_USER_SHEET.TITLE}

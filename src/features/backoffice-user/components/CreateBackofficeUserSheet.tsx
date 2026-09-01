@@ -1,4 +1,4 @@
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { CREATE_SHEET } from '../constants/constants';
 import {
   useCreateBackofficeUserForm,
@@ -19,10 +19,11 @@ export function CreateBackofficeUserSheet({
   onCreated,
 }: Props) {
   return (
-    <ReusableSheet<CreateBackofficeUserHooks>
+    <ReusableWindow<CreateBackofficeUserHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={CREATE_SHEET.TITLE}
+      description={CREATE_SHEET.DESCRIPTION}
       useHooks={useCreateBackofficeUserForm}
       preventClose
       onClosed={({ form }) => form.reset()}

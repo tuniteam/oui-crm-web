@@ -14,12 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  CREATE_SHEET,
-  ERRORS,
-  FIELDS,
-  PLACEHOLDERS,
-} from '../constants/constants';
+import { ERRORS, FIELDS, PLACEHOLDERS } from '../constants/constants';
 import type { CreateBackofficeUserHooks } from '../hooks/useCreateBackofficeUserForm';
 
 export function CreateBackofficeUserBody({
@@ -32,10 +27,6 @@ export function CreateBackofficeUserBody({
   return (
     <Form {...form}>
       <form className="space-y-5">
-        <p className="text-sm text-muted-foreground">
-          {CREATE_SHEET.DESCRIPTION}
-        </p>
-
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}

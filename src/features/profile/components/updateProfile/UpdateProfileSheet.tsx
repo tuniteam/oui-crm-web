@@ -1,5 +1,5 @@
 import { useContent } from '@/hooks/useContent';
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import {
   UpdateProfileHooks,
   useUpdateProfileForm,
@@ -16,7 +16,7 @@ export function UpdateProfileSheet({ open, onOpenChange }: Props) {
   const { updateProfile } = useContent();
 
   return (
-    <ReusableSheet<UpdateProfileHooks>
+    <ReusableWindow<UpdateProfileHooks>
       open={open}
       onClosed={({ form }) => form.reset()}
       onOpenChange={onOpenChange}

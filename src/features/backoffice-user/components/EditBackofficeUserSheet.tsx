@@ -1,6 +1,6 @@
 import { LoaderCircleIcon, Save, X } from 'lucide-react';
 import { COMMON } from '@/constants';
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -33,7 +33,7 @@ type Props = {
 
 export function EditBackofficeUserSheet({ open, onOpenChange, user }: Props) {
   return (
-    <ReusableSheet<EditBackofficeUserHooks>
+    <ReusableWindow<EditBackofficeUserHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={EDIT_SHEET.TITLE}

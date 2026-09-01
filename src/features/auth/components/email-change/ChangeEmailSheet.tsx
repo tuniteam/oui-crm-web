@@ -1,4 +1,4 @@
-import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { EMAIL_CHANGE } from '../../constants/email-change.constants';
 import {
   useEmailChangeForm,
@@ -14,7 +14,7 @@ type Props = {
 
 export function ChangeEmailSheet({ open, onOpenChange }: Props) {
   return (
-    <ReusableSheet<EmailChangeHooks>
+    <ReusableWindow<EmailChangeHooks>
       open={open}
       onOpenChange={onOpenChange}
       title={EMAIL_CHANGE.REQUEST.TITLE}
