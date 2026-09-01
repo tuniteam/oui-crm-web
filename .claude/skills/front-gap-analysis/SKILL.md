@@ -85,21 +85,23 @@ Distinguer toujours :
 - ce qui **cassera à la livraison** d'une story côté API ;
 - ce qui n'est **pas encore implémentable** (route inexistante).
 
-## Après avoir livré une feature
+## Après chaque développement
 
-Écrire ses scénarios BDD dans `docs/features/<domaine>.feature`, en nommant
-l'US couverte — même traçabilité que `oui-crm-api/docs/features/`.
+Mettre à jour **`docs/RECETTE-BDD-FRONT.md`**, le document unique de recette
+front. Il couvre les **onze US** livrées côté API, pas seulement celles qui sont
+développées : les autres y portent les scénarios à couvrir et servent de plan de
+travail.
 
-- `Feature: … (US-00-XX)` dans l'en-tête, tags `@nominal` / `@error` /
-  `@validation` / `@guard` comme côté API.
-- Rédiger en anglais ; garder en français les chaînes d'interface citées, ce
-  sont celles que l'utilisateur lit réellement.
+- Une section par US (`## US-00-XX · Domaine`), tableaux `# | Scénario |
+  Attendu`.
+- Mettre à jour la colonne Statut du tableau de tête : livré, partiel, à
+  développer.
 - Décrire ce que voit l'utilisateur, pas les appels HTTP : le contrat est déjà
   couvert par la recette de l'API.
-- Écrire un scénario pour chaque piège identifié pendant le développement — une
+- Écrire une ligne pour chaque piège identifié pendant le développement — une
   règle serveur qu'on pourrait ré-implémenter côté front par erreur, une valeur
-  figée, un cas qui dégrade en silence.
-- Tenir à jour le tableau de `docs/features/README.md`.
+  figée, un cas qui dégrade en silence. C'est là que ce document gagne sa valeur.
+- Les chaînes d'interface citées restent en français.
 
 ## Quelle référence UI selon la zone
 
