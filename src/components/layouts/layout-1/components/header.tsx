@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useLocation } from 'react-router';
+import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { UI } from '@/constants';
@@ -22,6 +23,7 @@ import { Breadcrumb } from './breadcrumb';
 import { useLayout } from './context';
 
 export function Header() {
+  const { resolvedTheme } = useTheme();
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
   const { sidebarCollapse, setSidebarCollapse } = useLayout();
   const isBackoffice = useMeStore((s) => s.isBackoffice());
@@ -63,7 +65,11 @@ export function Header() {
         </Tooltip>
         <Link to="/">
           <img
-            src={toAbsoluteUrl('/media/app/default-logo.svg')}
+            src={toAbsoluteUrl(
+              resolvedTheme === 'dark'
+                ? '/media/app/default-logo-dark.svg'
+                : '/media/app/default-logo.svg',
+            )}
             className="h-13 w-auto"
             alt="logo"
           />

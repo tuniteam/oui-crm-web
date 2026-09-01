@@ -93,7 +93,7 @@ export const USERS_TABLE_UI = {
   EMPTY_STATE: {
     TITLE: 'Aucun utilisateur',
     DESCRIPTION: [
-      'Aucun utilisateur trouvé pour ce client.',
+      'Aucun utilisateur trouvé pour ce projet.',
       'Ajoutez un utilisateur pour commencer.',
     ],
     TIP: {

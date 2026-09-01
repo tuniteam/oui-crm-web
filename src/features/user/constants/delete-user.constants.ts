@@ -15,8 +15,8 @@ export const DELETE_USER_SHEET = {
     INTRO:
       'Cette action entraînera la suppression définitive des données associées à cet utilisateur :',
     BULLETS: [
-      'Les accès à ce client',
-      'Les rôles/permissions liés sur ce client',
+      'Les accès à ce projet',
+      'Les rôles/permissions liés sur ce projet',
       "L'utilisateur peut être supprimé entièrement s’il n’a qu’un seul rattachement.",
     ],
   },
