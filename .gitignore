@@ -58,3 +58,4 @@ CLAUDE.md
 # Régénérées par `npm run probe` / `npm run bdd`, jamais versionnées.
 docs/screenshots/
 docs/probe/
+docs/rapport-bdd.html

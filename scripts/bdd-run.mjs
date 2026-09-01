@@ -13,7 +13,7 @@
  * provoquer sur des données réelles.
  */
 import { chromium } from 'playwright';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { scenarios } from './bdd/scenarios.mjs';
 
@@ -172,3 +172,21 @@ md =
 
 writeFileSync(RECIPE, md);
 console.log(`Recette mise à jour : ${RECIPE}`);
+
+// Persiste le résultat pour le rapport HTML, qui croise la recette entière
+// avec ce qui a réellement été exécuté.
+mkdirSync('docs/probe', { recursive: true });
+const RESULTS = 'docs/probe/bdd-results.json';
+const previousRun = existsSync(RESULTS)
+  ? JSON.parse(readFileSync(RESULTS, 'utf8')).results ?? []
+  : [];
+const merged = new Map(previousRun.map((r) => [r.id, r]));
+for (const r of results) {
+  merged.set(r.id, { id: r.id, us: r.us, title: r.title, ok: r.ok, failures: r.failures, file: r.file });
+}
+writeFileSync(
+  RESULTS,
+  JSON.stringify({ runAt: new Date().toISOString(), results: [...merged.values()] }, null, 2),
+);
+
+await import('./bdd-report.mjs');

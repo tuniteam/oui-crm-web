@@ -127,6 +127,11 @@ Distinguer toujours :
    scénario pour ce qui vient d'être développé, en priorité pour les pièges
    identifiés. Les cas d'erreur se simulent en interceptant la réponse de
    l'API : c'est ce qui rend testables un compte verrouillé ou un 409.
+
+   L'exécution produit aussi `docs/rapport-bdd.html` : **tous** les scénarios
+   de la recette, exécutés ou non, groupés par US, avec un filtre et le taux
+   de couverture. C'est ce rapport qui dit ce qui n'est pas couvert — un
+   tableau qui n'afficherait que le vert donnerait une fausse assurance.
 8. **Committer**, en disant ce qui a été vérifié et ce qui ne l'a pas été.
 
 ## Après chaque développement
