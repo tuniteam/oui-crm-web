@@ -3,41 +3,32 @@ import { STAGE_VALUES, type Stage } from '../types/settings';
 /** Onglets de l'ecran Parametres, repris de la maquette V8. */
 export const SETTINGS_TABS = {
   COMPANY: 'company',
-  USERS: 'users',
-  ROLES: 'roles',
-  SCOPES: 'scopes',
-  AUDIT_LOG: 'audit-log',
   BUSINESS_RULES: 'business-rules',
-  PRICING: 'pricing',
   DOCUMENTS: 'documents',
   REFERENCES: 'references',
-  DATA: 'data',
 } as const;
 
 export type SettingsTab = (typeof SETTINGS_TABS)[keyof typeof SETTINGS_TABS];
 
 export const SETTINGS_UI = {
   TITLE: 'Paramètres',
-  SUBTITLE: 'Organisation, sécurité et accès, règles métier et données.',
+  SUBTITLE: 'Réglages du projet : société, règles commerciales, documents et référentiels.',
+  /** Nom du paramètre d'URL qui porte le panneau ouvert. */
+  TAB_PARAM: 'panneau',
 
-  GROUPS: {
-    ORGANISATION: 'Organisation',
-    SECURITY: 'Sécurité et accès',
-    BUSINESS: 'Règles métier',
-    DATA: 'Données',
+  /** Une ligne par panneau : ce qu'on y règle, pour choisir sans ouvrir. */
+  DESCRIPTIONS: {
+    COMPANY: 'Identité utilisée sur les devis et contrats',
+    BUSINESS_RULES: 'TVA, objectifs, validité, remises, probabilités',
+    DOCUMENTS: 'Gabarits, cachet et formats de numérotation',
+    REFERENCES: 'Valeurs des listes déroulantes de l’application',
   },
 
   ITEMS: {
     COMPANY: 'Société',
-    USERS: 'Utilisateurs',
-    ROLES: 'Rôles et droits',
-    SCOPES: 'Périmètres',
-    AUDIT_LOG: "Journal d'activité",
     BUSINESS_RULES: 'Règles commerciales',
-    PRICING: 'Grille tarifaire',
     DOCUMENTS: 'Documents et numérotation',
     REFERENCES: 'Référentiels',
-    DATA: 'Sauvegarde et conservation',
   },
 } as const;
 

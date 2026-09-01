@@ -1,8 +1,15 @@
 import { PERMISSIONS } from '@/constants';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Building2,
+  FileText,
+  ListChecks,
+  SlidersHorizontal,
+  type LucideIcon,
+} from 'lucide-react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { cn } from '@/lib/utils';
-import { ComingSoon } from '@/components/shared/ComingSoon';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -19,49 +26,56 @@ import { ReferenceItemsPane } from './panes/ReferenceItemsPane';
 type NavItem = {
   key: SettingsTab;
   label: string;
-  /** Permission requise pour voir l'entree. */
+  description: string;
+  icon: LucideIcon;
   permission: string;
 };
 
-type NavGroup = { heading: string; items: NavItem[] };
-
-const G = SETTINGS_UI.GROUPS;
 const I = SETTINGS_UI.ITEMS;
+const D = SETTINGS_UI.DESCRIPTIONS;
 const T = SETTINGS_TABS;
 
-/** Navigation reprise de la maquette V8 : quatre groupes, dans son ordre. */
-const NAV: NavGroup[] = [
+/**
+ * Les quatre panneaux réellement disponibles ici.
+ *
+ * La maquette V8 en listait dix, mais six d'entre eux menaient à un écran
+ * d'attente ou dupliquaient une entrée du menu projet — utilisateurs, rôles,
+ * périmètres, journal ont leur propre écran. Une navigation où plus de la
+ * moitié des liens ne mène nulle part n'aide personne : on ne garde que ce
+ * qui ouvre vraiment quelque chose.
+ */
+const NAV: NavItem[] = [
   {
-    heading: G.ORGANISATION,
-    items: [
-      { key: T.COMPANY, label: I.COMPANY, permission: PERMISSIONS.SETTINGS.READ },
-      { key: T.USERS, label: I.USERS, permission: PERMISSIONS.USERS.READ },
-    ],
+    key: T.COMPANY,
+    label: I.COMPANY,
+    description: D.COMPANY,
+    icon: Building2,
+    permission: PERMISSIONS.SETTINGS.READ,
   },
   {
-    heading: G.SECURITY,
-    items: [
-      { key: T.ROLES, label: I.ROLES, permission: PERMISSIONS.ROLES.READ },
-      { key: T.SCOPES, label: I.SCOPES, permission: PERMISSIONS.SCOPES.READ },
-      { key: T.AUDIT_LOG, label: I.AUDIT_LOG, permission: PERMISSIONS.AUDIT_LOG.READ },
-    ],
+    key: T.BUSINESS_RULES,
+    label: I.BUSINESS_RULES,
+    description: D.BUSINESS_RULES,
+    icon: SlidersHorizontal,
+    permission: PERMISSIONS.SETTINGS.READ,
   },
   {
-    heading: G.BUSINESS,
-    items: [
-      { key: T.BUSINESS_RULES, label: I.BUSINESS_RULES, permission: PERMISSIONS.SETTINGS.READ },
-      { key: T.PRICING, label: I.PRICING, permission: PERMISSIONS.PRICING.READ },
-      { key: T.DOCUMENTS, label: I.DOCUMENTS, permission: PERMISSIONS.SETTINGS.READ },
-      { key: T.REFERENCES, label: I.REFERENCES, permission: PERMISSIONS.REFERENCES.READ },
-    ],
+    key: T.DOCUMENTS,
+    label: I.DOCUMENTS,
+    description: D.DOCUMENTS,
+    icon: FileText,
+    permission: PERMISSIONS.SETTINGS.READ,
   },
   {
-    heading: G.DATA,
-    items: [
-      { key: T.DATA, label: I.DATA, permission: PERMISSIONS.SETTINGS.READ },
-    ],
+    key: T.REFERENCES,
+    label: I.REFERENCES,
+    description: D.REFERENCES,
+    icon: ListChecks,
+    permission: PERMISSIONS.REFERENCES.READ,
   },
 ];
+
+const TABS: SettingsTab[] = NAV.map((item) => item.key);
 
 function PaneSkeleton() {
   return (
@@ -84,25 +98,30 @@ export function SettingsScreen() {
   const canReadSettings = hasPermission(PERMISSIONS.SETTINGS.READ);
   const canUpdateSettings = hasPermission(PERMISSIONS.SETTINGS.UPDATE);
 
-  // Les deux seuls panneaux qui lisent /settings ; inutile d'appeler
-  // l'API tant qu'aucun n'est ouvert.
-  const [tab, setTab] = useState<SettingsTab>(T.COMPANY);
+  // Le panneau ouvert vit dans l'URL : un lien profond, un rafraichissement
+  // ou un retour arriere retombent sur le meme panneau. C'est aussi ce qui
+  // permet au menu projet de pointer directement sur les referentiels.
+  const [params, setParams] = useSearchParams();
+  const requested = params.get(SETTINGS_UI.TAB_PARAM);
+  const tab: SettingsTab = TABS.includes(requested as SettingsTab)
+    ? (requested as SettingsTab)
+    : T.COMPANY;
+
+  const setTab = (next: SettingsTab) => {
+    const nextParams = new URLSearchParams(params);
+    nextParams.set(SETTINGS_UI.TAB_PARAM, next);
+    // Naviguer entre panneaux n'est pas une etape d'historique.
+    setParams(nextParams, { replace: true });
+  };
+
   const needsSettings = tab === T.COMPANY || tab === T.BUSINESS_RULES;
 
   const { settings, loading } = useSettings(needsSettings && canReadSettings);
 
-  const groups = useMemo(
-    () =>
-      NAV.map((group) => ({
-        ...group,
-        items: group.items.filter((item) => hasPermission(item.permission)),
-      })).filter((group) => group.items.length > 0),
+  const visible = useMemo(
+    () => NAV.filter((item) => hasPermission(item.permission)),
     [hasPermission],
   );
-
-  const activeLabel = NAV.flatMap((g) => g.items).find(
-    (i) => i.key === tab,
-  )?.label;
 
   const renderPane = () => {
     if (tab === T.DOCUMENTS) {
@@ -127,7 +146,7 @@ export function SettingsScreen() {
         <BusinessRulesPane settings={settings} canUpdate={canUpdateSettings} />
       );
     }
-    return <ComingSoon title={activeLabel} />;
+    return null;
   };
 
   return (
@@ -142,33 +161,46 @@ export function SettingsScreen() {
       {/* Disposition de la V8 : navigation a gauche, panneau a droite.
           Elle passe au-dessus sur petit ecran. */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[15rem_minmax(0,1fr)]">
-        <nav aria-label={SETTINGS_UI.TITLE}>
-          {groups.map((group) => (
-            <div key={group.heading} className="mb-4">
-              <p className="mb-1.5 px-2.5 text-xs font-medium uppercase text-muted-foreground/70">
-                {group.heading}
-              </p>
-              <div className="flex flex-col gap-0.5">
-                {group.items.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    data-testid={`settings-tab-${item.key}`}
-                    onClick={() => setTab(item.key)}
-                    aria-current={tab === item.key ? 'page' : undefined}
+        <nav aria-label={SETTINGS_UI.TITLE} className="flex flex-col gap-1">
+          {visible.map((item) => {
+            const active = tab === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                data-testid={`settings-tab-${item.key}`}
+                onClick={() => setTab(item.key)}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'flex items-start gap-3 rounded-lg border px-3 py-2.5 text-start transition-colors',
+                  active
+                    ? 'border-primary/40 bg-accent'
+                    : 'border-transparent hover:bg-accent/50',
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    'mt-0.5 h-4 w-4 shrink-0',
+                    active ? 'text-primary' : 'text-muted-foreground',
+                  )}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0">
+                  <span
                     className={cn(
-                      'rounded-md px-2.5 py-2 text-start text-sm transition-colors',
-                      tab === item.key
-                        ? 'bg-accent font-medium text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                      'block text-sm',
+                      active ? 'font-medium text-foreground' : 'text-foreground',
                     )}
                   >
                     {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {item.description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </nav>
 
         <div className="min-w-0">{renderPane()}</div>

@@ -2,6 +2,10 @@ import { PERMISSIONS } from '@/constants';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { MENU_PROJECT } from '@/constants/menu';
 import { ComingSoon } from '@/components/shared/ComingSoon';
+import {
+  SETTINGS_TABS,
+  SETTINGS_UI,
+} from '@/features/settings/constants/constants';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
 import UsersTable from '@/features/user/components/UsersTable';
 import { RequirePermission } from '@/guards/RequirePermission';
@@ -49,13 +53,19 @@ export function ProjectWorkspaceRoutes() {
         <Route path="settings" element={<SettingsScreen />} />
       </Route>
 
-      {/* Les referentiels sont un panneau de Parametres : on y renvoie. */}
+      {/* Les referentiels sont un panneau de Parametres, plus une entree de
+          menu : on redirige sur le panneau, pas sur l'ecran par defaut. */}
       <Route
         element={<RequirePermission permission={PERMISSIONS.REFERENCES.READ} />}
       >
         <Route
           path="reference-items"
-          element={<Navigate to="../settings" replace />}
+          element={
+            <Navigate
+              to={`../settings?${SETTINGS_UI.TAB_PARAM}=${SETTINGS_TABS.REFERENCES}`}
+              replace
+            />
+          }
         />
       </Route>
 

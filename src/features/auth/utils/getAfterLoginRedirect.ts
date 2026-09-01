@@ -4,8 +4,12 @@ import { MENU_SIDEBAR } from '@/config/layout-1.config';
 import { MenuConfig } from '@/config/types';
 
 export function getAfterLoginRedirect(meStore: MeStoreState): To {
+  // Tant que /me n'a pas repondu, les gardes ne savent rien : ils redirigent
+  // ici, sur la route courante, en attendant. Il faut donc rendre l'URL
+  // entiere — sans la query, un lien profond (?panneau=..., ?onglet=...)
+  // serait perdu a chaque chargement a froid.
   if (!meStore.me) {
-    return window.location.pathname as To;
+    return `${window.location.pathname}${window.location.search}` as To;
   }
   
 
