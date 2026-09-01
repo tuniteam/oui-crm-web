@@ -227,9 +227,10 @@ Scénarios couverts par la liste existante ; le reste est **à développer**.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 1 | Groupes | les quatre de la V8, « Société » ouvert par défaut |
-| 2 | Groupe entièrement interdit | il disparaît |
+| 1 | Navigation | **uniquement les panneaux réels** — Société, Règles commerciales, Documents, Référentiels ; « Société » ouvert par défaut |
+| 2 | Panneau interdit | l'entrée disparaît de la navigation |
 | 3 | Chargement paresseux | `/settings` n'est appelé que si un panneau en dépend |
+| 4 | Panneau dans l'URL | `?panneau=references` ouvre les Référentiels ; le rafraîchissement le conserve |
 
 ### Société
 
@@ -268,11 +269,14 @@ Scénarios couverts par la liste existante ; le reste est **à développer**.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 1 | Affichage | listes groupées par type, comme le panneau V8 |
+| 1 | Affichage | une catégorie à la fois, choisie dans un sélecteur qui donne le nombre de valeurs |
 | 2 | Lecture pour tous | tout rôle du projet peut consulter |
 | 3 | Modification | réservée à l'administrateur de projet |
 | 4 | Ajouter une valeur | apparaît dans les listes déroulantes qui s'en servent |
 | 5 | Désactiver une valeur | reste sur les enregistrements existants, disparaît des nouveaux choix |
+| 6 | Réordonner | glisser une ligne enregistre le nouvel ordre et le conserve après rechargement |
+| 7 | Renommer | le libellé se modifie sur place, sans ouvrir de fenêtre |
+| 8 | Rechercher | filtre la catégorie ; le réordonnancement est désactivé tant que le filtre est actif |
 
 ---
 
@@ -358,7 +362,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-01 15:18. 23/23 OK._
+_Généré par `npm run bdd` — 2026-09-01 23:03. 27/27 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -376,13 +380,17 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
 | US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
 | US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
-| US-00-08 | 08.1 | Les quatre groupes de la V8, Société ouverte par défaut | OK | `screenshots/08-1.png` |
+| US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
+| US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |
 | US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-12.png` |
 | US-00-08 | 08.15 | Numérotation affichée en lecture seule | OK | `screenshots/08-15.png` |
-| US-00-09 | 09.1 | Les valeurs sont groupées par catégorie, avec leur nombre | OK | `screenshots/09-1.png` |
+| US-00-09 | 09.1 | Une catégorie à la fois, choisie dans un sélecteur chiffré | OK | `screenshots/09-1.png` |
 | US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/09-4.png` |
 | US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/09-5.png` |
+| US-00-09 | 09.6 | Un glisser-déposer enregistre le nouvel ordre | OK | `screenshots/09-6.png` |
+| US-00-09 | 09.7 | Le libellé se renomme sur place | OK | `screenshots/09-7.png` |
+| US-00-09 | 09.8 | La recherche filtre et suspend le réordonnancement | OK | `screenshots/09-8.png` |
 | US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | OK | `screenshots/11-1.png` |
 | US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | OK | `screenshots/11-9.png` |
 | US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | OK | `screenshots/11-11.png` |

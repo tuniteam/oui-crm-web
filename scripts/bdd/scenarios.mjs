@@ -279,25 +279,54 @@ export const scenarios = [
   {
     id: '08.1',
     us: 'US-00-08',
-    title: 'Les quatre groupes de la V8, Société ouverte par défaut',
+    title: 'La navigation ne liste que les panneaux réels',
     needsProject: true,
     async run({ page, expect, projectId }) {
       await page.goto(`/${projectId}/settings`);
-      for (const group of [
-        'Organisation',
-        'Sécurité et accès',
-        'Règles métier',
-        'Données',
-      ]) {
-        await page
-          .getByText(new RegExp(`^${group}$`, 'i'))
-          .first()
-          .waitFor({ timeout: 6000 });
-      }
       await page
         .getByText("Identité de l'entreprise")
-        .waitFor({ timeout: 6000 });
-      expect(true);
+        .waitFor({ timeout: 8000 });
+
+      const nav = page.getByRole('navigation', { name: 'Paramètres' });
+      const entries = await nav.getByRole('button').count();
+      expect(entries === 4, `${entries} entrée(s) au lieu de 4`);
+
+      // Les écrans qui vivent ailleurs ne doivent pas être dupliqués ici :
+      // une entrée qui n'ouvre rien fait douter de toutes les autres.
+      for (const absent of ['Rôles et droits', 'Journal d’activité', 'Grille tarifaire']) {
+        expect(
+          (await nav.getByText(absent).count()) === 0,
+          `« ${absent} » figure encore dans la navigation`,
+        );
+      }
+    },
+  },
+
+  {
+    us: 'US-00-08',
+    id: '08.4',
+    title: "Le panneau ouvert est porte par l'URL",
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Le menu projet n'a plus d'entree Referentiels : c'est ce lien profond
+      // qui garantit qu'on peut encore y arriver directement.
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      await page.getByTestId('settings-tab-references').waitFor({ timeout: 8000 });
+      expect(
+        (await page
+          .getByTestId('settings-tab-references')
+          .getAttribute('aria-current')) === 'page',
+        "le panneau Referentiels n'est pas actif",
+      );
+
+      await page.reload();
+      await page.getByTestId('settings-tab-references').waitFor({ timeout: 8000 });
+      expect(
+        (await page
+          .getByTestId('settings-tab-references')
+          .getAttribute('aria-current')) === 'page',
+        'le panneau est perdu au rafraichissement',
+      );
     },
   },
   {
@@ -357,20 +386,164 @@ export const scenarios = [
   {
     id: '09.1',
     us: 'US-00-09',
-    title: 'Les valeurs sont groupées par catégorie, avec leur nombre',
+    title: 'Une catégorie à la fois, choisie dans un sélecteur chiffré',
     needsProject: true,
     async run({ page, expect, projectId }) {
-      await page.goto(`/${projectId}/settings`);
-      await page.getByTestId('settings-tab-references').click();
-      await page.getByText('Types de structure').waitFor({ timeout: 8000 });
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      const selector = page.getByTestId('reference-category');
+      await selector.waitFor({ timeout: 8000 });
+
+      // Onze catégories empilées faisaient une page interminable : on en
+      // ouvre une, les autres restent accessibles dans le sélecteur.
+      await selector.click();
       for (const category of [
+        'Types de structure',
         'Origines des opportunités',
         'Motifs de perte',
         'Catégories de ticket',
       ]) {
-        await page.getByText(category).first().waitFor({ timeout: 6000 });
+        await page
+          .getByRole('option', { name: new RegExp(category) })
+          .waitFor({ timeout: 6000 });
       }
+
+      await page.getByRole('option', { name: /Motifs de perte/ }).click();
+      await page
+        .getByText(/valeur(s)? —/)
+        .first()
+        .waitFor({ timeout: 6000 });
       expect(true);
+    },
+  },
+  {
+    id: '09.6',
+    us: 'US-00-09',
+    title: 'Un glisser-déposer enregistre le nouvel ordre',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      const rows = page.locator('[data-slot="sortable-item"]');
+      const handles = page.locator('[data-slot="sortable-item-handle"]');
+      await rows.first().waitFor({ timeout: 8000 });
+
+      const top = async () => {
+        const out = [];
+        for (let i = 0; i < 2; i++) {
+          const text = await rows.nth(i).innerText();
+          out.push(text.split(String.fromCharCode(10)).filter(Boolean)[1]);
+        }
+        return out;
+      };
+
+      // dnd-kit n'arme le geste qu'au-dela de 10 px : un drag_and_drop
+      // instantane ne declenche rien, il faut bouger par etapes et relacher
+      // au centre de la ligne visee.
+      const swapTopTwo = async () => {
+        const from = await handles.nth(1).boundingBox();
+        const to = await handles.nth(0).boundingBox();
+        await page.mouse.move(from.x + 8, from.y + 8);
+        await page.mouse.down();
+        await page.mouse.move(from.x + 8, from.y + 20, { steps: 5 });
+        await page.mouse.move(to.x + 8, to.y + 4, { steps: 15 });
+        await page.mouse.up();
+        await page.waitForTimeout(2500);
+      };
+
+      const before = await top();
+      await swapTopTwo();
+      const swapped = await top();
+      expect(
+        swapped[0] === before[1] && swapped[1] === before[0],
+        `ordre affiche inchange : ${swapped.join(' / ')}`,
+      );
+
+      // L'ordre doit venir du serveur, pas d'un etat local.
+      await page.reload();
+      await rows.first().waitFor({ timeout: 8000 });
+      await page.waitForTimeout(1000);
+      const persisted = await top();
+      expect(
+        persisted[0] === before[1] && persisted[1] === before[0],
+        `ordre perdu au rechargement : ${persisted.join(' / ')}`,
+      );
+
+      // La recette ne doit pas laisser la categorie reordonnee.
+      await swapTopTwo();
+      const restored = await top();
+      expect(
+        restored[0] === before[0] && restored[1] === before[1],
+        `ordre initial non retabli : ${restored.join(' / ')}`,
+      );
+    },
+  },
+  {
+    id: '09.7',
+    us: 'US-00-09',
+    title: 'Le libellé se renomme sur place',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      const row = page.locator('[data-slot="sortable-item"]').first();
+      await row.waitFor({ timeout: 8000 });
+
+      const target = row.locator('button[title="Renommer"]');
+      const original = (await target.innerText()).trim();
+      const renamed = `${original} (recette)`;
+
+      await target.click();
+      const input = row.locator('input');
+      await input.waitFor({ timeout: 6000 });
+      await input.fill(renamed);
+      await input.press('Enter');
+      await page.waitForTimeout(1200);
+
+      await page.reload();
+      await page.locator('[data-slot="sortable-item"]').first().waitFor({ timeout: 8000 });
+      const after = (
+        await page
+          .locator('[data-slot="sortable-item"]')
+          .first()
+          .locator('button[title="Renommer"]')
+          .innerText()
+      ).trim();
+      expect(after === renamed, `libelle obtenu : « ${after} »`);
+
+      // Restauration : la recette ne doit pas laisser de trace.
+      const back = page
+        .locator('[data-slot="sortable-item"]')
+        .first()
+        .locator('button[title="Renommer"]');
+      await back.click();
+      const input2 = page.locator('[data-slot="sortable-item"]').first().locator('input');
+      await input2.fill(original);
+      await input2.press('Enter');
+      await page.waitForTimeout(1200);
+    },
+  },
+  {
+    id: '09.8',
+    us: 'US-00-09',
+    title: 'La recherche filtre et suspend le réordonnancement',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      const rows = page.locator('[data-slot="sortable-item"]');
+      await rows.first().waitFor({ timeout: 8000 });
+      const total = await rows.count();
+
+      const label = (await rows.first().locator('button[title="Renommer"]').innerText()).trim();
+      await page.getByTestId('reference-search').fill(label);
+      await page.waitForTimeout(400);
+
+      const filtered = await rows.count();
+      expect(filtered < total, `${filtered} ligne(s) sur ${total} : rien n'est filtré`);
+
+      // Deplacer une ligne parmi des voisins masques donnerait un ordre subi :
+      // la poignee doit disparaitre tant que le filtre est actif.
+      expect(
+        (await page.locator('[data-slot="sortable-item-handle"]').count()) === 0,
+        'le glisser-deposer reste actif malgre le filtre',
+      );
     },
   },
   {
@@ -379,9 +552,8 @@ export const scenarios = [
     title: 'La clé est normalisée en majuscules à la saisie',
     needsProject: true,
     async run({ page, expect, projectId }) {
-      await page.goto(`/${projectId}/settings`);
-      await page.getByTestId('settings-tab-references').click();
-      await page.getByTestId('reference-add-LEAD_SOURCE').click();
+      await page.goto(`/${projectId}/settings?panneau=references`);
+      await page.getByTestId('reference-add').click();
       const key = page.locator('input.font-mono');
       await key.waitFor({ timeout: 6000 });
       await key.fill('trade_show');
