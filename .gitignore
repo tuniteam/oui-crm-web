@@ -42,8 +42,11 @@ pnpm-debug.log*
 .eslintcache
 *.tsbuildinfo
 
-# Claude Code (all local files and settings)
-.claude/
+# Claude Code — local, sauf les skills du projet partagées avec l'équipe.
+# On exclut le *contenu* et non le dossier : git ne peut pas ré-inclure un
+# fichier dont un dossier parent est exclu.
+.claude/*
+!.claude/skills/
 
 # Documentation (wireframes, guides)
 docs/
