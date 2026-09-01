@@ -77,19 +77,23 @@
    * que consommer ces tokens, la charte reste le seul point de verite.
    * ======================================== */
   --btn-radius: 10px;
+  /* Le bout clair s'arrete a #1B79BD : c'est la limite ou le blanc du label
+   * tient encore l'AA (4.65:1). Le bleu ciel de marque (#54A0FF) tombe a
+   * 2.68:1 - il reste un fond de pastille, jamais un fond de bouton. */
   --btn-primary-from: var(--brand-primary);
-  --btn-primary-to: var(--brand-secondary);
+  --btn-primary-to: #1B79BD;
   --btn-primary-from-hover: var(--brand-primary-dark);
-  --btn-primary-to-hover: #3B8EF0;
+  --btn-primary-to-hover: var(--brand-primary);
   --btn-primary-shadow: 0 2px 6px -1px rgb(3 105 161 / 0.4),
     inset 0 1px 0 rgb(255 255 255 / 0.18);
   --btn-primary-shadow-hover: 0 4px 12px -2px rgb(3 105 161 / 0.5),
     inset 0 1px 0 rgb(255 255 255 / 0.22);
 
-  --btn-destructive-from: var(--destructive);
-  --btn-destructive-to: #F87171;
-  --btn-destructive-from-hover: #B91C1C;
-  --btn-destructive-to-hover: #EF4444;
+  /* Pas de degrade sur destructive : le rouge plafonne trop vite (le premier
+   * eclaircissement tenable est a 10% du chemin, invisible a l'oeil). Aplat,
+   * meme rayon et meme ombre teintee que primary - la parente suffit. */
+  --btn-destructive-bg: var(--destructive);
+  --btn-destructive-bg-hover: #B91C1C;
   --btn-destructive-shadow: 0 2px 6px -1px rgb(220 38 38 / 0.35),
     inset 0 1px 0 rgb(255 255 255 / 0.18);
   --btn-destructive-shadow-hover: 0 4px 12px -2px rgb(220 38 38 / 0.45),
@@ -159,6 +163,14 @@
   --info: #2DD4BF;
   --warning: #FBBF24;
   --destructive: #F87171;
+
+  /* Ces variantes sont claires : sur un aplat plein (bouton, pastille pleine)
+   * le texte blanc du mode clair tombe entre 1.67 et 2.77 de contraste. On
+   * bascule donc le premier plan sur l'encre sombre : 6.29 a 10.43. */
+  --success-foreground: var(--gray-900);
+  --info-foreground: var(--gray-900);
+  --warning-foreground: var(--gray-900);
+  --destructive-foreground: var(--gray-900);
 }
 
 /* ========================================

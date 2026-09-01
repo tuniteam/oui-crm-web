@@ -6,12 +6,14 @@ import { DetailsPageHeaderSkeleton } from '@/components/layouts/layout-1/shared/
 import { ProjectDetailsTabsNav } from '@/features/project/components/project-details/ProjectDetailsTabsNav';
 import { ProjectInformationsTab } from '@/features/project/components/project-details/ProjectInformationsTab';
 import { ProjectDetailsBodySkeleton } from '@/features/project/components/project-details/skeleton/ProjectDetailsBodySkeleton';
+import { PROJECT_NOT_FOUND } from '@/features/project/constants/constants';
 import { PROJECT_ROUTES } from '@/features/project/constants/routes.constants';
+import { NotFoundState } from '@/components/shared/NotFoundState';
 import { useProject } from '@/features/project/hooks/useProject';
 
 export function ProjectInformationsPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const { data, isLoading, isFetching } = useProject(projectId);
+  const { data, isLoading, isFetching, isError } = useProject(projectId);
 
   if (isLoading || isFetching) {
     return (
@@ -19,6 +21,18 @@ export function ProjectInformationsPage() {
         <DetailsPageHeaderSkeleton />
         <ProjectDetailsBodySkeleton />
       </>
+    );
+  }
+
+  // Sans cet etat, un 404 ou un 500 rendait une page entierement blanche.
+  if (isError || !data) {
+    return (
+      <NotFoundState
+        title={PROJECT_NOT_FOUND.TITLE}
+        description={PROJECT_NOT_FOUND.DESCRIPTION}
+        backRoute={PROJECT_ROUTES.PROJECTS}
+        backLabel={PROJECT_NOT_FOUND.BACK}
+      />
     );
   }
 

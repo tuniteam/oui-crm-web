@@ -83,4 +83,11 @@ export const TOASTS = {
   ACTIVATION_RESENT: "Lien d'activation renvoyé.",
 } as const;
 
+export const NOT_FOUND = {
+  TITLE: 'Opérateur introuvable',
+  DESCRIPTION:
+    "Ce compte n'existe pas ou n'est pas un compte back-office.",
+  BACK: 'Retour à la liste',
+} as const;
+
 export const FALLBACK = '—';

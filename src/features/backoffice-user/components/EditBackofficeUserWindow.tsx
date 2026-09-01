@@ -40,6 +40,7 @@ export function EditBackofficeUserWindow({ open, onOpenChange, user }: Props) {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHooks={() => useEditBackofficeUserForm(user)}
       preventClose
+      onClosed={({ form }) => form.reset()}
       renderBody={({ form, roles }) => (
         <Form {...form}>
           <form className="space-y-5">
@@ -101,7 +102,7 @@ export function EditBackofficeUserWindow({ open, onOpenChange, user }: Props) {
         </Form>
       )}
       renderFooter={({ submit, loading }) => (
-        <div className="flex w-full justify-end gap-2">
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"

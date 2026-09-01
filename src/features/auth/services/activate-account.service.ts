@@ -9,9 +9,11 @@ import { AUTH_ROUTES } from '../constants/routes.constants';
 
 export const activateAccountService = {
   validateToken: async (token: string): Promise<ActivationValidateResponse> => {
-    const res = await api.get<ActivationValidateResponse>(
+    // POST et non GET : un token en query string finit dans les logs serveur
+    // et les proxies. Le contrat (SPEC-11 US-00-02) l'exige dans le corps.
+    const res = await api.post<ActivationValidateResponse>(
       AUTH_ROUTES.ACTIVATION_VALIDATE,
-      { params: { token } },
+      { token },
     );
     return res.data;
   },

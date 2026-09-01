@@ -1,5 +1,6 @@
 // components/window/ReusableWindow.tsx
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
@@ -29,7 +30,7 @@ type ReusableWindowProps<THooks> = {
   /** Options */
   preventClose?: boolean;
   onClosed?: (hooks: THooks) => void;
-  /** Largeur maximale. Par défaut large, adaptée aux formulaires denses. */
+  /** Surcharge du dimensionnement. Par défaut : large, presque pleine hauteur. */
   className?: string;
 };
 
@@ -63,10 +64,18 @@ export function ReusableWindow<THooks>({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={
-          className ??
-          'sm:max-w-4xl w-[calc(100%-2rem)] max-h-[calc(100vh-4rem)] p-0 gap-0 flex flex-col'
-        }
+        className={cn(
+          // p-0 et max-w-none neutralisent les valeurs par defaut de la
+          // variante (p-6, max-w-lg) qui bridaient la fenetre.
+          'p-0 gap-0 flex flex-col rounded-lg max-w-none',
+          // Mobile : pleine hauteur utile, marge de 12px. 100dvh et non 100vh,
+          // sinon la barre d'adresse mobile rogne le pied de page.
+          'w-[calc(100%-1.5rem)] h-[calc(100dvh-1.5rem)]',
+          // A partir de sm : la fenetre s'adapte au contenu mais peut monter
+          // jusqu'a presque toute la hauteur.
+          'sm:w-full sm:max-w-4xl sm:h-auto sm:max-h-[calc(100dvh-3rem)]',
+          className,
+        )}
         onInteractOutside={(e) => {
           if (preventClose) e.preventDefault();
         }}
@@ -74,21 +83,23 @@ export function ReusableWindow<THooks>({
           if (preventClose) e.preventDefault();
         }}
       >
-        <DialogHeader className="border-b py-4 px-6 border-border">
+        <DialogHeader className="shrink-0 border-b border-border px-4 py-4 sm:px-6">
           <DialogTitle className="truncate">{title}</DialogTitle>
           {description ? (
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
 
-        <DialogBody className="flex-1 min-h-0 px-6 py-0">
-          <ScrollArea className="h-full max-h-[60vh] pe-3 -me-3 px-1">
+        {/* min-h-0 est indispensable : sans lui, un enfant flex refuse de
+            retrecir sous sa taille de contenu et le defilement ne prend pas. */}
+        <DialogBody className="min-h-0 flex-1 px-4 py-0 sm:px-6">
+          <ScrollArea className="h-full pe-3 -me-3 px-1">
             <div className="px-1 py-5">{renderBody(hooks)}</div>
           </ScrollArea>
         </DialogBody>
 
         {renderFooter ? (
-          <DialogFooter className="border-t py-4 px-6 border-border">
+          <DialogFooter className="shrink-0 border-t border-border px-4 py-4 pt-4 sm:px-6">
             {renderFooter(hooks)}
           </DialogFooter>
         ) : null}

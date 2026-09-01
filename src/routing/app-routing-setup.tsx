@@ -10,6 +10,9 @@ import { RequireAuth } from '@/guards/RequireAuth';
 import { RequirePermission } from '@/guards/RequirePermission';
 import { RequireValidPath } from '@/guards/RequireValidPath';
 import EmailChangeConfirmationPage from '@/pages/EmailChangeConfirmationPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import UserActivationPage from '@/pages/UserActivationPage';
+import { BrandedLayout } from '@/features/auth/layouts/branded';
 import ProfilePage from '@/pages/ProfilePage';
 import { UserInformationsPage } from '@/pages/UserInformationsPage';
 import { Route, Routes } from 'react-router-dom';
@@ -19,11 +22,21 @@ import { AuthRouting } from './auth-routing';
 export function AppRoutingSetup() {
   return (
     <Routes>
-      {/* Public — accessible whatever the auth state (link clicked from any device). */}
-      <Route
-        path="/auth/email-change"
-        element={<EmailChangeConfirmationPage />}
-      />
+      {/*
+       * Pages publiques du contrat d'API (SPEC-11 §US-00-02). L'API construit
+       * ces liens en `FRONT_URL` + `/activate`, `/reset`, `/email-change` :
+       * ces chemins-la font foi, pas une variante sous `/auth`.
+       *
+       * Hors de tout garde, `GuestOnly` compris : le lien est ouvert depuis la
+       * boite mail, parfois sur un appareil ou une autre session est ouverte.
+       * Un destinataire deja connecte doit quand meme pouvoir activer son
+       * compte ou confirmer son adresse.
+       */}
+      <Route path="/activate" element={<UserActivationPage />} />
+      <Route path="/email-change" element={<EmailChangeConfirmationPage />} />
+      <Route element={<BrandedLayout />}>
+        <Route path="/reset" element={<ResetPasswordPage />} />
+      </Route>
 
       <Route element={<GuestOnly />}>
         <Route path="/auth/*" element={<AuthRouting />} />

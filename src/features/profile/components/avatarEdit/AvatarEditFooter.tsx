@@ -11,7 +11,7 @@ export function AvatarEditFooter({ hooks }: Props) {
   const { canSave, isSaving, handleCancel, handleSave } = hooks;
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
         <X className="mr-2 h-4 w-4" />
         {AVATAR_EDIT_WINDOW.BUTTONS.CANCEL}

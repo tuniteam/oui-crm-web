@@ -11,8 +11,10 @@ import { BackofficeUserInformationsTab } from '@/features/backoffice-user/compon
 import { EditBackofficeUserWindow } from '@/features/backoffice-user/components/EditBackofficeUserWindow';
 import {
   ACTIONS,
+  NOT_FOUND,
   SUSPEND_WINDOW,
 } from '@/features/backoffice-user/constants/constants';
+import { NotFoundState } from '@/components/shared/NotFoundState';
 import { BACKOFFICE_USER_ROUTES } from '@/features/backoffice-user/constants/routes.constants';
 import { useBackofficeUser } from '@/features/backoffice-user/hooks/useBackofficeUser';
 import { useResendBackofficeActivation } from '@/features/backoffice-user/hooks/useResendBackofficeActivation';
@@ -24,7 +26,7 @@ export function BackofficeUserInformationsPage() {
   const { userId } = useParams<{ userId: string }>();
   const [openEdit, setOpenEdit] = useState(false);
 
-  const { data, isLoading, isFetching } = useBackofficeUser(userId);
+  const { data, isLoading, isFetching, isError } = useBackofficeUser(userId);
   const { resend, loading: resending } = useResendBackofficeActivation();
   const { suspend, loading: suspending } = useSuspendBackofficeUser();
 
@@ -35,7 +37,17 @@ export function BackofficeUserInformationsPage() {
     return <DetailsPageHeaderSkeleton />;
   }
 
-  if (!data) return null;
+  // Sans cet etat, un 404 ou un 500 rendait une page entierement blanche.
+  if (isError || !data) {
+    return (
+      <NotFoundState
+        title={NOT_FOUND.TITLE}
+        description={NOT_FOUND.DESCRIPTION}
+        backRoute={BACKOFFICE_USER_ROUTES.LIST}
+        backLabel={NOT_FOUND.BACK}
+      />
+    );
+  }
 
   const isSelf = me?.email === data.email;
   const canUpdate = hasPermission(PERMISSIONS.USER_BACKOFFICE.UPDATE);

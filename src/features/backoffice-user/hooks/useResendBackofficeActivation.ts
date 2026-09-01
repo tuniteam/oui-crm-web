@@ -15,5 +15,18 @@ export function useResendBackofficeActivation() {
     onError: (err) => toast.error(err.message),
   });
 
-  return { resend: mutation.mutateAsync, loading: mutation.isPending };
+  /**
+   * L'erreur est deja signalee par le toast de onError : on renvoie null
+   * plutot que de rejeter, sinon chaque appelant doit envelopper son await
+   * dans un try/catch et un oubli devient un rejet non capture.
+   */
+  const resend = async (...args: Parameters<typeof mutation.mutateAsync>) => {
+    try {
+      return await mutation.mutateAsync(...args);
+    } catch {
+      return null;
+    }
+  };
+
+  return { resend, loading: mutation.isPending };
 }

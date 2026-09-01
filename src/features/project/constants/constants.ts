@@ -106,6 +106,12 @@ export const PROJECT_INFORMATION_UI = {
   FALLBACK: '—',
 } as const;
 
+export const PROJECT_NOT_FOUND = {
+  TITLE: 'Projet introuvable',
+  DESCRIPTION: "Ce projet n'existe pas ou a été supprimé.",
+  BACK: 'Retour aux projets',
+} as const;
+
 export const ERRORS = {
   FETCH_PROJECTS: 'Impossible de récupérer les projets.',
 } as const;

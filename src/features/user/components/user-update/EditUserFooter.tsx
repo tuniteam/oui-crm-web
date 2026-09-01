@@ -2,7 +2,7 @@ import { LoaderCircleIcon, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EditUserHooks } from '../../hooks/useEditUserForm';
 import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
-import { SheetFooterSkeleton } from '@/components/skeleton/SheetFooterSkeleton';
+import { WindowFooterSkeleton } from '@/components/skeleton/WindowFooterSkeleton';
 
 type Props = {
   hooks: EditUserHooks;
@@ -20,12 +20,12 @@ export function EditUserFooter({ hooks, onClose }: Props) {
 
   if (loadingUser || fetchingUser) {
     return (
-      <SheetFooterSkeleton />
+      <WindowFooterSkeleton />
     );
   }
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button
         data-testid="user-edit-cancel-btn"
         type="button"

@@ -25,7 +25,7 @@ export function CreateBackofficeUserFooter({
   };
 
   return (
-    <div className="flex w-full justify-end gap-2">
+    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <Button
         type="button"
         variant="outline"
