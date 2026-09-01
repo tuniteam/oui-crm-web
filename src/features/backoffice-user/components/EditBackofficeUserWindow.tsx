@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { EDIT_SHEET, FIELDS, PLACEHOLDERS } from '../constants/constants';
+import { EDIT_WINDOW, FIELDS, PLACEHOLDERS } from '../constants/constants';
 import {
   useEditBackofficeUserForm,
   type EditBackofficeUserHooks,
@@ -31,12 +31,12 @@ type Props = {
   user: BackofficeUserDetails;
 };
 
-export function EditBackofficeUserSheet({ open, onOpenChange, user }: Props) {
+export function EditBackofficeUserWindow({ open, onOpenChange, user }: Props) {
   return (
     <ReusableWindow<EditBackofficeUserHooks>
       open={open}
       onOpenChange={onOpenChange}
-      title={EDIT_SHEET.TITLE}
+      title={EDIT_WINDOW.TITLE}
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHooks={() => useEditBackofficeUserForm(user)}
       preventClose

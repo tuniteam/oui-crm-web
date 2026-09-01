@@ -1,9 +1,9 @@
-// src/features/users/components/EditUserSheet.tsx
+// src/features/users/components/EditUserWindow.tsx
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { EditUserBody } from './EditUserBody';
 import { EditUserFooter } from './EditUserFooter';
 import { EditUserHooks, useEditUserForm } from '../../hooks/useEditUserForm';
-import { UPDATE_USER_SHEET } from '../../constants/editUser.constants';
+import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
 import { useMeStore } from '@/contexts/useMeStore';
 
 
@@ -16,14 +16,14 @@ type Props = {
   title?: string;
 };
 
-export function EditUserSheet({ open, onOpenChange, userId, hooksFactory, rolesFilter, title }: Props) {
+export function EditUserWindow({ open, onOpenChange, userId, hooksFactory, rolesFilter, title }: Props) {
   const { me } = useMeStore();
   const currentUserEmail = me?.email;
   return (
     <ReusableWindow<EditUserHooks>
       open={open}
       onOpenChange={onOpenChange}
-      title={title ?? UPDATE_USER_SHEET.TITLE}
+      title={title ?? UPDATE_USER_WINDOW.TITLE}
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHooks={hooksFactory ? () => hooksFactory(userId, open, currentUserEmail) : () => useEditUserForm(userId, open, currentUserEmail)}
       preventClose

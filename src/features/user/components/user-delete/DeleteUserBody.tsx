@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { DELETE_USER_SHEET } from '@/features/user/constants/delete-user.constants';
+import { DELETE_USER_WINDOW } from '@/features/user/constants/delete-user.constants';
 
 export function DeleteUserBody() {
   return (
@@ -12,10 +12,10 @@ export function DeleteUserBody() {
 
         <div className="space-y-1">
           <div className="text-lg font-semibold text-red-600">
-            {DELETE_USER_SHEET.TITLE}
+            {DELETE_USER_WINDOW.TITLE}
           </div>
           <div className="text-sm text-muted-foreground">
-            {DELETE_USER_SHEET.EXPECTED_ACTION}
+            {DELETE_USER_WINDOW.EXPECTED_ACTION}
           </div>
         </div>
       </div>
@@ -23,21 +23,21 @@ export function DeleteUserBody() {
       <div className="h-px w-full bg-border" />
 
       <div className="text-sm text-muted-foreground">
-        {DELETE_USER_SHEET.INTRO}
+        {DELETE_USER_WINDOW.INTRO}
       </div>
 
       <Card className="border border-red-200 bg-red-50/70 shadow-sm">
         <div className="space-y-3 p-5">
           <div className="text-sm font-semibold text-red-600">
-            {DELETE_USER_SHEET.WARNING.TITLE}
+            {DELETE_USER_WINDOW.WARNING.TITLE}
           </div>
 
           <div className="text-sm text-muted-foreground">
-            {DELETE_USER_SHEET.WARNING.INTRO}
+            {DELETE_USER_WINDOW.WARNING.INTRO}
           </div>
 
           <ul className="list-disc pl-6 text-sm text-muted-foreground">
-            {DELETE_USER_SHEET.WARNING.BULLETS.map((b) => (
+            {DELETE_USER_WINDOW.WARNING.BULLETS.map((b) => (
               <li key={b}>{b}</li>
             ))}
           </ul>

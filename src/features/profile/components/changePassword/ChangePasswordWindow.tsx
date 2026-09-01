@@ -13,7 +13,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function ChangePasswordSheet({ open, onOpenChange }: Props) {
+export function ChangePasswordWindow({ open, onOpenChange }: Props) {
   const { changePassword } = useContent();
 
   return (

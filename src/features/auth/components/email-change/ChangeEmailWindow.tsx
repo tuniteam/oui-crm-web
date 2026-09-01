@@ -12,7 +12,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function ChangeEmailSheet({ open, onOpenChange }: Props) {
+export function ChangeEmailWindow({ open, onOpenChange }: Props) {
   return (
     <ReusableWindow<EmailChangeHooks>
       open={open}

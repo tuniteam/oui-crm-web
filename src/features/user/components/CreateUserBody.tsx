@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CREATE_USER_SHEET } from '../constants/users.constants';
+import { CREATE_USER_WINDOW } from '../constants/users.constants';
 import type { useCreateUserForm } from '../hooks/useCreateUserForm';
 import { useRoles } from '../hooks/useRoles';
 
@@ -30,7 +30,7 @@ export function CreateUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
   const { form, create } = hooks;
   const isBusy = create.loading;
 
-  const { LABELS, PLACEHOLDERS } = CREATE_USER_SHEET;
+  const { LABELS, PLACEHOLDERS } = CREATE_USER_WINDOW;
   const roles = useRoles({ isBackoffice: rolesFilter }, { enabled: open });
 
   return (
@@ -124,11 +124,11 @@ export function CreateUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
                   <SelectContent>
                     {roles.error ? (
                       <SelectItem value="__error__" disabled>
-                        {CREATE_USER_SHEET.ROLES.ERROR}
+                        {CREATE_USER_WINDOW.ROLES.ERROR}
                       </SelectItem>
                     ) : roles.data.length === 0 ? (
                       <SelectItem value="__empty__" disabled>
-                        {CREATE_USER_SHEET.ROLES.NO_ROLE}
+                        {CREATE_USER_WINDOW.ROLES.NO_ROLE}
                       </SelectItem>
                     ) : (
                       roles.data

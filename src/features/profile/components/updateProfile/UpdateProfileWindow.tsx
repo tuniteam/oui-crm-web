@@ -12,7 +12,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function UpdateProfileSheet({ open, onOpenChange }: Props) {
+export function UpdateProfileWindow({ open, onOpenChange }: Props) {
   const { updateProfile } = useContent();
 
   return (

@@ -1,5 +1,5 @@
 import { ReusableWindow } from '@/components/window/ReusableWindow';
-import { CREATE_SHEET } from '../constants/constants';
+import { CREATE_WINDOW } from '../constants/constants';
 import {
   useCreateBackofficeUserForm,
   type CreateBackofficeUserHooks,
@@ -13,7 +13,7 @@ type Props = {
   onCreated?: () => void;
 };
 
-export function CreateBackofficeUserSheet({
+export function CreateBackofficeUserWindow({
   open,
   onOpenChange,
   onCreated,
@@ -22,8 +22,8 @@ export function CreateBackofficeUserSheet({
     <ReusableWindow<CreateBackofficeUserHooks>
       open={open}
       onOpenChange={onOpenChange}
-      title={CREATE_SHEET.TITLE}
-      description={CREATE_SHEET.DESCRIPTION}
+      title={CREATE_WINDOW.TITLE}
+      description={CREATE_WINDOW.DESCRIPTION}
       useHooks={useCreateBackofficeUserForm}
       preventClose
       onClosed={({ form }) => form.reset()}

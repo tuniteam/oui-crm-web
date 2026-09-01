@@ -3,7 +3,7 @@ import { ImageIcon, Trash2, UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ImageCropDialog } from '@/components/shared/ImageCropDialog';
-import { AVATAR_EDIT_SHEET } from '../../constants/avatar-edit.constants';
+import { AVATAR_EDIT_WINDOW } from '../../constants/avatar-edit.constants';
 import type { AvatarEditHooks } from '../../hooks/useAvatarEdit';
 import { getAuthentictedUserInitials } from '../../utils/profile.utils';
 import { ProfileAvatar } from '../ProfileAvatar';
@@ -86,7 +86,7 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
         {/* Left: current photo preview */}
         <div className="flex flex-col items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">
-            {AVATAR_EDIT_SHEET.LABELS.CURRENT_PHOTO}
+            {AVATAR_EDIT_WINDOW.LABELS.CURRENT_PHOTO}
           </span>
           {isPreviewBlob && previewAvatarPath ? (
             <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-full border border-border shadow-sm">
@@ -109,16 +109,16 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
           <div className="space-y-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-              {AVATAR_EDIT_SHEET.HINTS.FORMATS}
+              {AVATAR_EDIT_WINDOW.HINTS.FORMATS}
             </div>
             <div className="flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-              {AVATAR_EDIT_SHEET.HINTS.MAX_SIZE}
+              {AVATAR_EDIT_WINDOW.HINTS.MAX_SIZE}
             </div>
           </div>
           {hasPendingChanges && (
             <span className="text-xs text-muted-foreground italic">
-              {AVATAR_EDIT_SHEET.LABELS.PREVIEW}
+              {AVATAR_EDIT_WINDOW.LABELS.PREVIEW}
             </span>
           )}
         </div>
@@ -152,10 +152,10 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
               )}
             />
             <span className="text-sm text-muted-foreground">
-              {AVATAR_EDIT_SHEET.LABELS.DROP_AREA}
+              {AVATAR_EDIT_WINDOW.LABELS.DROP_AREA}
             </span>
             <span className="text-xs text-muted-foreground">
-              {AVATAR_EDIT_SHEET.LABELS.DROP_AREA_OR}
+              {AVATAR_EDIT_WINDOW.LABELS.DROP_AREA_OR}
             </span>
             <Button
               type="button"
@@ -167,7 +167,7 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
                 handleBrowseClick();
               }}
             >
-              {AVATAR_EDIT_SHEET.BUTTONS.BROWSE}
+              {AVATAR_EDIT_WINDOW.BUTTONS.BROWSE}
             </Button>
           </div>
 
@@ -184,10 +184,10 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
       {hasCurrentAvatar && (
         <div className="space-y-2 border-t pt-4">
           <p className="text-sm font-medium">
-            {AVATAR_EDIT_SHEET.LABELS.DELETE_SECTION}
+            {AVATAR_EDIT_WINDOW.LABELS.DELETE_SECTION}
           </p>
           <p className="text-sm text-muted-foreground">
-            {AVATAR_EDIT_SHEET.LABELS.DELETE_DESCRIPTION}
+            {AVATAR_EDIT_WINDOW.LABELS.DELETE_DESCRIPTION}
           </p>
           <Button
             type="button"
@@ -199,7 +199,7 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
             className="border-destructive text-destructive"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            {AVATAR_EDIT_SHEET.BUTTONS.DELETE}
+            {AVATAR_EDIT_WINDOW.BUTTONS.DELETE}
           </Button>
         </div>
       )}
@@ -211,7 +211,7 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
       <input
         ref={fileInputRef}
         type="file"
-        accept={AVATAR_EDIT_SHEET.ACCEPTED_EXTENSIONS}
+        accept={AVATAR_EDIT_WINDOW.ACCEPTED_EXTENSIONS}
         className="hidden"
         onChange={handleFileChange}
         disabled={isSaving}
@@ -222,10 +222,10 @@ export function AvatarEditBody({ hooks, firstName, lastName }: Props) {
         open={!!pendingCropSrc}
         imageSrc={pendingCropSrc}
         fileName={pendingCropFileName}
-        outputSize={AVATAR_EDIT_SHEET.OUTPUT_SIZE_PX}
-        quality={AVATAR_EDIT_SHEET.OUTPUT_QUALITY}
-        title={AVATAR_EDIT_SHEET.CROP.TITLE}
-        description={AVATAR_EDIT_SHEET.CROP.DESCRIPTION}
+        outputSize={AVATAR_EDIT_WINDOW.OUTPUT_SIZE_PX}
+        quality={AVATAR_EDIT_WINDOW.OUTPUT_QUALITY}
+        title={AVATAR_EDIT_WINDOW.CROP.TITLE}
+        description={AVATAR_EDIT_WINDOW.CROP.DESCRIPTION}
         onConfirm={confirmCrop}
         onCancel={cancelCrop}
       />

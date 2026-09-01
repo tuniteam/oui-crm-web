@@ -29,13 +29,13 @@ export const EMPTY_STATE = {
   ],
 } as const;
 
-export const CREATE_SHEET = {
+export const CREATE_WINDOW = {
   TITLE: 'Créer un opérateur',
   DESCRIPTION:
     "Un e-mail d'activation lui sera envoyé pour définir son mot de passe.",
 } as const;
 
-export const EDIT_SHEET = {
+export const EDIT_WINDOW = {
   TITLE: "Modifier l'opérateur",
 } as const;
 
@@ -44,7 +44,7 @@ export const EDIT_SHEET = {
  * reversible en recreant l'operateur avec le meme e-mail. Le libelle doit le
  * dire, sinon l'utilisateur croit a une suppression definitive.
  */
-export const SUSPEND_SHEET = {
+export const SUSPEND_WINDOW = {
   TITLE: "Suspendre l'accès",
   DESCRIPTION:
     "L'opérateur perdra l'accès à la plateforme et ses sessions seront fermées. L'accès peut être rétabli en le recréant avec la même adresse e-mail.",

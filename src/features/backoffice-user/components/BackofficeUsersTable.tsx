@@ -23,7 +23,7 @@ import {
   type BackofficeUserStatus,
 } from '../types/backofficeUser';
 import { backofficeUserColumns } from './backofficeUserList/backofficeUserColumns';
-import { CreateBackofficeUserSheet } from './CreateBackofficeUserSheet';
+import { CreateBackofficeUserWindow } from './CreateBackofficeUserWindow';
 
 const ALL = 'ALL';
 
@@ -117,7 +117,7 @@ export default function BackofficeUsersTable() {
 
   return (
     <>
-      <CreateBackofficeUserSheet
+      <CreateBackofficeUserWindow
         open={openCreate}
         onOpenChange={setOpenCreate}
       />

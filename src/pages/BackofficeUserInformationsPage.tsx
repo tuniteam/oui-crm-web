@@ -8,10 +8,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { DetailsPageHeader } from '@/components/layouts/layout-1/shared/details-page/DetailsPageHeader';
 import { DetailsPageHeaderSkeleton } from '@/components/layouts/layout-1/shared/details-page/skeletons/DetailsPageHeaderSkeleton';
 import { BackofficeUserInformationsTab } from '@/features/backoffice-user/components/backofficeUserDetails/BackofficeUserInformationsTab';
-import { EditBackofficeUserSheet } from '@/features/backoffice-user/components/EditBackofficeUserSheet';
+import { EditBackofficeUserWindow } from '@/features/backoffice-user/components/EditBackofficeUserWindow';
 import {
   ACTIONS,
-  SUSPEND_SHEET,
+  SUSPEND_WINDOW,
 } from '@/features/backoffice-user/constants/constants';
 import { BACKOFFICE_USER_ROUTES } from '@/features/backoffice-user/constants/routes.constants';
 import { useBackofficeUser } from '@/features/backoffice-user/hooks/useBackofficeUser';
@@ -87,10 +87,10 @@ export function BackofficeUserInformationsPage() {
                   }}
                 >
                   <ShieldOff className="h-4 w-4" aria-hidden="true" />
-                  {SUSPEND_SHEET.CONFIRM}
+                  {SUSPEND_WINDOW.CONFIRM}
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  {SUSPEND_SHEET.DESCRIPTION}
+                  {SUSPEND_WINDOW.DESCRIPTION}
                 </span>
               </div>
             )}
@@ -98,7 +98,7 @@ export function BackofficeUserInformationsPage() {
         </Card>
       )}
 
-      <EditBackofficeUserSheet
+      <EditBackofficeUserWindow
         open={openEdit}
         onOpenChange={setOpenEdit}
         user={data}

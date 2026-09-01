@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { UPDATE_PROFILE_SHEET } from '../constants/update-profile.constants';
+import { UPDATE_PROFILE_WINDOW } from '../constants/update-profile.constants';
 import { profileService } from '../services/profile-service';
 import type {
   UpdateProfilePayload,
@@ -18,12 +18,12 @@ export function useUpdateProfile() {
     mutationFn: (payload) => profileService.updateProfile(payload),
 
     onSuccess: async () => {
-      toast.success(UPDATE_PROFILE_SHEET.TOASTS.SUCCESS);
+      toast.success(UPDATE_PROFILE_WINDOW.TOASTS.SUCCESS);
       await queryClient.invalidateQueries({ queryKey: ['my-profile'] });
     },
 
     onError: (e) => {
-      toast.error(e?.message ?? UPDATE_PROFILE_SHEET.TOASTS.ERROR);
+      toast.error(e?.message ?? UPDATE_PROFILE_WINDOW.TOASTS.ERROR);
     },
   });
 

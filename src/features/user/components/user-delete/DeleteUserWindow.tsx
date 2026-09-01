@@ -1,4 +1,4 @@
-// src/features/user/components/user-delete/DeleteUserSheet.tsx
+// src/features/user/components/user-delete/DeleteUserWindow.tsx
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { DeleteUserBody } from './DeleteUserBody';
 import { DeleteUserFooter } from './DeleteUserFooter';
@@ -14,7 +14,7 @@ type Props = {
   useDeleteHook?: () => ReturnType<typeof useDeleteUser>;
 };
 
-export function DeleteUserSheet({
+export function DeleteUserWindow({
   open,
   onOpenChange,
   userId,

@@ -10,12 +10,12 @@ import { COMMON, MENU, UI } from '@/constants';
 import { ACTIVATION } from '@/features/auth/constants/activation.constants';
 import { AUTH } from '@/features/auth/constants/auth.constants';
 import { RESET_PASSWORD } from '@/features/auth/constants/reset-password.constants';
-import { CHANGE_PASSWORD_SHEET } from '@/features/profile/constants/change-password.constants';
+import { CHANGE_PASSWORD_WINDOW } from '@/features/profile/constants/change-password.constants';
 import { PROFILE_UI } from '@/features/profile/constants/profile.constants';
-import { UPDATE_PROFILE_SHEET } from '@/features/profile/constants/update-profile.constants';
+import { UPDATE_PROFILE_WINDOW } from '@/features/profile/constants/update-profile.constants';
 
 import {
-  DELETE_USER_SHEET,
+  DELETE_USER_WINDOW,
   USER_DELETE_CARD,
   ERRORS as USER_ERRORS,
   TOASTS as USER_TOASTS,
@@ -33,13 +33,13 @@ export const useContent = () => {
     activation: ACTIVATION,
     resetPassword: RESET_PASSWORD,
     profile: PROFILE_UI,
-    updateProfile: UPDATE_PROFILE_SHEET,
-    changePassword: CHANGE_PASSWORD_SHEET,
+    updateProfile: UPDATE_PROFILE_WINDOW,
+    changePassword: CHANGE_PASSWORD_WINDOW,
  
     user: {
       delete: {
         card: USER_DELETE_CARD,
-        sheet: DELETE_USER_SHEET,
+        sheet: DELETE_USER_WINDOW,
         toasts: USER_TOASTS,
         errors: USER_ERRORS,
       },

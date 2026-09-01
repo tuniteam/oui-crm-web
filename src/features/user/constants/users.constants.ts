@@ -1,4 +1,4 @@
-export const CREATE_USER_SHEET = {
+export const CREATE_USER_WINDOW = {
   TITLE: 'Créer un utilisateur',
   LABELS: {
     FIRST_NAME: 'Prénom',

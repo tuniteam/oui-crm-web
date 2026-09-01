@@ -1,6 +1,6 @@
 import { LoaderCircleIcon, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AVATAR_EDIT_SHEET } from '../../constants/avatar-edit.constants';
+import { AVATAR_EDIT_WINDOW } from '../../constants/avatar-edit.constants';
 import type { AvatarEditHooks } from '../../hooks/useAvatarEdit';
 
 type Props = {
@@ -14,19 +14,19 @@ export function AvatarEditFooter({ hooks }: Props) {
     <div className="flex w-full justify-end gap-2">
       <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
         <X className="mr-2 h-4 w-4" />
-        {AVATAR_EDIT_SHEET.BUTTONS.CANCEL}
+        {AVATAR_EDIT_WINDOW.BUTTONS.CANCEL}
       </Button>
 
       <Button onClick={handleSave} disabled={!canSave || isSaving}>
         {isSaving ? (
           <>
             <LoaderCircleIcon className="mr-2 h-4 w-4 animate-spin" />
-            {AVATAR_EDIT_SHEET.LOADING_LABELS.SAVING}
+            {AVATAR_EDIT_WINDOW.LOADING_LABELS.SAVING}
           </>
         ) : (
           <>
             <Save className="mr-2 h-4 w-4" />
-            {AVATAR_EDIT_SHEET.BUTTONS.SAVE}
+            {AVATAR_EDIT_WINDOW.BUTTONS.SAVE}
           </>
         )}
       </Button>

@@ -1,4 +1,4 @@
-export const CHANGE_PASSWORD_SHEET = {
+export const CHANGE_PASSWORD_WINDOW = {
   TITLE: 'Changer le mot de passe',
 
   LABELS: {

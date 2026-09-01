@@ -26,7 +26,7 @@ import type {
   UserListParams,
   UserStatus,
 } from '../types/userList';
-import { CreateUserSheet } from './CreateUserSheet';
+import { CreateUserWindow } from './CreateUserWindow';
 import { userColumns } from './userColumns';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { CreateUserHooks } from './CreateUserBody';
@@ -138,7 +138,7 @@ export default function UsersTable({
 
   return (
     <>
-      <CreateUserSheet
+      <CreateUserWindow
         open={openCreate}
         onOpenChange={setOpenCreate}
         onCreated={() => {}}

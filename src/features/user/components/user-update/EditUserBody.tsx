@@ -15,9 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UPDATE_USER_SHEET } from '../../constants/editUser.constants';
+import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
 import { USER_STATUS_LABELS } from '../../constants/userList.constants';
-import { CREATE_USER_SHEET } from '../../constants/users.constants';
+import { CREATE_USER_WINDOW } from '../../constants/users.constants';
 import type { EditUserHooks } from '../../hooks/useEditUserForm';
 import { useRoles } from '../../hooks/useRoles';
 import { EditUserBodySkeleton } from './skeleton/EditUserBodySkeleton';
@@ -36,7 +36,7 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
 
   const isBusy = loadingUser || update.loading;
 
-  const { LABELS, PLACEHOLDERS } = UPDATE_USER_SHEET;
+  const { LABELS, PLACEHOLDERS } = UPDATE_USER_WINDOW;
 
   const roles = useRoles({ isBackoffice: rolesFilter }, { enabled: open });
 
@@ -170,11 +170,11 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
                     <SelectContent>
                       {roles.error ? (
                         <SelectItem value="__error__" disabled>
-                          {CREATE_USER_SHEET.ROLES?.ERROR}
+                          {CREATE_USER_WINDOW.ROLES?.ERROR}
                         </SelectItem>
                       ) : roles.data.length === 0 ? (
                         <SelectItem value="__empty__" disabled>
-                          {CREATE_USER_SHEET.ROLES?.NO_ROLE}
+                          {CREATE_USER_WINDOW.ROLES?.NO_ROLE}
                         </SelectItem>
                       ) : (
                         roles.data
@@ -203,7 +203,7 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
                 {/* optional: inform why role disabled */}
                 {isCurrentUser ? (
                   <div className="text-xs text-muted-foreground">
-                    {CREATE_USER_SHEET.ROLES?.CANNOT_EDIT}
+                    {CREATE_USER_WINDOW.ROLES?.CANNOT_EDIT}
                   </div>
                 ) : null}
 

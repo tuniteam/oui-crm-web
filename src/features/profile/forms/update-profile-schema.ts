@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UPDATE_PROFILE_SHEET } from '../constants/update-profile.constants';
+import { UPDATE_PROFILE_WINDOW } from '../constants/update-profile.constants';
 
 const FRENCH_PHONE_REGEX =
   /^(?:(?:\+33|0033)\s?[1-9](?:[\s.-]?\d{2}){4}|0[1-9](?:[\s.-]?\d{2}){4})$/;
@@ -9,22 +9,22 @@ export const getUpdateProfileSchema = () =>
     firstName: z
       .string()
       .trim()
-      .min(1, UPDATE_PROFILE_SHEET.ERRORS.FIRST_NAME_REQUIRED)
-      .max(100, UPDATE_PROFILE_SHEET.ERRORS.FIRST_NAME_MAX),
+      .min(1, UPDATE_PROFILE_WINDOW.ERRORS.FIRST_NAME_REQUIRED)
+      .max(100, UPDATE_PROFILE_WINDOW.ERRORS.FIRST_NAME_MAX),
 
     lastName: z
       .string()
       .trim()
-      .min(1, UPDATE_PROFILE_SHEET.ERRORS.LAST_NAME_REQUIRED)
-      .max(100, UPDATE_PROFILE_SHEET.ERRORS.LAST_NAME_MAX),
+      .min(1, UPDATE_PROFILE_WINDOW.ERRORS.LAST_NAME_REQUIRED)
+      .max(100, UPDATE_PROFILE_WINDOW.ERRORS.LAST_NAME_MAX),
 
     phone: z
       .string()
       .trim()
-      .max(30, UPDATE_PROFILE_SHEET.ERRORS.PHONE_MAX)
+      .max(30, UPDATE_PROFILE_WINDOW.ERRORS.PHONE_MAX)
       .refine(
         (value) => value === '' || FRENCH_PHONE_REGEX.test(value),
-        UPDATE_PROFILE_SHEET.ERRORS.PHONE_INVALID,
+        UPDATE_PROFILE_WINDOW.ERRORS.PHONE_INVALID,
       ),
   });
 
