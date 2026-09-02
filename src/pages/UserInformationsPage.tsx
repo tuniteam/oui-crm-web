@@ -1,8 +1,6 @@
 import { PERMISSIONS } from '@/constants';
 import { useMemo, useState } from 'react';
 import { useMeStore } from '@/contexts/useMeStore';
-import { CorrectEmailCard } from '@/features/user/components/correctEmail/CorrectEmailCard';
-import { CorrectEmailDialog } from '@/features/user/components/correctEmail/CorrectEmailDialog';
 import { DeleteUserWindow } from '@/features/user/components/user-delete/DeleteUserWindow';
 import { UserDeleteCardSkeleton } from '@/features/user/components/user-delete/skeleton/UserDeleteCardSkeleton';
 import { UserDeleteCard } from '@/features/user/components/user-delete/UserDeleteCard';
@@ -42,7 +40,6 @@ export function UserInformationsPage() {
 
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openCorrectEmail, setOpenCorrectEmail] = useState(false);
 
   const { data, isLoading, isFetching } = useUser(userId);
   const { inviteUser, loading: inviteLoading } = useInviteUser();
@@ -95,12 +92,13 @@ export function UserInformationsPage() {
           />
         )}
 
-      {data?.id && hasPermission(PERMISSIONS.USERS.UPDATE) && (
-        <CorrectEmailCard
-          status={data.status}
-          onCorrectClick={() => setOpenCorrectEmail(true)}
-        />
-      )}
+      {/*
+        La correction d'e-mail est retiree de l'ecran : elle appelle
+        `PATCH /users/:id/email`, qui n'existe pas cote API — l'inventaire des
+        routes le confirme, et l'appel repond 404. Les composants
+        `correctEmail/` et `userService.correctEmail` sont conserves : le jour
+        ou la route est ouverte, il suffit de remonter la carte et sa fenetre.
+      */}
 
       {data?.id &&
         hasPermission(PERMISSIONS.USERS.DELETE) &&
@@ -127,15 +125,6 @@ export function UserInformationsPage() {
           open={openEdit}
           onOpenChange={setOpenEdit}
           userId={data.id}
-        />
-      ) : null}
-
-      {data?.id ? (
-        <CorrectEmailDialog
-          open={openCorrectEmail}
-          onOpenChange={setOpenCorrectEmail}
-          userId={data.id}
-          status={data.status}
         />
       ) : null}
     </>

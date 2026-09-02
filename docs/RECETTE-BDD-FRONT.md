@@ -204,7 +204,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 | 18 | Retour après un retrait | on revient à la liste **du projet**, jamais à la liste plateforme | couvert |
 | 13 | Renvoyer l'activation | proposé sur un compte en attente seulement | à développer |
 | 14 | Retirer un utilisateur | affectation suspendue, réversible — jamais présentée comme une suppression | couvert |
-| 15 | Corriger l'e-mail | **route inexistante côté API** : l'écran appelle `PATCH /users/:id/email`, qui répond 404 | à retirer ou à faire ouvrir côté API |
+| 15 | Corriger l'e-mail | **retiré de l'écran** : `PATCH /users/:id/email` n'existe pas côté API (confirmé par l'inventaire des routes) | retiré |
 
 ### Pièges relevés pendant le développement
 
@@ -508,7 +508,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 13:10. 38/38 OK._
+_Généré par `npm run bdd` — 2026-09-02 13:25. 38/38 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
