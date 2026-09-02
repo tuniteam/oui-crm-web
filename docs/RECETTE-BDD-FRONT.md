@@ -494,9 +494,18 @@ officiel, qui pré-remplit la saisie, et la saisie manuelle.
 - **Le contact principal de la V8 est retiré.** `POST /organizations` ne
   l'accepte pas : les contacts sont une route distincte (US-01-04), non
   développée. Le laisser aurait donné un champ dont la saisie serait perdue.
-- **La « formule envisagée » aussi.** `targetPlan` ne fait pas partie des
-  référentiels du projet — c'est un plan du moteur tarifaire (SPEC-04), que
-  rien ne porte encore côté front.
+- **La « formule envisagée » attend la grille tarifaire.** `targetPlan` n'est
+  pas une énumération figée : SPEC-04 le définit comme une **clé de
+  `grid.plans`**, la grille du projet, qui est versionnée et activable. La V8
+  écrit `ESSENTIEL / CONFORT / PREMIUM` en dur parce qu'elle n'a qu'une grille ;
+  les reprendre ici les figerait dans le code d'un produit multi-tenant, et le
+  premier projet doté d'une autre grille casserait en silence — l'API accepte
+  n'importe quelle chaîne, et c'est le moteur tarifaire qui refuserait, plus
+  tard, à la génération du devis.
+  **Prérequis : `GET /pricing-grids/active`** (`pricing:read` `[P]`), qui
+  donnera les formules du projet. La route est prévue côté API, marquée « à
+  faire », et appartient au lot des devis (L2). Le champ sera ajouté à ce
+  moment-là, sur la fiche comme à la création.
 - **Un doublon probable n'est pas une erreur.** Le serveur pose une question :
   la fenêtre reste ouverte, la saisie intacte, et la même requête se rejoue
   avec `force`. La traiter comme un échec ferait ressaisir toute la fiche.
