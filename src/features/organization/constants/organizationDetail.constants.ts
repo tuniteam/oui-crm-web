@@ -88,7 +88,6 @@ export const ORGANIZATION_DETAIL_UI = {
 
   ACTIONS: {
     SAVE: 'Enregistrer les modifications',
-    CANCEL: 'Annuler',
     CLOSE: 'Fermer',
   },
 

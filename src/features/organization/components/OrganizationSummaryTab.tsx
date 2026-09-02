@@ -170,7 +170,7 @@ function CheckboxGroup({
 }
 
 export function OrganizationSummaryTab({ organization }: Props) {
-  const { form, update, submit, reset } =
+  const { form, update, submit } =
     useOrganizationSummaryForm(organization);
   const { optionsOf } = useReferenceLabels();
   const canUpdate = useMeStore((s) =>
@@ -377,15 +377,6 @@ export function OrganizationSummaryTab({ organization }: Props) {
 
         {canUpdate ? (
           <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              data-testid="organization-cancel"
-              onClick={reset}
-              disabled={update.loading}
-            >
-              {ACTIONS.CANCEL}
-            </Button>
             <Button
               type="button"
               data-testid="organization-save"

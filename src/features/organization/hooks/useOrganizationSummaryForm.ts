@@ -138,7 +138,6 @@ export function useOrganizationSummaryForm(organization: OrganizationDetail) {
     form,
     update,
     submit,
-    reset: () => form.reset(toFormValues(organization)),
   };
 }
 

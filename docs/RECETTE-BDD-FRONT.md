@@ -522,17 +522,14 @@ Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
 | 7 | Fiche hors périmètre | panneau restreint, ni formulaire ni coordonnées | à couvrir |
 | 8 | Sans permission de modification | formulaire en lecture seule, pas de bouton d'enregistrement | à couvrir |
 | 9 | Onglet Contacts | liste, ajout, contact principal unique (US-01-04) | à développer |
-| 10 | Annuler | défait la saisie en cours sur tous les types de champ — texte, sélecteur, case à cocher — et laisse le panneau ouvert | couvert |
 
 ### Pièges relevés pendant le développement
 
-- **« Annuler » défait la saisie, il ne ferme pas le panneau.** Le même mot
-  ferme la fenêtre dans l'écran de création : la confusion est facile. Sur un
-  formulaire intact, le clic n'a donc rien à défaire et l'écran ne bouge pas —
-  le bouton passe alors pour cassé alors qu'il fonctionne. Le scénario 10
-  vérifie la restauration sur les trois types de champ, **sélecteur compris** :
-  un Radix passé de non contrôlé à contrôlé peut ne pas suivre un `reset`, et
-  c'est le piège déjà rencontré sur cet écran.
+- **Le bouton « Annuler » a été retiré.** Il remettait les valeurs
+  enregistrées — le câblage était correct, vérifié sur les quatre types de
+  champ. Mais sur un formulaire intact il ne produisait rien, et le même mot
+  ferme la fenêtre dans l'écran de création : il passait pour cassé. La croix
+  ferme le panneau et abandonne la saisie, cela suffit.
 
 ### Pièges relevés pendant le développement
 
@@ -590,7 +587,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 19:07. 48/48 OK._
+_Généré par `npm run bdd` — 2026-09-02 19:21. 47/47 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -610,7 +607,6 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
 | US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
-| US-01-03 | 01-03.10 | Annuler restaure tous les types de champ | OK | `screenshots/01-03-10.png` |
 | US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
 | US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
 | US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |

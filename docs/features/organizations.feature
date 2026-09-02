@@ -213,11 +213,3 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03)
   @a-couvrir
   Scenario: Onglet Contacts
     Then liste, ajout, contact principal unique (US-01-04)
-
-  @ok
-  Scenario: Annuler
-    Given j'ouvre la fiche d'un organisme
-    When je modifie un champ texte, un sélecteur et une case à cocher
-    And je clique sur « Annuler »
-    Then chacun retrouve sa valeur enregistrée
-    And le panneau reste ouvert
