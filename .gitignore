@@ -57,5 +57,7 @@ CLAUDE.md
 # Sorties de vérification : captures de la sonde et du runner BDD.
 # Régénérées par `npm run probe` / `npm run bdd`, jamais versionnées.
 docs/screenshots/
-docs/probe/
+# `probe*` et non `probe` : PROBE_OUT permet de sortir ailleurs
+# (docs/probe-dark, docs/probe-projet...) pour comparer deux parcours.
+docs/probe*/
 docs/rapport-bdd.html

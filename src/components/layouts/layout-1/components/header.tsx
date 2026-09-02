@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { useLocation } from 'react-router';
 import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
+import { useLocation } from 'react-router';
 import { UI } from '@/constants';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -46,12 +46,17 @@ export function Header() {
       'header fixed top-0 z-30 start-0 flex items-stretch shrink-0 border-b border-border bg-background end-0 pe-(--removed-body-scroll-bar-size,0px)',
       isBackoffice && 'header-backoffice',
     )}>
-      {/* Desktop: logo zone — direct child of header (no container-fluid padding) so border-e aligns with sidebar right border */}
+      {/*
+       * Zone de marque, de la largeur du rail : enfant direct du header, sans
+       * le padding de `container-fluid`, pour que sa bordure de droite tombe
+       * exactement sur le bord du rail.
+       */}
       <div className="hidden lg:flex items-center gap-3 px-5 shrink-0 border-e border-border w-(--sidebar-default-width)">
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={handleCollapse}
+              aria-label={sidebarCollapse ? UI.SIDEBAR.EXPAND : UI.SIDEBAR.COLLAPSE}
               className="flex items-center justify-center size-7 rounded-md border border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors shrink-0"
             >
               {sidebarCollapse
@@ -63,15 +68,15 @@ export function Header() {
             {sidebarCollapse ? UI.SIDEBAR.EXPAND : UI.SIDEBAR.COLLAPSE}
           </TooltipContent>
         </Tooltip>
-        <Link to="/">
+        <Link to="/" aria-label={UI.BRAND.NAME} className="min-w-0">
           <img
             src={toAbsoluteUrl(
               resolvedTheme === 'dark'
                 ? '/media/app/default-logo-dark.svg'
                 : '/media/app/default-logo.svg',
             )}
-            className="h-13 w-auto"
-            alt="logo"
+            className="h-6 w-auto"
+            alt=""
           />
         </Link>
       </div>
@@ -92,7 +97,7 @@ export function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent
-                  className="sidebar p-0 gap-0 w-68.75"
+                  className="sidebar dark bg-(--rail-bg) p-0 gap-0 w-68.75"
                   side="left"
                   close={false}
                 >

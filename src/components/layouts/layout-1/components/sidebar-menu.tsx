@@ -124,16 +124,19 @@ export function SidebarMenu() {
     return <SidebarMenuSkeleton />;
   }
 
+  // L'apparence du rail (fond, item actif, intertitres) vit dans
+  // `src/styles/theme.oui-crm.css`, section « Rail de navigation », et non
+  // ici : le projet centralise le style de la sidebar dans la charte, via des
+  // selecteurs `[data-slot=...]`. Ces classes ne portent donc que la
+  // structure, pas les couleurs — sinon les deux se contrediraient.
   const classNames: AccordionMenuClassNames = {
     root: 'space-y-3',
     group: 'gap-px',
-    label:
-      'uppercase text-xs font-medium text-muted-foreground/70 pt-2.25 pb-px',
+    label: 'pt-2.25 pb-px',
     separator: '',
-    item: 'h-8 hover:bg-transparent text-accent-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-muted data-[selected=true]:font-medium',
+    item: '',
     sub: '',
-    subTrigger:
-      'h-8 hover:bg-transparent text-accent-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-muted data-[selected=true]:font-medium',
+    subTrigger: 'h-auto pt-2.25 pb-px bg-transparent hover:bg-transparent',
     subContent: 'py-0',
     indicator: '',
   };
@@ -167,7 +170,7 @@ export function SidebarMenu() {
   const buildMenuSection = (item: MenuItem, index: number): JSX.Element => {
     return (
       <AccordionMenuSub key={index} value={item.path || `section-${index}`}>
-        <AccordionMenuSubTrigger className="uppercase text-xs font-medium text-muted-foreground/70 hover:text-muted-foreground hover:bg-transparent h-auto pt-2.25 pb-px">
+        <AccordionMenuSubTrigger className="h-auto pt-2.25 pb-px bg-transparent hover:bg-transparent">
           <span data-slot="accordion-menu-title">{item.heading}</span>
         </AccordionMenuSubTrigger>
         <AccordionMenuSubContent
@@ -210,7 +213,7 @@ export function SidebarMenu() {
       return (
         <Fragment key={index}>
           {item.separator && (
-            <div className="my-3 h-px w-full bg-gray-200 dark:bg-gray-700" />
+            <div className="my-3 h-px w-full bg-(--rail-line)" />
           )}
           <AccordionMenuItem
             value={item.path || ''}

@@ -100,6 +100,28 @@
   --btn-destructive-shadow-hover: 0 4px 12px -2px rgb(220 38 38 / 0.45),
     inset 0 1px 0 rgb(255 255 255 / 0.22);
 
+  /* ========================================
+   * Rail de navigation - maquette V8
+   * Le rail est sombre dans les deux themes : c'est une decision de design,
+   * pas un etat. Ses valeurs sont donc absolues et ne derivent jamais de
+   * --background, sinon il s'eclaircirait avec le reste en mode clair.
+   *
+   * L'intertitre s'ecarte de la V8 (#6F7794) : il n'y donne que 4.07:1 sur
+   * le rail. On prend #7F87A5, la teinte que la V8 emploie deja pour le
+   * sous-titre de marque, qui passe a 5.07:1.
+   * ======================================== */
+  --rail-bg: #15161F;
+  --rail-line: rgb(255 255 255 / 0.07);
+  --rail-fg: #C1C6DC;
+  --rail-fg-strong: #FFFFFF;
+  --rail-fg-muted: #7F87A5;
+  --rail-hover-bg: #242637;
+  --rail-active-bg: var(--brand-primary);
+  --rail-active-fg: #FFFFFF;
+  --rail-active-shadow: 0 6px 16px rgb(3 105 161 / 0.35);
+  --rail-badge-bg: rgb(255 255 255 / 0.1);
+  --rail-badge-fg: #DFE2EF;
+
   /* Chart Colors */
   --chart-1: var(--brand-primary);
   --chart-2: var(--brand-secondary);
@@ -570,19 +592,21 @@ body,
 }
 
 /* ========================================
- * Sidebar Light Violet — Option B
- * bg violet-50 · actif barre gauche brand-primary
+ * Rail de navigation — maquette V8
+ *
+ * Remplace l'ancien bloc « Sidebar Light Violet » : son fond #f5f3ff, sa
+ * bordure #e0d9ff et ses labels #a78bfa etaient des violets herites de
+ * Periscolia, jamais repris quand la charte est passee a l'azur.
+ *
+ * Le rail est sombre dans les deux themes : ces regles ne sont donc plus
+ * gardees par `html:not(.dark)`. Le composant pose quand meme la classe
+ * `dark` sur la sidebar, ce qui bascule les tokens shadcn (`--foreground`,
+ * `--muted`, `--accent`) pour tout ce qu'elle heberge — pied de page et
+ * popover compris — sans avoir a les rehabiller un par un.
  * ======================================== */
-:root {
-  --sidebar-bg-light: #f5f3ff;
-  --sidebar-border-light: #e0d9ff;
-  --sidebar-border-dark: rgba(255, 255, 255, 0.07);
-  --sidebar-label-light: #a78bfa;
-}
-
-html:not(.dark) .sidebar {
-  background-color: var(--sidebar-bg-light);
-  border-inline-end-color: var(--sidebar-border-light);
+.sidebar {
+  background-color: var(--rail-bg);
+  border-inline-end-color: transparent;
 }
 
 /* Espace sous les labels de section */
@@ -590,27 +614,43 @@ html:not(.dark) .sidebar {
   padding-bottom: 0.375rem;
 }
 
-/* Hover (items feuilles uniquement) */
-html:not(.dark) .sidebar [data-slot="accordion-menu-item"]:hover {
-  background-color: color-mix(in oklch, var(--brand-primary) 6%, transparent);
+/* Intertitres de groupe : traques, comme dans la V8. */
+.sidebar [data-slot="accordion-menu-label"],
+.sidebar [data-slot="accordion-menu-sub-trigger"] {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rail-fg-muted);
 }
 
-/* Actif */
-html:not(.dark) .sidebar [data-slot="accordion-menu-item"][data-selected="true"] {
-  color: var(--brand-primary);
-  background-color: color-mix(in oklch, var(--brand-primary) 10%, transparent);
-  border-inline-start: 3px solid var(--brand-primary);
+/* Items */
+.sidebar [data-slot="accordion-menu-item"] {
+  height: 2.25rem;
+  padding-inline: 0.75rem;
+  border-radius: 9px;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--rail-fg);
 }
 
-html:not(.dark) .sidebar [data-slot="accordion-menu-item"][data-selected="true"] svg {
+.sidebar [data-slot="accordion-menu-item"]:hover {
+  background-color: var(--rail-hover-bg);
+  color: var(--rail-fg-strong);
+}
+
+/* Actif : pilule azur pleine et ombre portee teintee. La barre laterale de
+ * l'ancienne version disparait — sur un aplat plein elle ne se voit plus. */
+.sidebar [data-slot="accordion-menu-item"][data-selected="true"] {
+  background-color: var(--rail-active-bg);
+  color: var(--rail-active-fg);
+  box-shadow: var(--rail-active-shadow);
+  border-inline-start: 0;
+}
+
+.sidebar [data-slot="accordion-menu-item"][data-selected="true"] svg {
   opacity: 1;
-  color: var(--brand-primary);
-}
-
-/* Labels de section */
-html:not(.dark) .sidebar [data-slot="accordion-menu-label"] {
-  color: var(--sidebar-label-light);
+  color: currentColor;
 }
 
 /* Footer */
@@ -623,18 +663,8 @@ html:not(.dark) .sidebar [data-slot="accordion-menu-label"] {
   height: 0.875rem;
 }
 
-html:not(.dark) .sidebar .sidebar-footer {
-  border-top: 1px solid var(--sidebar-border-light);
-}
-
-html.dark .sidebar .sidebar-footer {
-  border-top: 1px solid var(--sidebar-border-dark);
-}
-
-/* Dark mode — actif barre gauche */
-html.dark .sidebar [data-slot="accordion-menu-item"][data-selected="true"] {
-  color: var(--brand-primary);
-  border-inline-start: 3px solid var(--brand-primary);
+.sidebar .sidebar-footer {
+  border-top: 1px solid var(--rail-line);
 }
 
 /* ========================================
