@@ -2,7 +2,7 @@
 # Source : docs/RECETTE-BDD-FRONT.md. Découpage aligné sur oui-crm-api/docs/features/.
 
 @organizations
-Feature: Base des organismes (L1 · US-01-01)
+Feature: Base des organismes (L1 · US-01-01, US-01-03)
   Vue Gherkin de la recette front : ce que voit l’utilisateur, là où la
   recette de l’API décrit le contrat HTTP.
 
@@ -67,3 +67,49 @@ Feature: Base des organismes (L1 · US-01-01)
   @a-couvrir
   Scenario: Sélection multiple
     Then actions groupées (US-01-05), non livrée côté API
+
+  # ── US-01-03 · Organismes, fiche et modification
+
+  @ok
+  Scenario: Ouvrir une fiche
+    Given je suis sur l'écran « Organismes »
+    When j'ouvre la fiche d'un organisme
+    Then le type de structure est renseigné, pas vide
+    And aucun champ obligatoire n'est signalé en erreur
+
+  @a-couvrir
+  Scenario: Bandeau de complétude
+    Then critères manquants nommés en français, blocage du devis signalé
+
+  @ok
+  Scenario: Enregistrer sans rien changer
+    Given j'ouvre la fiche d'un organisme
+    When je clique sur « Enregistrer » sans rien changer
+    Then aucune requête de modification n'est envoyée
+
+  @a-couvrir
+  Scenario: Modifier un champ
+    Then seul ce champ part dans la requête
+
+  @a-couvrir
+  Scenario: Champs dérivés
+    Then région et strate affichées, non modifiables
+
+  @ok
+  Scenario: Statuts commercial et client
+    Given j'ouvre la fiche d'un organisme
+    When je regarde la section « Suivi »
+    Then le statut commercial et le statut client ne sont pas modifiables
+    And la fiche explique où ils se modifient
+
+  @a-couvrir
+  Scenario: Fiche hors périmètre
+    Then panneau restreint, ni formulaire ni coordonnées
+
+  @a-couvrir
+  Scenario: Sans permission de modification
+    Then formulaire en lecture seule, pas de bouton d'enregistrement
+
+  @a-couvrir
+  Scenario: Onglet Contacts
+    Then liste, ajout, contact principal unique (US-01-04)

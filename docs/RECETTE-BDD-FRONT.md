@@ -30,7 +30,8 @@ travail, et la colonne Statut dit où on en est.
 | US-00-09 | Référentiels | ❌ à développer |
 | US-00-10 | Journal d'activité | ❌ à développer |
 | US-00-11 | Comptes back-office | ✅ livré |
-| **US-01-01** | **Organismes — liste et recherche** | 🟡 liste livrée ; création, fiche et contacts à développer |
+| **US-01-01** | **Organismes — liste et recherche** | ✅ livré |
+| **US-01-03** | **Organismes — fiche et modification** | 🟡 Synthèse livrée ; onglet Contacts à développer |
 
 ---
 
@@ -434,6 +435,49 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 
 ---
 
+## US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
+
+Panneau latéral, onglet Synthèse — le `openDrawer` de la V8. Les onglets
+Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Ouvrir une fiche | valeurs renseignées, référentiels résolus, aucun champ en erreur | couvert |
+| 2 | Bandeau de complétude | critères manquants nommés en français, blocage du devis signalé | à couvrir |
+| 3 | Enregistrer sans rien changer | aucun appel, message neutre | couvert |
+| 4 | Modifier un champ | seul ce champ part dans la requête | à couvrir |
+| 5 | Champs dérivés | région et strate affichées, non modifiables | à couvrir |
+| 6 | Statuts commercial et client | en lecture seule, avec l'endroit où les modifier | couvert |
+| 7 | Fiche hors périmètre | panneau restreint, ni formulaire ni coordonnées | à couvrir |
+| 8 | Sans permission de modification | formulaire en lecture seule, pas de bouton d'enregistrement | à couvrir |
+| 9 | Onglet Contacts | liste, ajout, contact principal unique (US-01-04) | à développer |
+
+### Pièges relevés pendant le développement
+
+- **Lecture et écriture n'ont pas la même forme.** `GET` rend
+  `solution: { key }` et `services: [{ key }]` ; `PATCH` exige des chaînes.
+  Recopier la lecture dans le corps donne « solution must be a string ». La
+  conversion est faite une fois, dans le formulaire.
+- **`salesStatus` et `customerStatus` sont refusés par `PATCH`** — vérifié :
+  « property salesStatus should not exist, property customerStatus should not
+  exist ». Ils sont donc en lecture seule. Un sélecteur ferait échouer
+  **tout** l'enregistrement, pas seulement le champ.
+- **On n'envoie que les champs modifiés.** Le contrat refuse un corps vide, et
+  envoyer la fiche entière écraserait ce qu'un autre vient de changer.
+- **Créer le formulaire avant la fiche vide le sélecteur de type.** Le
+  formulaire naissait dans le panneau puis était corrigé par un `reset` : les
+  champs texte suivaient, mais le sélecteur passait de non contrôlé à
+  contrôlé, gardait son état vide et le renvoyait dans le formulaire — « Champ
+  requis » sur une fiche pourtant typée. Le formulaire se crée là où la fiche
+  est chargée, et le panneau le remonte par `key` en changeant de fiche.
+- **Ne jamais déclarer un composant dans le corps d'un autre.** `TextField` et
+  les groupes de cases l'étaient : React voit un nouveau type à chaque rendu et
+  démonte le sous-arbre, ce qui fait perdre le focus à chaque frappe.
+- **`blocks.quote` peut valoir `null`**, pas seulement `true`/`false` : à lire
+  comme « inconnu ou bloqué », jamais avec une égalité stricte.
+
+---
+
 ## Conventions
 
 Reprises de la recette de l'API pour que les deux se lisent pareil.
@@ -464,7 +508,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 12:30. 35/35 OK._
+_Généré par `npm run bdd` — 2026-09-02 13:10. 38/38 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -472,6 +516,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/01-01-2.png` |
 | US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
 | US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
+| US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
+| US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
+| US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
 | US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
 | US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
 | US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |

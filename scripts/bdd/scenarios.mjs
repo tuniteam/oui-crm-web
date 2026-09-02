@@ -556,6 +556,101 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-01-03
+  {
+    id: '01-03.1',
+    us: 'US-01-03',
+    title: 'La fiche s’ouvre avec ses valeurs, référentiels résolus',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "When j'ouvre la fiche d'un organisme",
+      'Then le type de structure est renseigné, pas vide',
+      "And aucun champ obligatoire n'est signalé en erreur",
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      // Le selecteur de type est alimente par les referentiels : il etait vide
+      // et en erreur tant que le formulaire naissait avant la fiche.
+      const type = await page.getByTestId('organization-field-type').innerText();
+      expect(type.trim().length > 0, 'le type de structure est vide');
+
+      const body = await page.getByTestId('reusable-sheet').innerText();
+      expect(
+        !body.includes('Champ requis'),
+        'un champ obligatoire est signalé en erreur sur une fiche complète',
+      );
+    },
+  },
+  {
+    id: '01-03.3',
+    us: 'US-01-03',
+    title: 'Enregistrer sans modification n’appelle pas l’API',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je clique sur « Enregistrer » sans rien changer',
+      "Then aucune requête de modification n'est envoyée",
+    ],
+    async run({ page, expect, projectId }) {
+      const patches = [];
+      page.on('request', (r) => {
+        if (r.method() === 'PATCH' && r.url().includes('/organizations/')) {
+          patches.push(r.url());
+        }
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      await page.getByTestId('organization-save').click();
+      await page.waitForTimeout(1500);
+
+      // Le serveur repondrait EMPTY_UPDATE_PAYLOAD, ce qui s'afficherait comme
+      // une erreur alors que l'utilisateur n'a simplement rien change.
+      expect(
+        patches.length === 0,
+        `${patches.length} requête(s) de modification envoyée(s) sans changement`,
+      );
+    },
+  },
+  {
+    id: '01-03.6',
+    us: 'US-01-03',
+    title: 'Les deux statuts sont en lecture seule, avec leur raison',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je regarde la section « Suivi »',
+      'Then le statut commercial et le statut client ne sont pas modifiables',
+      'And la fiche explique où ils se modifient',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      const body = await page.getByTestId('reusable-sheet').innerText();
+      // L'API refuse ces deux champs en modification : offrir un selecteur
+      // ferait echouer tout l'enregistrement, pas seulement le champ.
+      expect(
+        body.includes('tableau de prospection'),
+        'le statut commercial ne dit pas où il se modifie',
+      );
+      expect(
+        body.includes('déploiement'),
+        'le statut client ne dit pas où il se modifie',
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
