@@ -76,6 +76,7 @@ export const ORGANIZATIONS_UI = {
   EMPTY_VALUE: '—',
 
   EMPTY_STATE: {
+    ILLUSTRATION: '/media/illustrations/projects.svg',
     TITLE: 'Aucun organisme',
     DESCRIPTION: [
       'Aucun organisme ne correspond à votre recherche.',

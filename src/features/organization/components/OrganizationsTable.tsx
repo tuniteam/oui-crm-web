@@ -20,7 +20,7 @@ import {
   SALES_STATUS_LABELS,
 } from '../constants/organizationList.constants';
 import { useOrganizations } from '../hooks/useOrganizations';
-import { useReferenceLabels } from '../hooks/useReferenceLabels';
+import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import {
   CUSTOMER_STATUS_VALUES,
   PRIORITY_VALUES,
@@ -34,6 +34,9 @@ import {
 import { organizationColumns } from './organizationColumns';
 
 const ALL = 'ALL';
+/** Un seul delai pour tous les filtres : cinq valeurs identiques disseminees
+ *  finissent par diverger a la premiere retouche. */
+const FILTER_DEBOUNCE_MS = 400;
 const { SEARCH, EMPTY_STATE } = ORGANIZATIONS_UI;
 
 /**
@@ -56,11 +59,11 @@ export default function OrganizationsTable() {
   const [priority, setPriority] = useState<string>(ALL);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
 
-  const debouncedType = useDebouncedValue(type, 400);
-  const debouncedSalesStatus = useDebouncedValue(salesStatus, 400);
-  const debouncedCustomerStatus = useDebouncedValue(customerStatus, 400);
-  const debouncedPriority = useDebouncedValue(priority, 400);
-  const debouncedIncompleteOnly = useDebouncedValue(incompleteOnly, 400);
+  const debouncedType = useDebouncedValue(type, FILTER_DEBOUNCE_MS);
+  const debouncedSalesStatus = useDebouncedValue(salesStatus, FILTER_DEBOUNCE_MS);
+  const debouncedCustomerStatus = useDebouncedValue(customerStatus, FILTER_DEBOUNCE_MS);
+  const debouncedPriority = useDebouncedValue(priority, FILTER_DEBOUNCE_MS);
+  const debouncedIncompleteOnly = useDebouncedValue(incompleteOnly, FILTER_DEBOUNCE_MS);
 
   const hasActiveFilters =
     debouncedType !== ALL ||
@@ -69,7 +72,7 @@ export default function OrganizationsTable() {
     debouncedPriority !== ALL ||
     debouncedIncompleteOnly;
 
-  const typeOptions = optionsOf('STRUCTURE_TYPE');
+  const typeOptions = useMemo(() => optionsOf('STRUCTURE_TYPE'), [optionsOf]);
 
   const columns = useMemo(() => organizationColumns(labelOf), [labelOf]);
 
@@ -215,7 +218,7 @@ export default function OrganizationsTable() {
       emptyTableMessage={
         <EmptyTableComponent
           hasPermission={hasPermission(PERMISSIONS.ORGANIZATIONS.CREATE)}
-          illustration="/media/illustrations/projects.svg"
+          illustration={EMPTY_STATE.ILLUSTRATION}
           title={EMPTY_STATE.TITLE}
           description={[...EMPTY_STATE.DESCRIPTION]}
           tip={{

@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { cn } from '@/lib/utils';
+import type { ReferenceCategory } from '@/features/settings/types/reference-items';
 import {
   CUSTOMER_STATUS_LABELS,
   ORGANIZATIONS_UI,
@@ -12,8 +13,12 @@ import type { OrganizationListItem } from '../types/organizationList';
 const { TABLE_HEADERS: H, EMPTY_VALUE, RESTRICTED, UNASSIGNED } =
   ORGANIZATIONS_UI;
 
-type ReferenceUsed = 'STRUCTURE_TYPE' | 'SOLUTION' | 'TAG';
-type LabelOf = (category: ReferenceUsed, key?: string | null) => string | null;
+/** Signature de `useReferenceLabels().labelOf`, passee plutot que le hook :
+ *  une definition de colonnes reste une donnee, pas un composant. */
+type LabelOf = (
+  category: ReferenceCategory,
+  key?: string | null,
+) => string | null;
 
 const isRestricted = (o: OrganizationListItem) => o.access === 'RESTRICTED';
 

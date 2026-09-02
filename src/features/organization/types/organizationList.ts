@@ -1,3 +1,5 @@
+import type { PaginationMeta } from '@/components/table/reusable-table';
+
 /**
  * Organismes — `GET /organizations` (US-01-01, lot L1).
  *
@@ -77,13 +79,6 @@ export type OrganizationListItem = {
   lastActivityAt?: string | null;
   nextActivityAt?: string | null;
   completeness?: OrganizationCompleteness;
-};
-
-export type PaginationMeta = {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 };
 
 export type OrganizationListResponse = {
