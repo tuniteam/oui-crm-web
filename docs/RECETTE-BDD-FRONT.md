@@ -541,6 +541,66 @@ officiel, qui pré-remplit la saisie, et la saisie manuelle.
 
 ---
 
+## US-01-04 · Les contacts d'un organisme — 🟢 livré
+
+Onglet Contacts du panneau, deuxième onglet de la fiche. Les contacts sont les
+**détails** d'une fiche : ils exigent partout un accès géographique complet.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Onglet | second onglet du panneau, masqué sans `contacts:read` | couvert |
+| 2 | Liste | le contact principal en tête, puis nom et prénom | couvert |
+| 3 | Ligne | initiales, civilité + nom, fonction · e-mail · téléphone | couvert |
+| 4 | Badges | « Contact principal », « Ne pas démarcher », « Extrait d'une note » | couvert |
+| 5 | Coordonnée absente | « email inconnu », « téléphone inconnu » — jamais un blanc | couvert |
+| 6 | Aucun contact | message expliquant que le représentant légal est requis pour un contrat | à couvrir |
+| 7 | Fiche hors périmètre | `403` : message d'accès, **pas** un échec technique | couvert |
+| 8 | Fiche invisible | `404` : l'existence de la fiche n'est jamais révélée | à couvrir |
+| 9 | Créer | **prénom et nom obligatoires**, refusés avant envoi s'ils manquent | couvert |
+| 10 | Champ vide à la création | non transmis, jamais `null` : le serveur applique ses défauts | à couvrir |
+| 11 | Champ vidé en modification | envoyé à `null` pour être effacé ; nom et prénom jamais | à couvrir |
+| 12 | Nouveau principal | le précédent est rétrogradé par le serveur, la liste entière se rafraîchit | à couvrir |
+| 13 | Complétude | le bandeau de l'onglet Synthèse se recalcule après une écriture | à couvrir |
+| 14 | Supprimer | confirmation, puis retrait de la liste | couvert |
+| 15 | Suppression refusée | `409 CONTACT_HAS_ACTIVITIES` : propose « Ne pas démarcher », pas un message d'échec | couvert |
+| 16 | Sans `contacts:delete` | l'action disparaît — un commercial ne l'a pas | à couvrir |
+| 17 | Sans `contacts:update` | « Modifier » disparaît | à couvrir |
+| 19 | Fiche disparue à l'écriture | message nommé, fenêtre maintenue et saisie conservée | couvert |
+| 18 | Longueurs maximales | civilité 10, prénom et nom 100, fonction 120, e-mail 255, téléphone et mobile 20, notes 2000 — celles des colonnes | couvert |
+
+### Pièges relevés pendant le développement
+
+- **Les contacts sont des détails, pas une sous-liste.** Une fiche hors
+  périmètre se voit en liste mais pas ses contacts : `403` avec un rôle
+  restreint, `404` avec un rôle sans lecture — l'existence n'est jamais
+  révélée. L'onglet explique le refus au lieu d'afficher une erreur : traiter
+  une règle d'accès comme une panne ferait croire à un dysfonctionnement.
+- **Chaque écriture recalcule la complétude de l'organisme.** Le critère
+  `PRIMARY_CONTACT` vaut un sixième du score. Ne rafraîchir que la liste des
+  contacts laisserait le bandeau de l'onglet Synthèse mentir, et la colonne de
+  complétude de la liste avec lui.
+- **Promouvoir un principal en rétrograde un autre**, dans la même transaction
+  côté serveur. C'est pourquoi la liste entière est rechargée après une
+  écriture, et pas seulement la ligne touchée.
+- **Un refus de suppression n'est pas une erreur.** `409
+  CONTACT_HAS_ACTIVITIES` signifie que l'historique garde ses acteurs. Le
+  contrat indique la sortie : proposer « ne pas démarcher », qui exclut le
+  contact des campagnes sans toucher au passé. La fenêtre bascule sur cette
+  action au lieu d'afficher un message sans suite.
+- **Les règles de saisie ne se devinent pas.** La première version de cet
+  écran les avait inventées : prénom rendu facultatif alors que l'API l'exige
+  (`@IsNotEmpty`), civilité à 20 caractères au lieu de 10, téléphone à 40 au
+  lieu de 20, e-mail sans limite au lieu de 255. Elles sont écrites — dans le
+  handoff, où un champ **sans `?`** est obligatoire, et dans les DTO de l'API
+  (`contacts/dto/`, seuils nommés dans `contacts.constants.ts`).
+- **Un scénario qui simule la réponse du serveur ne valide pas le contrat.**
+  Celui qui devait couvrir la création interceptait le `POST` : il passait au
+  vert en affirmant l'inverse de la règle. Au moins une vérification doit
+  atteindre le vrai serveur quand ce sont les règles de saisie qui sont en
+  jeu.
+
+---
+
 ## US-01-13 · Supprimer un organisme — 🟢 livré
 
 Suppression **logique** : la fiche disparaît des lectures, la ligne demeure en
@@ -594,6 +654,7 @@ Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
 | 10 | Fermeture du panneau | seuls la croix et « Annuler » ferment ; un clic à côté ou Échap ne ferment pas | couvert |
 | 11 | Éditeur de la solution | affiché sous le sélecteur, résolu depuis `metadata.vendor` ; rien quand l'éditeur est `NONE` | couvert |
 | 12 | Dates de la fiche | « Créée le … · modifiée le … » au pied, seulement si le serveur les envoie | couvert |
+| 13 | Fiche introuvable | « Fiche introuvable », puis le panneau se referme — jamais un squelette qui attend | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -668,7 +729,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 22:54. 55/55 OK._
+_Généré par `npm run bdd` — 2026-09-02 23:45. 62/62 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -692,6 +753,13 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
 | US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/01-03-10.png` |
 | US-01-03 | 01-03.11 | La fiche montre l’éditeur de la solution et ses dates | OK | `screenshots/01-03-11.png` |
+| US-01-03 | 01-03.12 | Fiche introuvable : le panneau le dit et se referme | OK | `screenshots/01-03-12.png` |
+| US-01-04 | 01-04.2 | Les contacts s’affichent, le principal en tête | OK | `screenshots/01-04-2.png` |
+| US-01-04 | 01-04.7 | Fiche hors périmètre : le refus est expliqué, pas subi | OK | `screenshots/01-04-7.png` |
+| US-01-04 | 01-04.9 | Prénom et nom sont exigés, et le serveur le confirme | OK | `screenshots/01-04-9.png` |
+| US-01-04 | 01-04.15 | Suppression refusée : « Ne pas démarcher » est proposé | OK | `screenshots/01-04-15.png` |
+| US-01-04 | 01-04.18 | Les longueurs maximales sont celles des colonnes | OK | `screenshots/01-04-18.png` |
+| US-01-04 | 01-04.19 | Fiche disparue à l’écriture : message nommé, saisie conservée | OK | `screenshots/01-04-19.png` |
 | US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/01-13-3.png` |
 | US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/01-13-4.png` |
 | US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/01-13-5.png` |
