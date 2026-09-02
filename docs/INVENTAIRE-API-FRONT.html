@@ -768,7 +768,7 @@
           <td class="p">organizations:create [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SEARCH_REGISTRY_API">SEARCH_REGISTRY_API</span></td>
-          <td class="how"><span class="tag no">à développer</span><p>Route préparée, sans écran : la création d’organisme (US-01-02) reste à développer</p></td>
+          <td class="how"><ol><li>Organismes</li><li>Nouvel organisme</li><li>Recherche officielle</li><li>Saisir un nom ou un SIRET (3 caractères minimum)</li><li>Rechercher</li></ol></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
@@ -776,7 +776,7 @@
           <td class="p">organizations:create [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATIONS_API">ORGANIZATIONS_API</span></td>
-          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : la création d’organisme (US-01-02) reste à développer</p></td>
+          <td class="how"><ol><li>Organismes</li><li>Nouvel organisme</li><li>Saisie manuelle</li><li>Renseigner nom, type et département</li><li>Créer la fiche</li></ol></td>
         </tr>
         </tbody>
       </table></div>
@@ -797,7 +797,7 @@
           <td class="p">organizations:read [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_API">ORGANIZATION_API</span></td>
-          <td class="how"><ol><li>Organismes</li><li>Icône œil d’une ligne</li></ol></td>
+          <td class="how"><ol><li>Organismes</li><li>Icône œil d’une ligne — la fiche ouverte est aussi adressable par `?fiche=&lt;id&gt;`</li></ol></td>
         </tr>
         <tr>
           <td><span class="m PATCH">PATCH</span></td>
@@ -826,7 +826,7 @@
           <td class="p">organizations:delete [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_API">ORGANIZATION_API</span></td>
-          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : la suppression (US-01-13) reste à développer</p></td>
+          <td class="how"><ol><li>Panneau d’un organisme</li><li>Bas de la fiche, « Supprimer la fiche »</li><li>Confirmer dans la fenêtre</li></ol></td>
         </tr>
         </tbody>
       </table></div>
@@ -1134,7 +1134,7 @@
       <h3>
         <span class="us-id">US-01-06</span>
         <span class="us-title">Importer un fichier XLSX/CSV</span>
-        <span class="api-state">En cours</span>
+        <span class="api-state">Livrée 02/09 · V2_1 → D2</span>
         <span class="tag no">0 / 3 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1143,16 +1143,16 @@
         <tr>
           <td><span class="m GET">GET</span></td>
           <td class="u">/import/template</td>
-          <td class="p">organizations:import [P]</td>
-          <td class="s">en cours</td>
+          <td class="p">selon profil [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/import</td>
-          <td class="p">organizations:import [P]</td>
-          <td class="s">en cours</td>
+          <td class="p">selon profil [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1160,7 +1160,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/import/errors-pdf</td>
           <td class="p">organizations:import [P]</td>
-          <td class="s">en cours</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>

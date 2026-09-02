@@ -226,15 +226,15 @@ const STEPS_RAW = {
 
   // ── Organismes (L1)
   'GET /organizations': ['Ouvrir un projet', 'Prospection', 'Organismes'],
-  'GET /organizations/:id': ['Organismes', 'Icône œil d’une ligne'],
+  'GET /organizations/:id': ['Organismes', 'Icône œil d’une ligne — la fiche ouverte est aussi adressable par `?fiche=<id>`'],
   'PATCH /organizations/:id': ['Panneau d’un organisme', 'Modifier un champ', 'Enregistrer les modifications'],
   'POST /projects': { todo: true, steps: ['Route déclarée, sans écran : la création de projet reste à développer'] },
   'PATCH /projects/:id': { todo: true, steps: ['Route déclarée, sans écran : la modification de projet reste à développer'] },
-  'POST /organizations': { todo: true, steps: ['Route déclarée, sans écran : la création d’organisme (US-01-02) reste à développer'] },
-  'DELETE /organizations/:id': { todo: true, steps: ['Route déclarée, sans écran : la suppression (US-01-13) reste à développer'] },
+  'POST /organizations': ['Organismes', 'Nouvel organisme', 'Saisie manuelle', 'Renseigner nom, type et département', 'Créer la fiche'],
+  'DELETE /organizations/:id': ['Panneau d’un organisme', 'Bas de la fiche, « Supprimer la fiche »', 'Confirmer dans la fenêtre'],
   'GET /organizations/:id/contacts': { todo: true, steps: ['Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer'] },
   'POST /organizations/:id/contacts': { todo: true, steps: ['Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer'] },
-  'GET /organizations/search-registry': { todo: true, steps: ['Route préparée, sans écran : la création d’organisme (US-01-02) reste à développer'] },
+  'GET /organizations/search-registry': ['Organismes', 'Nouvel organisme', 'Recherche officielle', 'Saisir un nom ou un SIRET (3 caractères minimum)', 'Rechercher'],
 };
 
 /** Les cles sont ecrites avec le nom reel du parametre (`:fileId`, `:type`) ;
