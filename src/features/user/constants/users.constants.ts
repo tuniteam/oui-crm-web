@@ -32,6 +32,18 @@ export const CREATE_USER_WINDOW = {
 } as const;
 
 export const TOASTS = {
+  /*
+   * Le serveur rend le statut resultant, et il change le sens de l'operation :
+   * un e-mail inconnu cree un compte en attente et lui envoie une invitation,
+   * un e-mail deja connu rattache le compte au projet sans rien envoyer.
+   *
+   * On ne distingue pas le rattachement de la reactivation d'une affectation
+   * suspendue : le serveur rend ACTIVE dans les deux cas, et le front n'a pas
+   * de quoi trancher. Un message commun vaut mieux qu'un message invente.
+   */
+  USER_INVITED: (email: string) => `Invitation envoyée à ${email}`,
+  USER_ATTACHED: 'Utilisateur rattaché au projet',
+
   USER_CREATED: 'Utilisateur créé',
   CREATE_USER_ERROR: 'Erreur création utilisateur',
   SLOT_ASSIGNED: 'Le créneau a été assigné à la structure',
