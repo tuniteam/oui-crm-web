@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 
 /**
  * Converts a date string (ISO or YYYY-MM-DD) to a Date object.
@@ -36,74 +35,18 @@ export function formatToFrenchDate(date: Date | undefined | null): string {
 }
 
 /**
- * Formats a Date (or ISO string) to "dd/MM/yy HH:mm" — short date + time.
+ * Date courte francaise, « 31/08/2026 ».
+ *
+ * Trois ecrans ecrivaient chacun leur propre `toLocaleDateString('fr-FR')`,
+ * avec trois traitements differents de la valeur absente : `null`, un repli
+ * maison, et rien du tout — ce dernier affichant « Invalid Date » a
+ * l'utilisateur. Renvoie une chaine vide, chaque appelant appliquant ensuite
+ * son propre repli.
  */
-export function formatToShortDateTime(
-  value: Date | string | null | undefined,
+export function formatShortDateFr(
+  value: string | Date | null | undefined,
 ): string {
   if (!value) return '';
   const date = value instanceof Date ? value : new Date(value);
-  if (isNaN(date.getTime())) return '';
-  return format(date, 'dd/MM/yy HH:mm');
-}
-
-/**
- * Formats a Date to dd/MM/yyyy string.
- */
-export const formatDateToString = (
-  date: Date | undefined | null,
-): string => {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '';
-  return format(date, 'dd/MM/yyyy');
-};
-
-/**
- * Formats a Date to YYYY-MM-DD string for API requests.
- */
-export const formatDateToApiString = (
-  date: Date | undefined | null,
-): string => {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '';
-  return format(date, 'yyyy-MM-dd');
-};
-
-/**
- * Converts a date string to a YYYY-MM-DD form value.
- */
-export function toFormDate(value: string | undefined): string {
-  if (!value?.trim()) return '';
-  const date = formatDateStringToDate(value);
-  return date ? formatDateToValue(date) : value.substring(0, 10);
-}
-
-/**
- * Formats a period start date to a "month YYYY" French locale string
- * (e.g. "2026-04-01" → "avril 2026"). Returns null if invalid.
- */
-export function formatPeriodMonthYear(periodStart?: string): string | null {
-  if (!periodStart) return null;
-  const d = new Date(periodStart);
-  if (isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-}
-
-// Seuil d'affichage de l'âge en mois (tranche crèche 0-3 ans) ; au-delà → années.
-const AGE_MONTHS_DISPLAY_THRESHOLD = 36;
-
-/**
- * Âge formaté selon la convention crèche :
- * en mois jusqu'à 3 ans (« 8 mois », « 30 mois »), puis en années (« 3 ans »).
- * Retourne null si la date est absente/invalide.
- */
-export function formatAge(birthDate: string | undefined): string | null {
-  const birth = formatDateStringToDate(birthDate);
-  if (!birth) return null;
-  const today = new Date();
-  let months =
-    (today.getFullYear() - birth.getFullYear()) * 12 +
-    (today.getMonth() - birth.getMonth());
-  if (today.getDate() < birth.getDate()) months -= 1;
-  if (months < 0) months = 0;
-  if (months < AGE_MONTHS_DISPLAY_THRESHOLD) return `${months} mois`;
-  return `${Math.floor(months / 12)} ans`;
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR');
 }

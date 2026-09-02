@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { ACTIONS_COLUMN_ID } from '@/constants';
+import { formatShortDateFr } from '@/shared/utils/date-utils';
 import { Eye } from 'lucide-react';
 import { COMMON } from '@/constants/common';
 import {
@@ -36,8 +37,7 @@ const dash = () => <span className="text-muted-foreground">{EMPTY_VALUE}</span>;
 
 const number = new Intl.NumberFormat('fr-FR');
 
-const dateFr = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString('fr-FR') : null;
+const dateFr = (iso?: string | null) => formatShortDateFr(iso) || null;
 
 /**
  * Colonnes de la liste des organismes, reprises de la V8 (`RENDER.organismes`).
