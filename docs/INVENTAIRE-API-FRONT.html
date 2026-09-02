@@ -1,0 +1,2131 @@
+<title>Couverture API par le front</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg:#F6F9FB; --surface:#FFFFFF; --ink:#14232E; --muted:#5A7184; --line:#D9E4EC;
+    --accent:#0369A1; --yes:#147A46; --yes-soft:#E2F3E9; --no:#64748B; --no-soft:#EDF1F5;
+    --GET:#0369A1; --POST:#147A46; --PATCH:#B45309; --PUT:#B45309; --DELETE:#B3261E;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0E181F; --surface:#15222B; --ink:#E3EDF4; --muted:#8FA6B5; --line:#253842;
+      --accent:#4FA8D8; --yes:#4CC38A; --yes-soft:#10331F; --no:#8FA6B5; --no-soft:#22313C;
+      --GET:#4FA8D8; --POST:#4CC38A; --PATCH:#E8A254; --PUT:#E8A254; --DELETE:#E5736C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0E181F; --surface:#15222B; --ink:#E3EDF4; --muted:#8FA6B5; --line:#253842;
+    --accent:#4FA8D8; --yes:#4CC38A; --yes-soft:#10331F; --no:#8FA6B5; --no-soft:#22313C;
+    --GET:#4FA8D8; --POST:#4CC38A; --PATCH:#E8A254; --PUT:#E8A254; --DELETE:#E5736C;
+  }
+  body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;line-height:1.55}
+  .page{max-width:1080px;margin:0 auto;padding:48px 24px 80px;display:flex;flex-direction:column;gap:36px}
+  h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .lede{margin:0;max-width:70ch;color:var(--muted)}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap}
+  .kpi div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;min-width:150px}
+  .kpi b{display:block;font-size:26px;font-weight:800}
+  .kpi span{font-size:12px;color:var(--muted)}
+  section{display:flex;flex-direction:column;gap:18px}
+  .us{display:flex;flex-direction:column;gap:8px}
+  h3{margin:0;font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .us-id{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);background:var(--yes-soft);background:color-mix(in srgb,var(--accent) 12%,transparent);padding:2px 8px;border-radius:6px}
+  .us-title{font-weight:600}
+  .api-state{font-size:11.5px;font-weight:600;color:var(--muted)}
+  .tag.part{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+  h2{margin:0 0 2px;font-size:19px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .count{font-size:12px;font-weight:600;color:var(--muted)}
+  .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
+  th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700}
+  td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .u{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px}
+  .p,.s{color:var(--muted);font-size:12.5px}
+  .m{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;border:1px solid currentColor}
+  .m.GET{color:var(--GET)} .m.POST{color:var(--POST)} .m.PATCH{color:var(--PATCH)}
+  .m.PUT{color:var(--PUT)} .m.DELETE{color:var(--DELETE)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+  .tag.yes{background:var(--yes-soft);color:var(--yes)}
+  .tag.no{background:var(--no-soft);color:var(--no)}
+  .how{max-width:300px}
+  .how ol{margin:0;padding-left:18px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+  .how li{padding-left:2px}
+  .how p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+  .how .none{color:var(--muted);opacity:.5}
+  .tag.auto{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+  .src{display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  footer{border-top:1px solid var(--line);padding-top:18px;font-size:12.5px;color:var(--muted)}
+</style>
+
+<div class="page">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <h1>Couverture API par le front</h1>
+    <p class="lede">
+      Les routes de <code>INVENTAIRE-API.html</code>, augmentées de ce que le
+      front consomme réellement. La colonne <b>API</b> dit si la route existe,
+      la colonne <b>Front</b> si un service l'appelle.
+    </p>
+    <div class="kpi">
+      <div><b>169</b><span>routes inventoriées</span></div>
+      <div><b>39</b><span>consommées par le front</span></div>
+      <div><b>130</b><span>non consommées</span></div>
+      <div><b>23%</b><span>de couverture</span></div>
+    </div>
+  </header>
+
+<section>
+  <h2>Socle <span class="count">31 / 62 routes côté front · 12 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-01</span>
+        <span class="us-title">Se connecter, rester connecté, se déconnecter</span>
+        <span class="api-state">Livrée 31/08</span>
+        <span class="tag yes">3 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/login</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="LOGIN">LOGIN</span></td>
+          <td class="how"><ol><li>Écran de connexion</li><li>Saisir e-mail et mot de passe</li><li>Se connecter</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/refresh</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="REFRESH">REFRESH</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Intercepteur, sur un 401 TOKEN_EXPIRED — jamais déclenché à la main</p></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/logout</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="LOGOUT">LOGOUT</span></td>
+          <td class="how"><ol><li>Pied du rail</li><li>Menu du compte</li><li>Se déconnecter</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-02</span>
+        <span class="us-title">Activer mon compte, réinitialiser mon mot de passe, changer d'email</span>
+        <span class="api-state">Livrée 31/08</span>
+        <span class="tag yes">7 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/activation/validate</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVATION_VALIDATE">ACTIVATION_VALIDATE</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Ouvrir le lien d’activation reçu par e-mail (/activate?token=)</p></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/activation/complete</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVATION_COMPLETE">ACTIVATION_COMPLETE</span></td>
+          <td class="how"><ol><li>Écran d’activation</li><li>Choisir un mot de passe</li><li>Activer le compte</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/password-reset/request</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="RESET_PASSWORD_REQUEST">RESET_PASSWORD_REQUEST</span></td>
+          <td class="how"><ol><li>Écran de connexion</li><li>Mot de passe oublié</li><li>Saisir l’e-mail</li><li>Envoyer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/password-reset/validate</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="RESET_PASSWORD_VALIDATE">RESET_PASSWORD_VALIDATE</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Ouvrir le lien reçu par e-mail (/reset?token=)</p></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/password-reset/complete</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="RESET_PASSWORD_COMPLETE">RESET_PASSWORD_COMPLETE</span></td>
+          <td class="how"><ol><li>Écran de réinitialisation</li><li>Choisir un mot de passe</li><li>Valider</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/email-change/request</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="EMAIL_CHANGE_REQUEST">EMAIL_CHANGE_REQUEST</span></td>
+          <td class="how"><ol><li>Mon profil</li><li>Informations d’accès</li><li>Modifier l’email</li><li>Saisir la nouvelle adresse et le mot de passe</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/auth/email-change/confirm</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="EMAIL_CHANGE_CONFIRM">EMAIL_CHANGE_CONFIRM</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Ouvrir le lien de confirmation reçu par e-mail (/email-change?token=)</p></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-03</span>
+        <span class="us-title">Voir mes projets et mes accès, choisir mon projet</span>
+        <span class="api-state">Livrée 31/08</span>
+        <span class="tag part">1 / 6 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/profile/me</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ME_API">ME_API</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Chargé après la connexion, puis à chaque montage de l’application</p></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/profile</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Mon profil</li><li>Informations personnelles</li><li>Modifier</li><li>Enregistrer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/profile/change-password</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Mon profil</li><li>Sécurité</li><li>Modifier le mot de passe</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/profile/avatar</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Mon profil</li><li>Photo de profil</li><li>Modifier</li><li>Choisir une image</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/profile/avatar</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Mon profil</li><li>Photo de profil</li><li>Modifier</li><li>Supprimer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/legal/accept</td>
+          <td class="p">Bearer</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-04</span>
+        <span class="us-title">Administrer les projets (backoffice)</span>
+        <span class="api-state">Livrée 31/08</span>
+        <span class="tag part">4 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/projects</td>
+          <td class="p">projects:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROJECTS, PROJECTS_API">PROJECTS, PROJECTS_API</span></td>
+          <td class="how"><ol><li>Menu Projets</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/projects</td>
+          <td class="p">projects:create</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROJECTS, PROJECTS_API">PROJECTS, PROJECTS_API</span></td>
+          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : la création de projet reste à développer</p></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/projects/:id</td>
+          <td class="p">projects:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROJECT_API">PROJECT_API</span></td>
+          <td class="how"><ol><li>Menu Projets</li><li>Ouvrir un projet</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/projects/:id</td>
+          <td class="p">projects:update</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROJECT_API">PROJECT_API</span></td>
+          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : la modification de projet reste à développer</p></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/projects/:id/features</td>
+          <td class="p">projects:update</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/projects/:id/status</td>
+          <td class="p">projects:update</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/projects/:id/config-export</td>
+          <td class="p">projects:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-05</span>
+        <span class="us-title">Gérer les utilisateurs de mon projet</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag part">6 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/users</td>
+          <td class="p">users:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USERS_API, USERS_LIST">USERS_API, USERS_LIST</span></td>
+          <td class="how"><ol><li>Ouvrir un projet</li><li>Administration</li><li>Utilisateurs</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/users</td>
+          <td class="p">users:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USERS_API, USERS_LIST">USERS_API, USERS_LIST</span></td>
+          <td class="how"><ol><li>Utilisateurs</li><li>Nouvel utilisateur</li><li>Renseigner nom, e-mail, initiales et rôle</li><li>Créer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/users/:id</td>
+          <td class="p">users:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API">USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API</span></td>
+          <td class="how"><ol><li>Utilisateurs</li><li>Icône œil d’une ligne</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/users/:id</td>
+          <td class="p">users:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API">USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API</span></td>
+          <td class="how"><ol><li>Fiche utilisateur</li><li>Modifier</li><li>Enregistrer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/users/:id/overrides</td>
+          <td class="p">users:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/users/:id/resend-activation</td>
+          <td class="p">users:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USER_RESEND_ACTIVATION_API">USER_RESEND_ACTIVATION_API</span></td>
+          <td class="how"><ol><li>Fiche d’un compte en attente</li><li>Renvoyer l’invitation</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/users/:id</td>
+          <td class="p">users:delete [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API">USER_DETAIL_API, USER_UPDATE_API, USER_DELETE_API</span></td>
+          <td class="how"><ol><li>Fiche utilisateur</li><li>Retrait du projet</li><li>Retirer du projet</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-06</span>
+        <span class="us-title">Consulter et adapter les rôles</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag part">1 / 5 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/roles</td>
+          <td class="p">roles:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ROLES_API">ROLES_API</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Alimente les sélecteurs de rôle : filtre de la liste, création et modification</p></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/permissions</td>
+          <td class="p">roles:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/roles/:id/duplicate</td>
+          <td class="p">roles:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/roles/:id</td>
+          <td class="p">roles:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/roles/:id</td>
+          <td class="p">roles:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-07</span>
+        <span class="us-title">Gérer les périmètres géographiques</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag no">0 / 5 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/scopes</td>
+          <td class="p">scopes:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/scopes</td>
+          <td class="p">scopes:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/scopes/:id</td>
+          <td class="p">scopes:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/scopes/:id</td>
+          <td class="p">scopes:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/geo/regions</td>
+          <td class="p">scopes:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-08</span>
+        <span class="us-title">Régler mon projet</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag part">5 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/settings</td>
+          <td class="p">settings:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SETTINGS">SETTINGS</span></td>
+          <td class="how"><ol><li>Ouvrir un projet</li><li>Administration</li><li>Paramètres</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/settings</td>
+          <td class="p">settings:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SETTINGS">SETTINGS</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Société ou Règles commerciales</li><li>Enregistrer</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/settings/documents</td>
+          <td class="p">settings:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="DOCUMENTS">DOCUMENTS</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/settings/documents/:type</td>
+          <td class="p">settings:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li><li>Déposer un gabarit</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/settings/signature-image</td>
+          <td class="p">settings:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SIGNATURE_IMAGE">SIGNATURE_IMAGE</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li><li>Déposer un cachet</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/settings/signature-image</td>
+          <td class="p">settings:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SIGNATURE_IMAGE">SIGNATURE_IMAGE</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li><li>Supprimer le cachet</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/settings/documents/:type/preview</td>
+          <td class="p">settings:read [P]</td>
+          <td class="s">L2</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li><li>Aperçu d’un gabarit</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-09</span>
+        <span class="us-title">Administrer les référentiels</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag yes">3 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/reference-items</td>
+          <td class="p">references:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="REFERENCE_ITEMS">REFERENCE_ITEMS</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Référentiels</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/reference-items</td>
+          <td class="p">references:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="REFERENCE_ITEMS">REFERENCE_ITEMS</span></td>
+          <td class="how"><ol><li>Référentiels</li><li>Choisir une catégorie</li><li>Ajouter une valeur</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/reference-items/:id</td>
+          <td class="p">references:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="REFERENCE_ITEM">REFERENCE_ITEM</span></td>
+          <td class="how"><ol><li>Référentiels</li><li>Renommer une valeur, la désactiver, ou la glisser pour changer son ordre</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-10</span>
+        <span class="us-title">Consulter le journal d'activité</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/audit-log</td>
+          <td class="p">auditLog:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/exports/audit-log</td>
+          <td class="p">auditLog:export [P]</td>
+          <td class="s">L5</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-00-11</span>
+        <span class="us-title">Administrer les comptes backoffice (super admin)</span>
+        <span class="api-state">Livrée 01/09</span>
+        <span class="tag no">0 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/backoffice/roles</td>
+          <td class="p">users:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Alimente le sélecteur de rôle des opérateurs</p></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/backoffice/users</td>
+          <td class="p">users:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Menu Opérateurs</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/backoffice/users</td>
+          <td class="p">users:create</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Opérateurs</li><li>Nouvel opérateur</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/backoffice/users/:id</td>
+          <td class="p">users:read</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Opérateurs</li><li>Icône œil d’une ligne</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/backoffice/users/:id</td>
+          <td class="p">users:update</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Fiche opérateur</li><li>Modifier</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/backoffice/users/:id/resend-activation</td>
+          <td class="p">users:create</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/backoffice/users/:id</td>
+          <td class="p">users:delete</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><ol><li>Fiche opérateur</li><li>Supprimer</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">Transverse</span>
+        <span class="us-title">Fichiers et santé</span>
+        <span class="api-state">Livré (socle)</span>
+        <span class="tag part">1 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/files/:fileId/download</td>
+          <td class="p">selon propriétaire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="FILE_DOWNLOAD">FILE_DOWNLOAD</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Documents et numérotation</li><li>Télécharger un gabarit ou le cachet</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/files/:fileId</td>
+          <td class="p">selon propriétaire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/health</td>
+          <td class="p">publique</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Base commerciale <span class="count">8 / 37 routes côté front · 14 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-01</span>
+        <span class="us-title">Rechercher et lister les organismes</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag yes">1 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/organizations</td>
+          <td class="p">organizations:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATIONS_API">ORGANIZATIONS_API</span></td>
+          <td class="how"><ol><li>Ouvrir un projet</li><li>Prospection</li><li>Organismes</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-02</span>
+        <span class="us-title">Créer un organisme (registre officiel inclus)</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag yes">2 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/organizations/search-registry</td>
+          <td class="p">organizations:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SEARCH_REGISTRY_API">SEARCH_REGISTRY_API</span></td>
+          <td class="how"><ol><li>Organismes</li><li>Nouvel organisme</li><li>Recherche officielle</li><li>Saisir un nom ou un SIRET (3 caractères minimum)</li><li>Rechercher</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/organizations</td>
+          <td class="p">organizations:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATIONS_API">ORGANIZATIONS_API</span></td>
+          <td class="how"><ol><li>Organismes</li><li>Nouvel organisme</li><li>Saisie manuelle</li><li>Renseigner nom, type et département</li><li>Créer la fiche</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-03</span>
+        <span class="us-title">Consulter et modifier une fiche</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag yes">2 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/organizations/:id</td>
+          <td class="p">organizations:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_API">ORGANIZATION_API</span></td>
+          <td class="how"><ol><li>Organismes</li><li>Icône œil d’une ligne — la fiche ouverte est aussi adressable par `?fiche=&lt;id&gt;`</li></ol></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/organizations/:id</td>
+          <td class="p">organizations:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_API">ORGANIZATION_API</span></td>
+          <td class="how"><ol><li>Panneau d’un organisme</li><li>Modifier un champ</li><li>Enregistrer les modifications</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-13</span>
+        <span class="us-title">Supprimer un organisme</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag yes">1 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/organizations/:id</td>
+          <td class="p">organizations:delete [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_API">ORGANIZATION_API</span></td>
+          <td class="how"><ol><li>Panneau d’un organisme</li><li>Bas de la fiche, « Supprimer la fiche »</li><li>Confirmer dans la fenêtre</li></ol></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-04</span>
+        <span class="us-title">Gérer les contacts d'un organisme</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag part">2 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/organizations/:id/contacts</td>
+          <td class="p">contacts:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_CONTACTS_API">ORGANIZATION_CONTACTS_API</span></td>
+          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer</p></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/organizations/:id/contacts</td>
+          <td class="p">contacts:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_CONTACTS_API">ORGANIZATION_CONTACTS_API</span></td>
+          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer</p></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/contacts/:id</td>
+          <td class="p">contacts:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/contacts/:id</td>
+          <td class="p">contacts:delete [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-08</span>
+        <span class="us-title">Planifier et réaliser une action</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 6 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/activities</td>
+          <td class="p">activities:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/activities</td>
+          <td class="p">activities:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/activities/:id</td>
+          <td class="p">activities:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/activities/:id/complete</td>
+          <td class="p">activities:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/activities/:id/cancel</td>
+          <td class="p">activities:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/activities/:id</td>
+          <td class="p">activities:delete [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-09</span>
+        <span class="us-title">Agenda et export ICS</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/agenda</td>
+          <td class="p">activities:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/activities/:id/ics</td>
+          <td class="p">activities:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-10</span>
+        <span class="us-title">Kanban de prospection</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/organizations/board</td>
+          <td class="p">organizations:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/organizations/:id/sales-status</td>
+          <td class="p">organizations:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-11</span>
+        <span class="us-title">Mener une campagne</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 9 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/campaigns</td>
+          <td class="p">campaigns:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/campaigns</td>
+          <td class="p">campaigns:create [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/campaigns/:id</td>
+          <td class="p">campaigns:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/campaigns/:id/status</td>
+          <td class="p">campaigns:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/campaigns/:id/organizations</td>
+          <td class="p">campaigns:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/campaigns/:id/organizations</td>
+          <td class="p">campaigns:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/campaigns/:id/organizations/:orgId</td>
+          <td class="p">campaigns:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/campaigns/:id/results</td>
+          <td class="p">campaigns:read [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/campaigns/:id</td>
+          <td class="p">campaigns:delete [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-05</span>
+        <span class="us-title">Actions groupées</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/organizations/bulk</td>
+          <td class="p">organizations:bulk [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-14</span>
+        <span class="us-title">Importer un territoire (communes, EPCI)</span>
+        <span class="api-state">Livrée 02/09</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/organizations/import-territory</td>
+          <td class="p">organizations:import [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/import/batches/:batchId</td>
+          <td class="p">organizations:import [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-06</span>
+        <span class="us-title">Importer un fichier XLSX/CSV</span>
+        <span class="api-state">Livrée 02/09 · V2_1 → D2</span>
+        <span class="tag no">0 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/import/template</td>
+          <td class="p">selon profil [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/import</td>
+          <td class="p">selon profil [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/import/errors-pdf</td>
+          <td class="p">organizations:import [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-07</span>
+        <span class="us-title">Exporter la base</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/exports/organizations-list</td>
+          <td class="p">organizations:export [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-01-12</span>
+        <span class="us-title">Rechercher partout</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/search</td>
+          <td class="p">selon type retourné [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Cycle de vente <span class="count">0 / 26 routes côté front · 10 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-01</span>
+        <span class="us-title">Gérer la grille tarifaire</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/pricing-grids</td>
+          <td class="p">pricing:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/pricing-grids/active · /pricing-grids/:id</td>
+          <td class="p">pricing:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/pricing-grids</td>
+          <td class="p">pricing:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/pricing-grids/:id/activate</td>
+          <td class="p">pricing:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-02</span>
+        <span class="us-title">Simuler un devis en temps réel</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/simulate</td>
+          <td class="p">quotes:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-03</span>
+        <span class="us-title">Créer et modifier un devis brouillon</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 5 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/quotes</td>
+          <td class="p">quotes:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes</td>
+          <td class="p">quotes:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/quotes/:id</td>
+          <td class="p">quotes:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/quotes/:id</td>
+          <td class="p">quotes:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/quotes/:id</td>
+          <td class="p">quotes:delete [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-04</span>
+        <span class="us-title">Soumettre un devis</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/submit</td>
+          <td class="p">quotes:submit [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-05</span>
+        <span class="us-title">Valider ou refuser un devis en attente</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/validate</td>
+          <td class="p">quotes:validate [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/reject</td>
+          <td class="p">quotes:validate [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-06</span>
+        <span class="us-title">Suivre la vie d'un devis</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/follow-up · /negotiate · /decline · /reopen</td>
+          <td class="p">quotes:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-07</span>
+        <span class="us-title">Signer un devis</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/sign</td>
+          <td class="p">quotes:sign [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/signed-return</td>
+          <td class="p">quotes:sign [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-08</span>
+        <span class="us-title">Générer le devis PDF</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/quotes/:id/document</td>
+          <td class="p">quotes:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/quotes/:id/documents</td>
+          <td class="p">quotes:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-09</span>
+        <span class="us-title">Piloter le pipeline d'opportunités</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 7 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/opportunities</td>
+          <td class="p">opportunities:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/opportunities/board</td>
+          <td class="p">opportunities:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/opportunities</td>
+          <td class="p">opportunities:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/opportunities/:id</td>
+          <td class="p">opportunities:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/opportunities/:id</td>
+          <td class="p">opportunities:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/opportunities/:id/stage</td>
+          <td class="p">opportunities:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/opportunities/:id/lose</td>
+          <td class="p">opportunities:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-02-10</span>
+        <span class="us-title">Devis additionnel et de renouvellement</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes (type: ADDITIONAL | RENEWAL)</td>
+          <td class="p">quotes:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Contractualisation <span class="count">0 / 13 routes côté front · 5 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-03-01</span>
+        <span class="us-title">Consulter les contrats et générer le contrat PDF</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/contracts</td>
+          <td class="p">contracts:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/contracts/:id</td>
+          <td class="p">contracts:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/contracts/:id/document</td>
+          <td class="p">contracts:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/contracts/:id</td>
+          <td class="p">contracts:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-03-02</span>
+        <span class="us-title">Générer et compléter l'échéancier</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/contracts/:id/schedule</td>
+          <td class="p">invoices:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/invoices/schedule-all</td>
+          <td class="p">invoices:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-03-03</span>
+        <span class="us-title">Suivre les factures et le dépôt Chorus Pro</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/invoices</td>
+          <td class="p">invoices:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/invoices/:id</td>
+          <td class="p">invoices:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/invoices/:id/issue · /pay · /cancel</td>
+          <td class="p">invoices:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/invoices/:id/deposit</td>
+          <td class="p">invoices:chorus [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-03-04</span>
+        <span class="us-title">Préavis et résiliation</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/contracts/:id/notice</td>
+          <td class="p">contracts:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/contracts/:id/terminate</td>
+          <td class="p">contracts:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-03-05</span>
+        <span class="us-title">Anticiper les renouvellements</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/renewals</td>
+          <td class="p">contracts:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Après-vente <span class="count">0 / 14 routes côté front · 4 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-04-01</span>
+        <span class="us-title">Piloter les déploiements</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/deployments/board</td>
+          <td class="p">deployments:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/deployments/:id/stage</td>
+          <td class="p">deployments:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/deployments/:id</td>
+          <td class="p">deployments:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-04-02</span>
+        <span class="us-title">Planifier et réaliser les formations</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 5 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/trainings</td>
+          <td class="p">trainings:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/trainings</td>
+          <td class="p">trainings:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/trainings/:id</td>
+          <td class="p">trainings:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/trainings/:id/complete · /cancel</td>
+          <td class="p">trainings:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/trainings/:id</td>
+          <td class="p">trainings:delete [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-04-03</span>
+        <span class="us-title">Traiter les tickets de support</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 5 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/tickets</td>
+          <td class="p">tickets:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/tickets</td>
+          <td class="p">tickets:create [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/tickets/:id</td>
+          <td class="p">tickets:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m PATCH">PATCH</span></td>
+          <td class="u">/tickets/:id</td>
+          <td class="p">tickets:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/tickets/:id/status · /comments</td>
+          <td class="p">tickets:update [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-04-04</span>
+        <span class="us-title">Suivre le portefeuille clients</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/portfolio</td>
+          <td class="p">contracts:read + organizations:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Pilotage <span class="count">0 / 13 routes côté front · 4 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-05-01</span>
+        <span class="us-title">Tableau de bord</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 2 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/dashboard</td>
+          <td class="p">dashboard:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/dashboard/kpis</td>
+          <td class="p">dashboard:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-05-02</span>
+        <span class="us-title">Statistiques et concurrence</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/stats/base</td>
+          <td class="p">stats:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/stats/pipeline</td>
+          <td class="p">stats:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/stats/competition</td>
+          <td class="p">stats:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/stats/map</td>
+          <td class="p">stats:read [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-05-03</span>
+        <span class="us-title">Exporter (registre d'exports)</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 4 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/exports</td>
+          <td class="p">selon descripteur [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/exports/:key/preview</td>
+          <td class="p">selon descripteur [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/exports/:key</td>
+          <td class="p">selon descripteur [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/exports/jobs</td>
+          <td class="p">Bearer [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-05-04</span>
+        <span class="us-title">Être notifié</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m WS">WS</span></td>
+          <td class="u">/notifications (socket.io, auth: token)</td>
+          <td class="p">Bearer</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/notifications</td>
+          <td class="p">Bearer [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/notifications/:id/read</td>
+          <td class="p">Bearer [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Administration et RGPD <span class="count">0 / 4 routes côté front · 2 US</span></h2>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-06-01</span>
+        <span class="us-title">Purger les prospects hors délai, demande RGPD</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 3 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/gdpr/purge-candidates</td>
+          <td class="p">data:purge [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/gdpr/purge</td>
+          <td class="p">data:purge [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/gdpr/contacts/:id/export</td>
+          <td class="p">data:purge [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+    <article class="us">
+      <h3>
+        <span class="us-id">US-06-02</span>
+        <span class="us-title">Sauvegarder et restaurer</span>
+        <span class="api-state">À faire</span>
+        <span class="tag no">0 / 1 côté front</span>
+      </h3>
+      <div class="wrap"><table>
+        <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/backup · /restore (contrat à figer au L6)</td>
+          <td class="p">data:export / data:restore [P]</td>
+          <td class="s">à faire</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        </tbody>
+      </table></div>
+    </article>
+</section>
+<section>
+  <h2>Déclarées par le front, absentes de l'inventaire <span class="count">1</span></h2>
+  <p class="lede" style="margin:0 0 4px">Ces chemins n'existent dans aucune route de l'API. Les chemins de navigation ont été écartés.</p>
+  <div class="wrap"><table>
+    <thead><tr><th>Appel</th><th>Déclaré dans</th></tr></thead>
+    <tbody>
+      <tr><td class="u">/users/:id/email</td><td class="p">USER_CORRECT_EMAIL_API</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+  <footer>
+    <p>Généré par <code>npm run api:coverage</code> — ne pas éditer à la main.
+    Source des routes : <code>../oui-crm-api/docs/INVENTAIRE-API.html</code>. La couverture est déduite
+    des appels <code>api.get/post/patch/delete</code> des services, pas d'une
+    liste tenue à la main : une route déclarée mais jamais appelée compte comme
+    non consommée.</p>
+  </footer>
+</div>

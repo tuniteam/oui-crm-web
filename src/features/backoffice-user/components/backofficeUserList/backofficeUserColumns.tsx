@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { ACTIONS_COLUMN_ID } from '@/constants';
 import { Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
@@ -123,7 +124,7 @@ export const backofficeUserColumns: ColumnDef<BackofficeUserListItem>[] = [
   },
   {
     accessorKey: 'actions',
-    id: 'actions',
+    id: ACTIONS_COLUMN_ID,
     header: () => (
       <span className="flex justify-center w-full">
         {TABLE_HEADERS.ACTIONS}

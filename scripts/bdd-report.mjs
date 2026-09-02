@@ -12,8 +12,11 @@
  *   node scripts/bdd-report.mjs        # appelé aussi en fin de `npm run bdd`
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+// Analyseur partage avec le generateur de .feature : un seul document, une
+// seule lecture. Deux analyseurs auraient fini par diverger.
+import { parseRecipe, RECIPE_PATH, stripMd } from './bdd/recipe.mjs';
 
-const RECIPE = 'docs/RECETTE-BDD-FRONT.md';
+const RECIPE = RECIPE_PATH;
 const RESULTS = 'docs/probe/bdd-results.json';
 const OUT = 'docs/rapport-bdd.html';
 
@@ -23,61 +26,6 @@ const STATUS = {
   PENDING: 'pending',
 };
 
-/** Une ligne `| 15-18 | … |` couvre plusieurs scénarios d'un coup. */
-function expandRange(cell) {
-  const range = cell.match(/^(\d+)\s*[-–]\s*(\d+)$/);
-  if (!range) return [cell];
-  const [, from, to] = range.map(Number);
-  return Array.from({ length: to - from + 1 }, (_, i) => String(from + i));
-}
-
-/** Extrait les scénarios de la recette, section d'US par section d'US. */
-function parseRecipe(md) {
-  const sections = [];
-  let current = null;
-  let inGenerated = false;
-
-  for (const line of md.split('\n')) {
-    if (line.includes('bdd:auto:start')) inGenerated = true;
-    if (line.includes('bdd:auto:end')) {
-      inGenerated = false;
-      continue;
-    }
-    if (inGenerated) continue;
-
-    const heading = line.match(/^##\s+(US-\d\d-\d\d)\s*·\s*(.+?)\s*(?:—.*)?$/);
-    if (heading) {
-      current = { us: heading[1], title: heading[2].trim(), scenarios: [] };
-      sections.push(current);
-      continue;
-    }
-    if (!current) continue;
-
-    // `| 4 | Titre | Attendu |` ou `| 15-18 | … |`. La première cellule doit
-    // commencer par un chiffre : sans cela, les lignes de séparation Markdown
-    // (`|---|---|`) étaient prises pour des scénarios.
-    const row = line.match(
-      /^\|\s*(\d+(?:\s*[-–]\s*\d+)?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|/,
-    );
-    if (!row) continue;
-
-    for (const num of expandRange(row[1].trim())) {
-      current.scenarios.push({
-        id: `${current.us.slice(-2)}.${num}`,
-        num,
-        title: row[2].trim(),
-        expected: row[3].trim(),
-      });
-    }
-  }
-  return sections;
-}
-
-const stripMd = (s) =>
-  s
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/`(.+?)`/g, '$1')
-    .replace(/\[(.+?)\]\(.+?\)/g, '$1');
 
 const esc = (s) =>
   String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -88,7 +36,18 @@ const sections = parseRecipe(md);
 const executed = existsSync(RESULTS)
   ? JSON.parse(readFileSync(RESULTS, 'utf8'))
   : { runAt: null, results: [] };
-const byId = new Map(executed.results.map((r) => [r.id, r]));
+/**
+ * Rapprochement par **US + numero**.
+ *
+ * L'identifiant de recette vaut `us.slice(-2)` + numero : `US-00-01` et
+ * `US-01-01` rendent tous deux `01.x`. Rapprocher par cet identifiant faisait
+ * passer des scenarios du lot L1 pour des scenarios du L0, et gonflait le
+ * compte des executes (39 annonces pour 36 reels).
+ */
+const keyOf = (us, id) => `${us}.${id.slice(id.lastIndexOf('.') + 1)}`;
+const byId = new Map(
+  executed.results.map((r) => [keyOf(r.us, r.id), r]),
+);
 
 let passed = 0;
 let failed = 0;
@@ -96,7 +55,7 @@ let pending = 0;
 
 for (const section of sections) {
   for (const s of section.scenarios) {
-    const run = byId.get(s.id);
+    const run = byId.get(`${s.us}.${s.num}`);
     s.run = run ?? null;
     s.status = !run ? STATUS.PENDING : run.ok ? STATUS.PASSED : STATUS.FAILED;
     if (s.status === STATUS.PASSED) passed += 1;

@@ -46,7 +46,7 @@ export const userService = {
   getOne: async (userId: string): Promise<UserDetailsResponse> => {
     try {
       const res = await api.get<UserDetailsResponse>(
-        `${USER_ROUTES.USERS_API}/${userId}`,
+        USER_ROUTES.USER_DETAIL_API(userId),
       );
       return res.data;
     } catch (err) {
@@ -81,7 +81,7 @@ export const userService = {
   },
   delete: async (userId: string): Promise<void> => {
     try {
-      await api.delete(`${USER_ROUTES.USERS_API}/${userId}`);
+      await api.delete(USER_ROUTES.USER_DELETE_API(userId));
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }

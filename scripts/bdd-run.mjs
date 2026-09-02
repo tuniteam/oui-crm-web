@@ -16,6 +16,7 @@ import { chromium } from 'playwright';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { scenarios } from './bdd/scenarios.mjs';
+import { AUTO_END, AUTO_START, RECIPE_PATH } from './bdd/recipe.mjs';
 
 const FRONT = process.env.PROBE_FRONT ?? 'http://localhost:5174';
 const API = process.env.PROBE_API ?? 'http://localhost:3001/api/v1';
@@ -69,6 +70,17 @@ for (const scenario of selected) {
   });
   const page = await context.newPage();
 
+  /**
+   * 30 s ne suffisent pas en fin de suite complete.
+   *
+   * Les echecs intermittents observes sur US-00-09 n'etaient pas des
+   * assertions mais des `page.goto` expirees : le serveur de developpement
+   * ralentit sous la charge d'une cinquantaine de scenarios, et les memes
+   * scenarios passent isolement. Un rouge qui ne dit rien du produit fait
+   * douter de toute la suite.
+   */
+  page.setDefaultNavigationTimeout(60000);
+
   let calls = [];
   let headers = [];
   page.on('request', (r) => {
@@ -94,8 +106,11 @@ for (const scenario of selected) {
       await page.getByTestId('auth-login-email-input').fill(EMAIL);
       await page.getByTestId('auth-login-password-input').fill(password);
       await page.getByTestId('auth-login-submit-button').click();
+      // Meme raison que le delai de navigation ci-dessus : sous charge, ou
+      // juste apres un redemarrage de l'API, la redirection post-connexion
+      // depasse 20 s et le scenario echouait avant meme de commencer.
       await page.waitForURL((u) => !u.pathname.startsWith('/auth'), {
-        timeout: 20000,
+        timeout: 60000,
       });
     }
     if (scenario.needsProject && !projectId) {
@@ -125,11 +140,11 @@ const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed}/${results.length} scénario(s) OK.`);
 
 // ── Réinjection dans la recette ────────────────────────────────────────────
-const RECIPE = 'docs/RECETTE-BDD-FRONT.md';
+const RECIPE = RECIPE_PATH;
 let md = readFileSync(RECIPE, 'utf8');
 
-const START = '<!-- bdd:auto:start -->';
-const END = '<!-- bdd:auto:end -->';
+const START = AUTO_START;
+const END = AUTO_END;
 
 const row = (r) =>
   `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? 'OK' : 'KO'} | \`${r.file.replace('docs/', '')}\` |`;
@@ -142,11 +157,29 @@ const previous = new Map();
 if (md.includes(START) && md.includes(END)) {
   const existing = md.slice(md.indexOf(START), md.indexOf(END));
   for (const line of existing.split('\n')) {
-    const m = line.match(/^\|\s*US-\d\d-\d\d\s*\|\s*([\d.]+)\s*\|/);
+    // `[\d.\-]+` et non `[\d.]+` : les identifiants du lot L1 portent un
+    // tiret (`01-01.2`). Sans lui, une execution filtree effacait du tableau
+    // les scenarios qu'elle n'avait pas rejoues, au lieu de les preserver.
+    const m = line.match(/^\|\s*US-\d\d-\d\d\s*\|\s*([\d.\-]+)\s*\|/);
     if (m) previous.set(m[1], line);
   }
 }
 for (const r of results) previous.set(r.id, row(r));
+
+/**
+ * Elague les identifiants disparus.
+ *
+ * La fusion ne faisait qu'ajouter : un scenario renumerote ou supprime laissait
+ * sa ligne verte dans la recette, indefiniment. Le tableau annoncait alors une
+ * couverture que plus rien ne verifiait — exactement l'assurance trompeuse que
+ * ce document doit eviter. On ne garde que les identifiants encore declares.
+ */
+const declared = new Set(scenarios.map((s) => s.id));
+for (const id of [...previous.keys()])
+  if (!declared.has(id)) {
+    previous.delete(id);
+    console.log(`  (retire de la recette : ${id}, scenario supprime)`);
+  }
 
 const rows = [...previous.entries()]
   .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
@@ -173,6 +206,11 @@ md =
 writeFileSync(RECIPE, md);
 console.log(`Recette mise à jour : ${RECIPE}`);
 
+// Le Gherkin est une vue de la recette : il se regenere avec elle. Appele ici
+// et non chaine en `&&` dans package.json — `npm run bdd -- --us=08` aurait
+// passe le filtre au dernier maillon, et le runner aurait tout rejoue.
+await import('./bdd-features.mjs');
+
 // Persiste le résultat pour le rapport HTML, qui croise la recette entière
 // avec ce qui a réellement été exécuté.
 mkdirSync('docs/probe', { recursive: true });
@@ -184,6 +222,9 @@ const merged = new Map(previousRun.map((r) => [r.id, r]));
 for (const r of results) {
   merged.set(r.id, { id: r.id, us: r.us, title: r.title, ok: r.ok, failures: r.failures, file: r.file });
 }
+// Meme elagage que pour la recette : sans lui, le rapport HTML comptait encore
+// les scenarios disparus et annoncait plus de verts qu'il n'y a d'executions.
+for (const id of [...merged.keys()]) if (!declared.has(id)) merged.delete(id);
 writeFileSync(
   RESULTS,
   JSON.stringify({ runAt: new Date().toISOString(), results: [...merged.values()] }, null, 2),

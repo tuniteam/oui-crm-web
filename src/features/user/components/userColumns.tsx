@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { ACTIONS_COLUMN_ID } from '@/constants';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { COMMON } from '@/constants/common';
 import { CopyButton } from '@/components/shared/CopyButton';
@@ -142,7 +143,7 @@ export const userColumns: ColumnDef<UserListItem>[] = [
 
   {
     accessorKey: 'actions',
-    id: 'actions',
+    id: ACTIONS_COLUMN_ID,
     header: () => (
       <span className="flex justify-center w-full">
         {TABLE_HEADERS.ACTIONS}

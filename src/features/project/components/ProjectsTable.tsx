@@ -1,3 +1,4 @@
+import { FILTER_ALL, FILTER_DEBOUNCE_MS } from '@/constants';
 // src/features/project/components/ProjectsTable.tsx
 import { useCallback, useMemo, useState } from 'react';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
@@ -23,7 +24,6 @@ import type {
 } from '../types/projectList';
 import { projectColumns } from './projectColumns';
 
-const ALL = 'ALL';
 
 /**
  * Liste des projets de la plateforme. Ecran d'atterrissage du back-office :
@@ -31,10 +31,10 @@ const ALL = 'ALL';
  */
 export default function ProjectsTable() {
   // local filters (controlled by selects)
-  const [status, setStatus] = useState<ProjectStatus | typeof ALL>(ALL);
+  const [status, setStatus] = useState<ProjectStatus | typeof FILTER_ALL>(FILTER_ALL);
 
-  const debouncedStatus = useDebouncedValue(status, 500);
-  const hasActiveFilters = debouncedStatus !== ALL;
+  const debouncedStatus = useDebouncedValue(status, FILTER_DEBOUNCE_MS);
+  const hasActiveFilters = debouncedStatus !== FILTER_ALL;
 
   const getData = useCallback(
     (r: ReturnType<typeof useProjects>) => r.projects,
@@ -55,7 +55,7 @@ export default function ProjectsTable() {
             <SelectValue placeholder={SEARCH.STATUS_PLACEHOLDER} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>
+            <SelectItem value={FILTER_ALL}>
               {SEARCH.ALL_STATUSES_SELECT_OPTION}
             </SelectItem>
             {STATUS_OPTIONS.map((s) => (
@@ -77,7 +77,7 @@ export default function ProjectsTable() {
         limit: pagination.pageSize,
         search: search || undefined,
         status:
-          debouncedStatus === ALL ? undefined : (debouncedStatus as ProjectStatus),
+          debouncedStatus === FILTER_ALL ? undefined : (debouncedStatus as ProjectStatus),
       }) satisfies ProjectListParams,
     [debouncedStatus],
   );

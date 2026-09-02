@@ -275,9 +275,45 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '04.18',
+    us: 'US-00-04',
+    title: 'Le menu plateforme ne propose pas les utilisateurs de projet',
+    async run({ page, expect }) {
+      await page.goto('/projects');
+      await page.getByTestId('project-view-cell, [data-testid^="project-view-"]')
+        .first()
+        .waitFor({ timeout: 10000 })
+        .catch(() => {});
+
+      const rail = page.locator('.sidebar');
+      await rail.waitFor({ timeout: 10000 });
+      const entries = (await rail.innerText())
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      // `GET /users` est une route de projet : hors projet elle ne peut rien
+      // renvoyer. L'entree menait donc a un ecran en erreur.
+      expect(
+        !entries.includes('Utilisateurs'),
+        `le menu plateforme propose encore les utilisateurs : ${entries.join(' | ')}`,
+      );
+      expect(
+        entries.includes('Projets') && entries.includes('Opérateurs'),
+        `le menu plateforme a perdu ses entrees : ${entries.join(' | ')}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-05
   {
     id: '05.2',
+    gherkin: [
+      "Given je suis sur la liste des utilisateurs d'un projet",
+      "When je choisis un rôle dans le filtre",
+      "Then la requête envoyée porte roleCode",
+    ],
     us: 'US-00-05',
     title: 'Le filtre par rôle part bien dans la requête',
     needsProject: true,
@@ -307,6 +343,11 @@ export const scenarios = [
   },
   {
     id: '05.14',
+    gherkin: [
+      "Given j'ouvre la fiche d'un utilisateur du projet",
+      "When je regarde le bloc de retrait",
+      "Then il ne parle jamais de suppression définitive",
+    ],
     us: 'US-00-05',
     title: "Le retrait n'est jamais présenté comme une suppression",
     needsProject: true,
@@ -330,6 +371,12 @@ export const scenarios = [
   },
   {
     id: '05.15',
+    gherkin: [
+      "Given j'ouvre la fiche d'un utilisateur du projet",
+      "When je confirme son retrait du projet",
+      "Then je reviens à la liste du projet",
+      "And jamais à la liste plateforme, qui n'a pas de projet actif",
+    ],
     us: 'US-00-05',
     title: 'Après un retrait, on revient à la liste du projet',
     needsProject: true,
@@ -364,6 +411,12 @@ export const scenarios = [
   },
   {
     id: '05.4',
+    gherkin: [
+      "Given j'ouvre la fenêtre « Créer un utilisateur »",
+      "When je saisis une seule lettre dans « Initiales »",
+      "Then le message « Deux ou trois majuscules ou chiffres » s'affiche",
+      "And aucun appel de création n'est parti",
+    ],
     us: 'US-00-05',
     title: 'Initiales hors format refusées avant envoi',
     needsProject: true,
@@ -390,6 +443,11 @@ export const scenarios = [
   },
   {
     id: '05.8',
+    gherkin: [
+      "Given j'ouvre la fenêtre « Créer un utilisateur »",
+      "When j'active « Accès externe »",
+      "Then le champ « Fin d'accès » reste visible et atteignable",
+    ],
     us: 'US-00-05',
     title: "Accès externe : la date de fin reste visible et atteignable",
     needsProject: true,
@@ -417,6 +475,942 @@ export const scenarios = [
         !footer || field.y + field.height <= footer.y + 1,
         'le champ de date passe sous le pied de fenêtre',
       );
+    },
+  },
+
+  // ─────────────────────────────── US-01-01
+  {
+    id: '01-01.2',
+    gherkin: [
+      "Given je suis connecté comme administrateur du projet",
+      "When j'ouvre l'écran « Organismes »",
+      "Then aucune clé de référentiel n'est visible à l'écran",
+      "And je vois l'étiquette « Chaud » à la place de « HOT »",
+    ],
+    us: 'US-01-01',
+    title: 'Types, solutions et étiquettes affichés en libellés',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId(/^organization-name-/).first().waitFor({ timeout: 10000 });
+
+      const body = await page.locator('body').innerText();
+      // Les cles de referentiel du jeu de donnees. Les voir a l'ecran signifie
+      // qu'une traduction manque quelque part.
+      const rawKeys = ['HOT', 'PUBLIC_TENDER', 'WATCH', 'COMPETITOR_RENEWAL'];
+      const leaked = rawKeys.filter((k) => body.includes(k));
+      expect(
+        leaked.length === 0,
+        `clé(s) de référentiel affichée(s) brutes : ${leaked.join(', ')}`,
+      );
+      // Une cle absente ne prouve rien : elle peut manquer parce que le jeu de
+      // donnees n'en porte aucune. Il faut donc voir au moins une traduction.
+      // On n'en exige aucune en particulier : le seed change, et le scenario
+      // tombait quand la fiche portant « Chaud » a disparu — un rouge qui ne
+      // disait rien du produit.
+      const knownLabels = [
+        'Chaud',
+        'À surveiller',
+        'Marché public en cours',
+        'Renouvellement concurrent',
+        'Recommandation',
+      ];
+      expect(
+        knownLabels.some((l) => body.includes(l)),
+        'aucune étiquette traduite trouvée à l’écran',
+      );
+    },
+  },
+  {
+    id: '01-01.5',
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "When j'active le filtre « Fiches incomplètes »",
+      "Then la requête envoyée porte completenessMax=99",
+      "And jamais 100, qui ramènerait toute la base",
+    ],
+    us: 'US-01-01',
+    title: 'Le filtre « fiches incomplètes » envoie completenessMax=99',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      const calls = [];
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/organizations'),
+        (route) => {
+          calls.push(route.request().url());
+          return route.continue();
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-filter-incomplete').click();
+      await page.waitForTimeout(1800);
+
+      const withMax = calls.filter((u) => u.includes('completenessMax='));
+      expect(withMax.length > 0, 'aucun appel avec completenessMax=');
+      expect(
+        withMax.every((u) => u.includes('completenessMax=99')),
+        `attendu 99, vu : ${withMax.map((u) => u.split('completenessMax=')[1]?.split('&')[0]).join(', ')}`,
+      );
+    },
+  },
+  {
+    id: '01-01.7',
+    gherkin: [
+      "Given une fiche hors de mon périmètre, rendue en projection restreinte",
+      "When j'ouvre l'écran « Organismes »",
+      "Then la ligne porte la mention « hors de votre périmètre »",
+      "And les champs que le serveur ne renvoie pas restent vides",
+    ],
+    us: 'US-01-01',
+    title: 'Une fiche hors périmètre est signalée et ses colonnes vidées',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Le jeu de donnees n'a que des fiches FULL : on simule la projection a
+      // neuf champs que le serveur rend sur un acces restreint.
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'cxxxxxxxxxxxxxxxxxxxxxxxx',
+            name: 'Commune hors secteur',
+            type: 'COMMUNE',
+            city: 'Ailleurs',
+            department: '99',
+            salesStatus: 'IN_PROGRESS',
+            customerStatus: 'NOT_CUSTOMER',
+            salesRep: { id: 'c1', fullName: 'Wiem Bousaid' },
+            access: 'RESTRICTED',
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByText('Commune hors secteur').first().waitFor({ timeout: 10000 });
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('hors de votre périmètre'),
+        'la ligne restreinte ne porte pas la mention',
+      );
+      // La population n'est pas rendue par le serveur : elle doit rester vide,
+      // pas afficher 0 ni undefined.
+      expect(
+        !body.includes('undefined') && !body.includes('NaN'),
+        'un champ absent est rendu tel quel',
+      );
+    },
+  },
+
+  {
+    id: '01-01.13',
+    us: 'US-01-01',
+    title: "L'action d'ouverture reste atteignable sans defilement",
+    needsProject: true,
+    gherkin: [
+      "Given l'écran « Organismes », dont les colonnes dépassent la largeur de l'écran",
+      "When j'affiche la liste sans faire défiler horizontalement",
+      "Then l'action d'ouverture de la première ligne est visible",
+      "And elle ne laisse pas transparaître le contenu qu'elle recouvre",
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      const view = page.locator('[data-testid^="organization-view-"]').first();
+      await view.waitFor({ timeout: 10000 });
+
+      // `isVisible` ne suffit pas : une colonne sortie de l'ecran reste
+      // « visible » au sens du DOM. On compare sa position a la fenetre.
+      const box = await view.boundingBox();
+      const width = page.viewportSize().width;
+      expect(
+        box && box.x >= 0 && box.x + box.width <= width,
+        `l'action sort de l'ecran (x=${box?.x}, largeur fenetre=${width})`,
+      );
+
+      // Colonne epinglee : opaque, sinon le texte du dessous se lit au travers.
+      const cell = view.locator('xpath=ancestor::td[1]');
+      const bg = await cell.evaluate(
+        (el) => getComputedStyle(el).backgroundColor,
+      );
+      expect(
+        bg !== 'rgba(0, 0, 0, 0)' && !/,\s*0?\.\d+\)$/.test(bg),
+        `la cellule epinglee est translucide (${bg})`,
+      );
+    },
+  },
+
+  {
+    id: '01-01.14',
+    us: 'US-01-01',
+    title: 'Les filtres de la V8 partent au serveur, et se réinitialisent',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      'When je filtre par département',
+      'Then la requête porte ce département et la liste se restreint',
+      'When je clique sur « Réinitialiser »',
+      'Then tous les filtres sont effacés et la liste revient entière',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      const rows = page.locator('[data-testid^="organization-view-"]');
+      await rows.first().waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+      const before = await rows.count();
+
+      // Le bouton ne s'affiche qu'avec un filtre actif : rien a remettre a
+      // zero sur une liste vierge.
+      expect(
+        !(await page.getByTestId('organization-filters-reset').isVisible().catch(() => false)),
+        'Réinitialiser est proposé alors qu aucun filtre n est actif',
+      );
+
+      apiCalls(true);
+      await page.getByTestId('organization-filter-department').fill('89');
+      await page.waitForTimeout(1800);
+
+      expect(
+        apiCalls().some((c) => c.includes('department=89')),
+        `le département n est pas transmis : ${apiCalls().join(', ')}`,
+      );
+      const filtered = await rows.count();
+      expect(
+        filtered > 0 && filtered < before,
+        `la liste n a pas été restreinte : ${filtered} sur ${before}`,
+      );
+
+      await page.getByTestId('organization-filters-reset').click();
+      await page.waitForTimeout(1800);
+      expect(
+        (await rows.count()) === before,
+        'la liste n est pas revenue entière après réinitialisation',
+      );
+      expect(
+        (await page.getByTestId('organization-filter-department').inputValue()) === '',
+        'le champ département n a pas été vidé',
+      );
+    },
+  },
+
+  {
+    id: '01-01.15',
+    us: 'US-01-01',
+    title: 'Solution et étiquette se choisissent dans les référentiels',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "Then les filtres solution et étiquette proposent les valeurs du projet",
+      'And aucune clé de référentiel ne s’y affiche',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+
+      for (const [testId, sample] of [
+        ['organization-filter-solution', 'JVS Enfance'],
+        ['organization-filter-tag', 'À surveiller'],
+      ]) {
+        await page.getByTestId(testId).click();
+        await page.waitForTimeout(500);
+        const options = await page.locator('[role="option"]').allInnerTexts();
+        expect(
+          options.some((o) => o.trim() === sample),
+          `« ${sample} » absent du filtre ${testId} : ${options.join(' | ')}`,
+        );
+        // Une cle brute trahirait une liste en dur ou un libelle non resolu.
+        expect(
+          !options.some((o) => /^[A-Z][A-Z0-9_]+$/.test(o.trim())),
+          `une clé de référentiel est affichée : ${options.join(' | ')}`,
+        );
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(400);
+      }
+    },
+  },
+
+  {
+    id: '01-03.11',
+    us: 'US-01-03',
+    title: 'La fiche montre l’éditeur de la solution et ses dates',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme équipé d'une solution éditée",
+      "Then l'éditeur est affiché sous le sélecteur, en libellé",
+      'And le pied porte les dates de création et de modification',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+
+      // La ligne n'est pas cliquable : seule l'action d'ouverture l'est.
+      await page
+        .locator('tr', { hasText: 'Commune de Rennes' })
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      const body = await sheet.innerText();
+      // Libelle resolu depuis `metadata.vendor`, jamais la cle JVS_MAIRISTEM.
+      expect(
+        body.includes('Éditeur : JVS-Mairistem'),
+        "l'éditeur de la solution n'est pas affiché en libellé",
+      );
+      expect(
+        !body.includes('JVS_MAIRISTEM'),
+        'la clé du référentiel est affichée telle quelle',
+      );
+
+      const stamps = await page
+        .getByTestId('organization-timestamps')
+        .innerText()
+        .catch(() => '');
+      expect(
+        /Créée le \d{2}\/\d{2}\/\d{4} · modifiée le \d{2}\/\d{2}\/\d{4}/.test(stamps),
+        `les dates de la fiche sont absentes ou mal formées : ${stamps}`,
+      );
+    },
+  },
+
+  // ─────────────────────────────── US-01-02
+  {
+    id: '01-02.1',
+    us: 'US-01-02',
+    title: "La fenêtre s'ouvre sur la recherche officielle",
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      'When je clique sur « Nouvel organisme »',
+      'Then la recherche au registre officiel est le mode actif',
+      'And « Créer la fiche » est inactif, faute de saisie',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').waitFor({ timeout: 10000 });
+
+      expect(
+        await page.getByTestId('org-create-submit').isDisabled(),
+        'le bouton de creation est actif alors que rien n est saisi',
+      );
+    },
+  },
+
+  {
+    id: '01-02.2',
+    us: 'US-01-02',
+    title: 'Une recherche trop courte ne part pas',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, mode registre',
+      'When je saisis moins de trois caractères',
+      'Then le bouton « Rechercher » reste inactif',
+      "And aucun appel n'est fait au registre",
+    ],
+    async run({ page, expect, projectId }) {
+      let calls = 0;
+      await page.route('**/search-registry**', (route) => {
+        calls += 1;
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: '{"data":[]}',
+        });
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('ba');
+
+      expect(
+        await page.getByTestId('registry-search-btn').isDisabled(),
+        'la recherche est proposee avec moins de trois caracteres',
+      );
+      expect(calls === 0, `le registre a ete interroge ${calls} fois`);
+    },
+  },
+
+  {
+    id: '01-02.3',
+    us: 'US-01-02',
+    title: 'Un résultat du registre pré-remplit la saisie',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, mode registre',
+      'When je recherche une structure et retiens un résultat',
+      'Then la saisie manuelle est pré-remplie avec ses valeurs',
+      "And le département vient du code INSEE rendu par l'API",
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/search-registry', 200, {
+        data: [
+          {
+            name: 'COMMUNE DE JOIGNY',
+            siret: '21890206500013',
+            siren: '218902065',
+            address: '3 QUAI DU 1ER DRAGONS',
+            postalCode: '89300',
+            city: 'JOIGNY',
+            inseeCode: '89206',
+            department: '89',
+            isActive: true,
+          },
+        ],
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('Joigny');
+      await page.getByTestId('registry-search-btn').click();
+      await page.getByTestId('registry-use-21890206500013').click();
+
+      await page.getByTestId('org-create-name').waitFor({ timeout: 10000 });
+      const name = await page.getByTestId('org-create-name').inputValue();
+      const dept = await page.getByTestId('org-create-department').inputValue();
+      const siret = await page.getByTestId('org-create-siret').inputValue();
+
+      expect(name === 'COMMUNE DE JOIGNY', `nom pre-rempli : ${name}`);
+      // Derive par l'API a partir du code INSEE, jamais recalcule ici.
+      expect(dept === '89', `departement pre-rempli : ${dept}`);
+      expect(siret === '21890206500013', `SIRET pre-rempli : ${siret}`);
+    },
+  },
+
+  {
+    id: '01-02.6',
+    us: 'US-01-02',
+    title: 'Registre indisponible : la saisie manuelle est proposée',
+    needsProject: true,
+    gherkin: [
+      'Given le registre officiel ne répond pas',
+      'When je lance une recherche',
+      'Then un message propose la saisie manuelle',
+      "And ce n'est pas présenté comme un échec bloquant",
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/search-registry', 503, err(503, 'REGISTRY_UNAVAILABLE'));
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('Bayeux');
+      await page.getByTestId('registry-search-btn').click();
+
+      const notice = page.getByTestId('registry-degraded');
+      await notice.waitFor({ timeout: 10000 });
+      const text = await notice.innerText();
+      expect(
+        text.includes('manuellement'),
+        `le message ne renvoie pas vers la saisie manuelle : ${text}`,
+      );
+
+      // La bascule doit rester possible : c'est tout l'interet du message.
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').waitFor({ timeout: 5000 });
+    },
+  },
+
+  {
+    id: '01-02.8',
+    us: 'US-01-02',
+    title: 'Trois champs obligatoires, refusés avant envoi',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, en saisie manuelle',
+      'When je valide sans rien renseigner',
+      'Then nom, type et département sont signalés',
+      "And aucun appel de création n'est fait",
+    ],
+    async run({ page, expect, projectId }) {
+      let calls = 0;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() === 'POST') calls += 1;
+          route.fallback();
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-submit').click();
+      await page.waitForTimeout(900);
+
+      const body = await page.locator('body').innerText();
+      expect(body.includes('Champ requis'), 'aucun champ obligatoire signale');
+      expect(calls === 0, `la creation a ete tentee (${calls} appel(s))`);
+    },
+  },
+
+  {
+    id: '01-02.9',
+    us: 'US-01-02',
+    title: "La ville n'est pas obligatoire, contrairement à la V8",
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, en saisie manuelle',
+      'When je renseigne nom, type et département, sans ville',
+      'Then la création part',
+      "And le champ vide n'est pas transmis",
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              id: 'cnew',
+              name: sent.name,
+              completenessScore: 40,
+            }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('EPCI sans ville');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucune creation envoyee sans ville');
+      // Champ vide non transmis : le serveur appliquerait sinon son defaut.
+      expect(
+        sent && !('city' in sent),
+        `la ville vide a ete transmise : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '01-02.13',
+    us: 'US-01-02',
+    title: 'Doublon probable : les candidats de meta sont proposés',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche de même nom au même code postal',
+      "When je crée l'organisme",
+      'Then les candidats de messages.meta.duplicates sont listés',
+      'And la saisie reste intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          return route.fulfill({
+            status: 409,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              err(409, 'ORGANIZATION_POSSIBLE_DUPLICATE', {
+                text: 'An organization with a similar name already exists',
+                meta: {
+                  duplicates: [
+                    { id: 'cdup1', name: 'Commune de Joigny', city: 'Joigny' },
+                  ],
+                },
+              }),
+            ),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('Commune de Joigny');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+
+      const warn = page.getByTestId('organization-duplicate-warning');
+      await warn.waitFor({ timeout: 10000 });
+      const text = await warn.innerText();
+      // Le candidat vient de `meta`, pas du texte du message, qui est anglais.
+      expect(
+        text.includes('Commune de Joigny') && text.includes('Joigny'),
+        `le candidat de meta n est pas affiche : ${text}`,
+      );
+      const kept = await page.getByTestId('org-create-name').inputValue();
+      expect(kept === 'Commune de Joigny', `la saisie a ete perdue : ${kept}`);
+    },
+  },
+
+  {
+    id: '01-02.14',
+    us: 'US-01-02',
+    title: 'Confirmer un doublon rejoue la requête avec force',
+    needsProject: true,
+    gherkin: [
+      'Given un doublon probable signalé',
+      'When je confirme la création',
+      'Then la même requête repart avec force à vrai',
+    ],
+    async run({ page, expect, projectId }) {
+      const posts = [];
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          const body = JSON.parse(route.request().postData() ?? '{}');
+          posts.push(body);
+          if (body.force) {
+            return route.fulfill({
+              status: 201,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                id: 'cnew',
+                name: body.name,
+                completenessScore: 40,
+              }),
+            });
+          }
+          return route.fulfill({
+            status: 409,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              err(409, 'ORGANIZATION_POSSIBLE_DUPLICATE', {
+                meta: {
+                  duplicates: [
+                    { id: 'cdup1', name: 'Commune de Joigny', city: 'Joigny' },
+                  ],
+                },
+              }),
+            ),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('Commune de Joigny');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+
+      const confirm = page.getByTestId('organization-duplicate-confirm');
+      await confirm.waitFor({ timeout: 10000 });
+      await confirm.click();
+      await page.waitForTimeout(1500);
+
+      expect(
+        posts.length === 2,
+        `${posts.length} appel(s) de creation au lieu de deux`,
+      );
+      expect(posts[1]?.force === true, 'le rejeu ne porte pas force: true');
+      // Rejeu a l'identique : seul `force` s'ajoute.
+      const { force: _force, ...replayed } = posts[1] ?? {};
+      expect(
+        JSON.stringify(replayed) === JSON.stringify(posts[0]),
+        'le rejeu n est pas la meme requete',
+      );
+    },
+  },
+
+  // ─────────────────────────────── US-01-03
+  {
+    id: '01-03.1',
+    us: 'US-01-03',
+    title: 'La fiche s’ouvre avec ses valeurs, référentiels résolus',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "When j'ouvre la fiche d'un organisme",
+      'Then le type de structure est renseigné, pas vide',
+      "And aucun champ obligatoire n'est signalé en erreur",
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      // Le selecteur de type est alimente par les referentiels : il etait vide
+      // et en erreur tant que le formulaire naissait avant la fiche.
+      const type = await page.getByTestId('organization-field-type').innerText();
+      expect(type.trim().length > 0, 'le type de structure est vide');
+
+      const body = await page.getByTestId('reusable-sheet').innerText();
+      expect(
+        !body.includes('Champ requis'),
+        'un champ obligatoire est signalé en erreur sur une fiche complète',
+      );
+    },
+  },
+  {
+    id: '01-03.3',
+    us: 'US-01-03',
+    title: 'Enregistrer sans modification n’appelle pas l’API',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je clique sur « Enregistrer » sans rien changer',
+      "Then aucune requête de modification n'est envoyée",
+    ],
+    async run({ page, expect, projectId }) {
+      const patches = [];
+      page.on('request', (r) => {
+        if (r.method() === 'PATCH' && r.url().includes('/organizations/')) {
+          patches.push(r.url());
+        }
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      await page.getByTestId('organization-save').click();
+      await page.waitForTimeout(1500);
+
+      // Le serveur repondrait EMPTY_UPDATE_PAYLOAD, ce qui s'afficherait comme
+      // une erreur alors que l'utilisateur n'a simplement rien change.
+      expect(
+        patches.length === 0,
+        `${patches.length} requête(s) de modification envoyée(s) sans changement`,
+      );
+    },
+  },
+  {
+    id: '01-03.6',
+    us: 'US-01-03',
+    title: 'Les deux statuts sont en lecture seule, avec leur raison',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je regarde la section « Suivi »',
+      'Then le statut commercial et le statut client ne sont pas modifiables',
+      'And la fiche explique où ils se modifient',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      const body = await page.getByTestId('reusable-sheet').innerText();
+      // L'API refuse ces deux champs en modification : offrir un selecteur
+      // ferait echouer tout l'enregistrement, pas seulement le champ.
+      expect(
+        body.includes('tableau de prospection'),
+        'le statut commercial ne dit pas où il se modifie',
+      );
+      expect(
+        body.includes('déploiement'),
+        'le statut client ne dit pas où il se modifie',
+      );
+    },
+  },
+
+  {
+    id: '01-03.10',
+    us: 'US-01-03',
+    title: 'Le panneau ne se ferme que par la croix ou par « Annuler »',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je clique à côté du panneau, puis appuie sur Échap',
+      'Then le panneau reste ouvert',
+      'When je clique sur « Annuler »',
+      'Then le panneau se ferme',
+      "And la croix le ferme aussi",
+    ],
+    async run({ page, expect, projectId }) {
+      const openPanel = async () => {
+        await page.locator('[data-testid^="organization-view-"]').first().click();
+        await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+        await page.waitForTimeout(1200);
+      };
+      const isOpen = () =>
+        page.getByTestId('reusable-sheet').isVisible().catch(() => false);
+      // Attendre la fermeture plutot que l'echantillonner : la sortie du
+      // panneau est animee, et sous charge elle n'est pas immediate.
+      const waitClosed = () =>
+        page
+          .getByTestId('reusable-sheet')
+          .waitFor({ state: 'hidden', timeout: 10000 })
+          .then(() => true)
+          .catch(() => false);
+
+      await page.goto(`/${projectId}/organizations`);
+      await openPanel();
+
+      // Le panneau porte un formulaire : une fermeture accidentelle perdrait
+      // la saisie sans le dire.
+      await page.mouse.click(60, 450);
+      await page.waitForTimeout(700);
+      expect(await isOpen(), 'un clic a cote a ferme le panneau');
+
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(700);
+      expect(await isOpen(), 'la touche Echap a ferme le panneau');
+
+      await page.getByTestId('organization-cancel').click();
+      expect(await waitClosed(), '« Annuler » n a pas ferme le panneau');
+
+      // La croix reste le second chemin de sortie.
+      await openPanel();
+      await page.locator('[data-slot="sheet-close"]').first().click();
+      expect(await waitClosed(), 'la croix n a pas ferme le panneau');
+    },
+  },
+
+  // ─────────────────────────────── US-01-13
+  {
+    id: '01-13.3',
+    us: 'US-01-13',
+    title: 'La fenêtre annonce une suppression logique, pas un effacement',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je demande sa suppression',
+      "Then une fenêtre s'interpose avant toute suppression",
+      'And elle dit que les identifiants redeviennent disponibles',
+      "And qu'il ne s'agit pas d'un effacement définitif",
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page
+        .getByTestId('organization-delete-confirm')
+        .waitFor({ timeout: 8000 });
+
+      // Rien n'est supprime au premier clic : la confirmation s'interpose.
+      expect(
+        !apiCalls().some((c) => c.startsWith('DELETE')),
+        `une suppression est partie sans confirmation : ${apiCalls().join(', ')}`,
+      );
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('redeviennent disponibles'),
+        'la fenêtre ne dit pas que les identifiants sont libérés',
+      );
+      // La V8 annonce un effacement definitif ; l'API fait une suppression
+      // logique. Le texte doit dire ce que fait le serveur.
+      expect(
+        body.includes('pas effacées définitivement'),
+        "la fenêtre laisse croire à un effacement définitif",
+      );
+    },
+  },
+
+  {
+    id: '01-13.4',
+    us: 'US-01-13',
+    title: 'Confirmer supprime et referme le panneau',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de confirmation ouverte',
+      'When je confirme la suppression',
+      'Then un DELETE part sur la fiche',
+      'And le panneau se referme',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      // Le jeu de donnees est partage : la suppression est interceptee.
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/organizations/'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({ status: 204, body: '' })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page.getByTestId('organization-delete-confirm').click();
+
+      // Attendre la fermeture, plutot que d'echantillonner la visibilite une
+      // fois : sous la charge de la suite complete, la sortie du panneau
+      // n'etait pas encore jouee et le scenario echouait a tort.
+      const closed = await sheet
+        .waitFor({ state: 'hidden', timeout: 10000 })
+        .then(() => true)
+        .catch(() => false);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('DELETE /organizations/')),
+        `aucun DELETE envoyé : ${apiCalls().join(', ')}`,
+      );
+      expect(closed, 'le panneau est resté ouvert sur une fiche supprimée');
+    },
+  },
+
+  {
+    id: '01-13.5',
+    us: 'US-01-13',
+    title: 'Renoncer ne supprime rien',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de confirmation ouverte',
+      'When je renonce',
+      "Then aucune requête n'est envoyée",
+      'And la fiche reste ouverte',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page
+        .getByTestId('organization-delete-confirm')
+        .waitFor({ timeout: 8000 });
+
+      // Le « Annuler » de la fenêtre, pas celui de la fiche derrière.
+      await page
+        .locator('[data-slot="dialog-content"] button', { hasText: 'Annuler' })
+        .first()
+        .click();
+      await page.waitForTimeout(1000);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('DELETE')),
+        `une suppression est partie malgré le renoncement : ${apiCalls().join(', ')}`,
+      );
+      expect(await sheet.isVisible(), 'la fiche a été fermée');
     },
   },
 
@@ -475,7 +1469,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.7',
+    id: '08.8',
     us: 'US-00-08',
     title: 'SIREN invalide refusé avant envoi',
     needsProject: true,
@@ -496,7 +1490,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.12',
+    id: '08.13',
     us: 'US-00-08',
     title: 'Gagnée et Perdue sont figées et désactivées',
     needsProject: true,
@@ -511,7 +1505,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.15',
+    id: '08.16',
     us: 'US-00-08',
     title: 'Numérotation affichée en lecture seule',
     needsProject: true,

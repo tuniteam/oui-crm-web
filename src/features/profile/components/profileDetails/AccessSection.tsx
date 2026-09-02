@@ -20,7 +20,7 @@ export function AccessSection({ profile, onChangeEmail }: Props) {
     <DetailsSection
       title={SECTIONS.ACCESS}
       action={
-        <Button type="button" onClick={onChangeEmail}>
+        <Button type="button" variant="outline" size="sm" onClick={onChangeEmail}>
           <Mail className="mr-2 h-4 w-4" />
           {BUTTONS.CHANGE_EMAIL}
         </Button>
@@ -46,8 +46,11 @@ export function AccessSection({ profile, onChangeEmail }: Props) {
                     key={`${role.roleCode}-${role.projectId ?? 'no-project'}-${index}`}
                     className="rounded-2xl border bg-muted/40 px-3 py-2 shadow-sm transition hover:bg-muted/60"
                   >
+                    {/* `roleLabel` est le libelle lisible rendu par
+                        /profile/me a cote du code ; l'ecran montrait
+                        « SUPER_ADMIN » au lieu de son intitule. */}
                     <div className="text-sm font-medium leading-none">
-                      {role.roleCode}
+                      {role.roleLabel || role.roleCode}
                     </div>
 
                     {profile.contactType !== CONTACT_TYPE.BACKOFFICE &&

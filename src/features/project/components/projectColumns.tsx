@@ -1,4 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { ACTIONS_COLUMN_ID } from '@/constants';
+import { formatShortDateFr } from '@/shared/utils/date-utils';
 import { ExternalLink, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -125,7 +127,7 @@ export const projectColumns: ColumnDef<ProjectListItem>[] = [
       />
     ),
     cell: ({ row }) =>
-      new Date(row.original.createdAt).toLocaleDateString('fr-FR'),
+      formatShortDateFr(row.original.createdAt),
     size: 140,
     meta: { headerTitle: TABLE_HEADERS.CREATED_AT },
     enableSorting: true,
@@ -134,7 +136,7 @@ export const projectColumns: ColumnDef<ProjectListItem>[] = [
   },
   {
     accessorKey: 'actions',
-    id: 'actions',
+    id: ACTIONS_COLUMN_ID,
     header: () => (
       <span className="flex justify-center w-full">
         {TABLE_HEADERS.ACTIONS}

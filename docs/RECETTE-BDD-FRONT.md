@@ -30,6 +30,8 @@ travail, et la colonne Statut dit où on en est.
 | US-00-09 | Référentiels | ❌ à développer |
 | US-00-10 | Journal d'activité | ❌ à développer |
 | US-00-11 | Comptes back-office | ✅ livré |
+| **US-01-01** | **Organismes — liste et recherche** | ✅ livré |
+| **US-01-03** | **Organismes — fiche et modification** | 🟡 Synthèse livrée ; onglet Contacts à développer |
 
 ---
 
@@ -173,6 +175,17 @@ travail, et la colonne Statut dit où on en est.
 | 15 | Quitter le projet | le scope est vidé, les appels suivants ne portent plus l'en-tête |
 | 16 | Écran non livré | écran d'attente, entrée ni grisée ni masquée |
 | 17 | Écran d'attente et permission | l'accès reste refusé sans la permission |
+| 18 | Menu plateforme | Projets et Opérateurs seulement — les utilisateurs d'un projet ne s'y atteignent pas |
+
+### Pièges relevés pendant le développement
+
+- **Les utilisateurs ne sont pas un écran de plateforme.** Le menu de
+  l'opérateur back-office portait une entrée « Utilisateurs » vers `/users`.
+  Or `GET /users` est une route de projet : sans projet sélectionné elle répond
+  `400`, et l'écran affichait « Aucun utilisateur trouvé pour ce projet » —
+  alors qu'aucun projet n'était sélectionné — avec un bouton de création qui
+  aurait échoué de même. L'entrée est retirée du menu plateforme ; elle reste
+  dans le menu du projet, sous Administration.
 
 ---
 
@@ -202,7 +215,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 | 18 | Retour après un retrait | on revient à la liste **du projet**, jamais à la liste plateforme | couvert |
 | 13 | Renvoyer l'activation | proposé sur un compte en attente seulement | à développer |
 | 14 | Retirer un utilisateur | affectation suspendue, réversible — jamais présentée comme une suppression | couvert |
-| 15 | Corriger l'e-mail | **route inexistante côté API** : l'écran appelle `PATCH /users/:id/email`, qui répond 404 | à retirer ou à faire ouvrir côté API |
+| 15 | Corriger l'e-mail | **retiré de l'écran** : `PATCH /users/:id/email` n'existe pas côté API (confirmé par l'inventaire des routes) | retiré |
 
 ### Pièges relevés pendant le développement
 
@@ -286,34 +299,39 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ### Société
 
+<!-- La numerotation d'une US est continue d'un sous-tableau a l'autre : le
+     rapport rapproche les executions par US + numero, et « Societe » repartait
+     a 4, deja pris par « Navigation ». Un seul resultat couvrait alors deux
+     lignes, et le compte des scenarios couverts etait surevalue d'une unite. -->
+
 | # | Scénario | Attendu |
 |---|---|---|
-| 4 | Modifier un champ | le PATCH ne porte **que** ce champ — le serveur fusionne clé par clé, un envoi complet écraserait la modification d'un autre administrateur |
-| 5 | Enregistrer sans changement | aucune requête (corps vide refusé par l'API) |
-| 6 | Vider un champ | chaîne vide envoyée, jamais `null` |
-| 7-9 | SIREN, SIRET, e-mail invalides | message sous le champ, aucun appel |
-| 10 | Lecture seule | champs désactivés, pas de bouton d'enregistrement |
+| 5 | Modifier un champ | le PATCH ne porte **que** ce champ — le serveur fusionne clé par clé, un envoi complet écraserait la modification d'un autre administrateur |
+| 6 | Enregistrer sans changement | aucune requête (corps vide refusé par l'API) |
+| 7 | Vider un champ | chaîne vide envoyée, jamais `null` |
+| 8-10 | SIREN, SIRET, e-mail invalides | message sous le champ, aucun appel |
+| 11 | Lecture seule | champs désactivés, pas de bouton d'enregistrement |
 
 ### Règles commerciales
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 11 | Étapes | les sept, dans l'ordre du contrat |
-| 12 | Gagnée et Perdue | **désactivées**, mention « Valeur figée par le serveur » |
-| 13 | Modifier une étape | seule celle-ci est envoyée, jamais `WON` ni `LOST` |
-| 14 | Probabilité hors 0–100 | refusée avant envoi |
+| 12 | Étapes | les sept, dans l'ordre du contrat |
+| 13 | Gagnée et Perdue | **désactivées**, mention « Valeur figée par le serveur » |
+| 14 | Modifier une étape | seule celle-ci est envoyée, jamais `WON` ni `LOST` |
+| 15 | Probabilité hors 0–100 | refusée avant envoi |
 
 ### Documents et numérotation
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 15 | Numérotation | trois exemples, **en lecture seule** — les formats sont fixes côté serveur |
-| 16 | Type sans gabarit | « Aucun gabarit téléversé », bouton « Téléverser » |
-| 17 | Téléverser un gabarit | version, nom, date et lien de téléchargement |
-| 18 | Gabarit refusé | les balises manquantes de `messages.details` **restent affichées** pendant la correction, pas dans un toast |
-| 19 | Fichier trop lourd ou de mauvais type | message, gabarit actif inchangé |
-| 20 | Re-téléverser le même nom de fichier | l'envoi se déclenche — le champ est réinitialisé après chaque choix |
-| 21 | Cachet en place | aperçu affiché, bouton « Remplacer » |
+| 16 | Numérotation | trois exemples, **en lecture seule** — les formats sont fixes côté serveur |
+| 17 | Type sans gabarit | « Aucun gabarit téléversé », bouton « Téléverser » |
+| 18 | Téléverser un gabarit | version, nom, date et lien de téléchargement |
+| 19 | Gabarit refusé | les balises manquantes de `messages.details` **restent affichées** pendant la correction, pas dans un toast |
+| 20 | Fichier trop lourd ou de mauvais type | message, gabarit actif inchangé |
+| 21 | Re-téléverser le même nom de fichier | l'envoi se déclenche — le champ est réinitialisé après chaque choix |
+| 22 | Cachet en place | aperçu affiché, bouton « Remplacer » |
 
 ---
 
@@ -384,6 +402,242 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
+## US-01-01 · Organismes, liste et recherche — 🟢 livré
+
+Première story du lot L1. La liste reprend les onze colonnes de l'écran
+Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Liste dans un projet | les organismes du projet, paginés, tri par nom par défaut | couvert |
+| 2 | Types, solutions et étiquettes | affichés en libellés, jamais en clés de référentiel | couvert |
+| 3 | Strate | valeur rendue par l'API, jamais recalculée côté front | couvert |
+| 4 | Statuts | libellés français de la V8, dans son ordre | couvert |
+| 5 | Filtre « fiches incomplètes » | envoie `completenessMax=99`, pas 100 | couvert |
+| 6 | Recherche | nom, ville, et début du SIRET si la saisie est numérique | couvert |
+| 7 | Fiche hors périmètre | ligne en retrait, « hors de votre périmètre », colonnes vidées | couvert |
+| 8 | Tri sur une colonne non triable | Type et Solution ne sont pas cliquables — l'API ne les trie pas | couvert |
+| 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
+| 10 | Filtre par commercial | le paramètre `salesRepId` existe, mais peupler le sélecteur demande `GET /users` et la permission `users:read`, qu'un commercial n'a pas | à développer |
+| 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | couvert |
+| 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
+| 13 | Action d'ouverture atteignable | colonne d'actions épinglée à droite et opaque, sans défilement | couvert |
+| 14 | Filtre par département | saisie libre de 2 à 3 caractères, `2A` et l'outre-mer compris | couvert |
+| 15 | Filtre par solution | valeurs du référentiel du projet, jamais une liste en dur | couvert |
+| 16 | Filtre par étiquette | idem, référentiel `TAG` | couvert |
+| 17 | Réinitialiser | n'apparaît que si un filtre est actif, et les efface tous | couvert |
+
+### Pièges relevés pendant le développement
+
+- **Trois filtres de la V8 avaient été écartés à tort.** J'avais conclu que
+  seules la strate et le commercial manquaient. En réalité l'API filtre aussi
+  par **département**, **solution** et **étiquette** — vérifié en direct :
+  `department=89` ramène 2 fiches sur 7, `solution=JVS_ENFANCE` et `tag=WATCH`
+  en ramènent 1 chacune. Les paramètres étaient déjà typés côté front ; il ne
+  manquait que les sélecteurs. Lire un type ne dit pas ce que le serveur sait
+  faire.
+- **Le département se saisit, il ne se choisit pas.** La V8 construit sa liste
+  depuis les fiches affichées. Ici la liste est paginée : les départements de
+  la page courante ne sont pas ceux de la base, et un sélecteur construit ainsi
+  masquerait des valeurs existantes.
+- **Onze colonnes ne tiennent pas dans un écran.** Leurs largeurs déclarées
+  totalisent 1770 px pour environ 1180 px utiles : la colonne d'actions sortait
+  de l'écran, et l'unique action de la liste — ouvrir la fiche — devenait
+  inatteignable. Le défilement horizontal existait, mais sa barre Radix ne se
+  montre qu'au survol : rien n'indiquait qu'il fallait défiler. La colonne est
+  désormais épinglée à droite par le tableau partagé, pour les quatre listes.
+  Une colonne épinglée doit aussi être **opaque** : posée à 90 % d'opacité,
+  elle laissait lire le texte des colonnes qu'elle recouvre.
+- **La recherche ne fait pas ce que promet la V8.** Son placeholder annonce
+  « Nom, ville, code postal, SIRET, contact… ». Vérifié contre l'API : `14000`
+  et `Lemarchand` ne rendent **rien**. Le placeholder dit désormais la vérité —
+  ne pas le « rétablir » sur la maquette.
+- **La strate vient de l'API.** Les grilles tarifaires sont par projet et
+  versionnées : Caen (105 512) et Paris (2 145 906) partagent « Plus de 10 000
+  hab. » parce que c'est la tranche haute de *cette* grille. La V8 ne code pas
+  les tranches en dur non plus (`STRATES = PRICING.strates.map(...)`). Ne jamais
+  recalculer `bracketLabel`.
+- **`completenessMax` est inclusif** : le compteur « fiches incomplètes » vaut
+  99, pas 100 — 100 ramènerait toute la base.
+- **`type`, `solution` et les étiquettes sont des clés de référentiel.**
+  Affichées brutes, l'utilisateur lit « HOT · PUBLIC_TENDER ». Elles passent
+  toutes par `useReferenceLabels`, y compris les étiquettes du sous-titre.
+- **Une clé inconnue s'affiche telle quelle**, jamais masquée : une fiche peut
+  porter une valeur devenue inactive, l'effacer donnerait une colonne vide sans
+  explication.
+- **`access: "RESTRICTED"` ne rend que neuf champs.** Tout le reste est
+  optionnel dans le type — ne jamais le lire sans vérifier l'accès. Le cas
+  `NONE` n'existe pas côté front : ces fiches n'apparaissent pas en liste et
+  répondent 404 en détail.
+- **Type et Solution ne sont pas triables** côté API, alors que la V8 rend leurs
+  en-têtes cliquables. Ils ne le sont pas ici, plutôt que d'offrir un tri qui
+  échouerait.
+
+---
+
+## US-01-02 · Créer un organisme — 🟢 livré
+
+Fenêtre `openCreateOrg` de la V8, ses deux chemins : la recherche au registre
+officiel, qui pré-remplit la saisie, et la saisie manuelle.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Ouverture | la fenêtre s'ouvre sur la recherche officielle ; « Créer la fiche » est inactif tant qu'aucune saisie n'existe | couvert |
+| 2 | Recherche trop courte | moins de trois caractères : le bouton reste inactif, aucun appel — l'API refuserait par `400 INVALID_DATA` | couvert |
+| 3 | Résultat du registre | nom, adresse, SIRET et code INSEE ; « Utiliser cette fiche » bascule sur la saisie pré-remplie | couvert |
+| 4 | Département dérivé | pré-rempli depuis le code INSEE renvoyé par l'API, jamais recalculé côté front | couvert |
+| 5 | Établissement fermé | `isActive: false` affiche un avertissement, **sans bloquer** la création | à couvrir |
+| 6 | Registre indisponible | `503` ou `504` : message proposant la saisie manuelle, jamais un échec bloquant | couvert |
+| 7 | Aucun résultat | `200` avec une liste vide : message distinct de l'indisponibilité | à couvrir |
+| 8 | Champs obligatoires | nom, type et département seuls ; refusés avant envoi s'ils manquent | couvert |
+| 9 | Ville non obligatoire | la V8 la marque requise, l'API non — un EPCI n'a pas de ville | couvert |
+| 10 | Champ vide non transmis | une chaîne vide n'est pas envoyée : le serveur appliquerait sa valeur par défaut | à couvrir |
+| 11 | SIRET déjà pris | `409 ORGANIZATION_SIRET_EXISTS` : message **sous le champ**, fenêtre maintenue | à couvrir |
+| 12 | Code INSEE déjà pris | idem sous son champ | à couvrir |
+| 13 | Doublon probable | `409 ORGANIZATION_POSSIBLE_DUPLICATE` : les candidats de `messages.meta.duplicates` sont listés, avec un lien pour les ouvrir | couvert |
+| 14 | Confirmation du doublon | « Créer quand même » rejoue **la même requête** avec `force: true` | couvert |
+| 15 | Refus du doublon | « Revenir à la saisie » ferme l'avertissement sans rien perdre de la saisie | à couvrir |
+| 16 | Après création | la fiche créée s'ouvre, et la liste est rafraîchie | à couvrir |
+| 17 | Sans permission | `organizations:create` absente : ni bouton, ni fenêtre | à couvrir |
+
+### Pièges relevés pendant le développement
+
+- **La strate n'a pas sa place ici.** La V8 la calcule dans le navigateur à
+  partir de la population et l'affiche en lecture seule. Notre règle est
+  qu'elle vient de l'API (`bracketLabel`) : avant création il n'y a pas de
+  fiche, donc pas de strate. Elle apparaît sur la fiche, une fois créée.
+- **Le contact principal de la V8 est retiré.** `POST /organizations` ne
+  l'accepte pas : les contacts sont une route distincte (US-01-04), non
+  développée. Le laisser aurait donné un champ dont la saisie serait perdue.
+- **La « formule envisagée » attend la grille tarifaire.** `targetPlan` n'est
+  pas une énumération figée : SPEC-04 le définit comme une **clé de
+  `grid.plans`**, la grille du projet, qui est versionnée et activable. La V8
+  écrit `ESSENTIEL / CONFORT / PREMIUM` en dur parce qu'elle n'a qu'une grille ;
+  les reprendre ici les figerait dans le code d'un produit multi-tenant, et le
+  premier projet doté d'une autre grille casserait en silence — l'API accepte
+  n'importe quelle chaîne, et c'est le moteur tarifaire qui refuserait, plus
+  tard, à la génération du devis.
+  **Prérequis : `GET /pricing-grids/active`** (`pricing:read` `[P]`), qui
+  donnera les formules du projet. La route est prévue côté API, marquée « à
+  faire », et appartient au lot des devis (L2). Le champ sera ajouté à ce
+  moment-là, sur la fiche comme à la création.
+- **Un doublon probable n'est pas une erreur.** Le serveur pose une question :
+  la fenêtre reste ouverte, la saisie intacte, et la même requête se rejoue
+  avec `force`. La traiter comme un échec ferait ressaisir toute la fiche.
+- **Les candidats se lisent dans `meta`, jamais dans le texte.**
+  `messages.text` est écrit pour un humain et peut changer ; `meta.duplicates`
+  est le contrat.
+- **Le registre qui ne répond pas est un cas nominal.** `503` et `504` sont
+  documentés comme tels : la saisie manuelle reste le chemin de secours, et
+  chaque source dégrade indépendamment. Le scénario 6 a révélé que
+  l'intercepteur envoyait **tout** 5xx sur l'écran « Erreur interne du
+  serveur » : une panne d'une API publique tierce emmenait donc toute
+  l'application hors du formulaire, saisie perdue. Une requête peut désormais
+  déclarer que son 5xx est prévu par le contrat (`expectedServerError`), et
+  seules celles-là y échappent.
+- **La fiche ouverte est passée dans l'URL** (`?fiche=`) pour ce
+  développement : sans adresse, un doublon signalé ne pouvait pas être proposé
+  à l'ouverture.
+
+---
+
+## US-01-13 · Supprimer un organisme — 🟢 livré
+
+Suppression **logique** : la fiche disparaît des lectures, la ligne demeure en
+base. La purge définitive relève du RGPD (US-06-01).
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Emplacement de l'action | carte dédiée en bas de la fiche, à l'écart des actions du formulaire | couvert |
+| 2 | Confirmation obligatoire | une fenêtre s'interpose, aucune suppression au premier clic | couvert |
+| 3 | Ce que dit la fenêtre | disparition des lectures, identifiants libérés, pas d'effacement définitif, journalisation | couvert |
+| 4 | Confirmer | `DELETE` envoyé, panneau fermé, liste rafraîchie | couvert |
+| 5 | Renoncer | aucune requête, la fiche reste ouverte | couvert |
+| 6 | Sans la permission | ni carte ni bouton — un commercial n'a pas `organizations:delete` | à couvrir |
+| 7 | Fiche déjà supprimée | `404 ORGANIZATION_NOT_FOUND` : message, pas de page blanche | à couvrir |
+| 8 | Fiche hors périmètre | `403 ACCESS_DENIED` avec un rôle restreint | à couvrir |
+| 9 | Identifiants libérés | le SIRET d'une fiche supprimée peut resservir à la création | à couvrir |
+| 10 | Contrats rattachés | `409 ORGANIZATION_HAS_CONTRACTS` — arrive au lot L3, pas encore émis | à développer |
+
+### Pièges relevés pendant le développement
+
+- **La maquette décrit une autre suppression.** La V8 n'offre qu'une
+  suppression groupée (US-01-05, non livrée côté API) et annonce que « les
+  contacts et actions rattachés » partent avec la fiche. L'API, elle, fait une
+  suppression **logique** et ne dit rien d'une cascade. Reprendre la
+  formulation de la maquette aurait fait croire à un effacement définitif qui
+  n'a pas lieu — même erreur que celle déjà corrigée sur le retrait d'un
+  utilisateur.
+- **Les identifiants redeviennent disponibles.** Les index d'unicité sont
+  partiels sur `deleted_at IS NULL` : recréer une commune supprimée par erreur
+  fonctionne. C'est une information utile à l'utilisateur, elle est dans la
+  fenêtre.
+
+---
+
+## US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
+
+Panneau latéral, onglet Synthèse — le `openDrawer` de la V8. Les onglets
+Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Ouvrir une fiche | valeurs renseignées, référentiels résolus, aucun champ en erreur | couvert |
+| 2 | Bandeau de complétude | critères manquants nommés en français, blocage du devis signalé | à couvrir |
+| 3 | Enregistrer sans rien changer | aucun appel, message neutre | couvert |
+| 4 | Modifier un champ | seul ce champ part dans la requête | à couvrir |
+| 5 | Champs dérivés | région et strate affichées, non modifiables | à couvrir |
+| 6 | Statuts commercial et client | en lecture seule, avec l'endroit où les modifier | couvert |
+| 7 | Fiche hors périmètre | panneau restreint, ni formulaire ni coordonnées | à couvrir |
+| 8 | Sans permission de modification | formulaire en lecture seule, pas de bouton d'enregistrement | à couvrir |
+| 9 | Onglet Contacts | liste, ajout, contact principal unique (US-01-04) | à développer |
+| 10 | Fermeture du panneau | seuls la croix et « Annuler » ferment ; un clic à côté ou Échap ne ferment pas | couvert |
+| 11 | Éditeur de la solution | affiché sous le sélecteur, résolu depuis `metadata.vendor` ; rien quand l'éditeur est `NONE` | couvert |
+| 12 | Dates de la fiche | « Créée le … · modifiée le … » au pied, seulement si le serveur les envoie | couvert |
+
+### Pièges relevés pendant le développement
+
+- **L'éditeur d'une solution est une clé, pas un texte.** Il vit dans le
+  `metadata` du référentiel `SOLUTION` (`metadata.vendor`) et pointe une valeur
+  de la catégorie `VENDOR` : il se résout comme n'importe quel référentiel.
+  L'afficher tel quel montrerait `JVS_MAIRISTEM` au lieu de « JVS-Mairistem ».
+  La valeur `NONE` — « sans éditeur » — n'affiche rien : « Éditeur : Sans
+  éditeur » n'apprendrait rien.
+- **« Annuler » ferme le panneau.** Il se contentait auparavant de restaurer
+  les valeurs enregistrées, panneau ouvert : le câblage était correct, mais
+  rien ne bougeait à l'écran et le bouton passait pour cassé — le même mot
+  ferme la fenêtre dans l'écran de création. Un seul mot, un seul comportement.
+- **Le panneau ne se ferme pas tout seul.** Un clic à côté ou la touche Échap
+  ne le ferment plus : il porte un formulaire, et une fermeture accidentelle
+  perdrait la saisie sans le dire. Deux sorties explicites, la croix et
+  « Annuler ».
+
+### Pièges relevés pendant le développement
+
+- **Lecture et écriture n'ont pas la même forme.** `GET` rend
+  `solution: { key }` et `services: [{ key }]` ; `PATCH` exige des chaînes.
+  Recopier la lecture dans le corps donne « solution must be a string ». La
+  conversion est faite une fois, dans le formulaire.
+- **`salesStatus` et `customerStatus` sont refusés par `PATCH`** — vérifié :
+  « property salesStatus should not exist, property customerStatus should not
+  exist ». Ils sont donc en lecture seule. Un sélecteur ferait échouer
+  **tout** l'enregistrement, pas seulement le champ.
+- **On n'envoie que les champs modifiés.** Le contrat refuse un corps vide, et
+  envoyer la fiche entière écraserait ce qu'un autre vient de changer.
+- **Créer le formulaire avant la fiche vide le sélecteur de type.** Le
+  formulaire naissait dans le panneau puis était corrigé par un `reset` : les
+  champs texte suivaient, mais le sélecteur passait de non contrôlé à
+  contrôlé, gardait son état vide et le renvoyait dans le formulaire — « Champ
+  requis » sur une fiche pourtant typée. Le formulaire se crée là où la fiche
+  est chargée, et le panneau le remonte par `key` en changeant de fiche.
+- **Ne jamais déclarer un composant dans le corps d'un autre.** `TextField` et
+  les groupes de cases l'étaient : React voit un nouveau type à chaque rendu et
+  démonte le sous-arbre, ce qui fait perdre le focus à chaque frappe.
+- **`blocks.quote` peut valoir `null`**, pas seulement `true`/`false` : à lire
+  comme « inconnu ou bloqué », jamais avec une égalité stricte.
+
+---
+
 ## Conventions
 
 Reprises de la recette de l'API pour que les deux se lisent pareil.
@@ -414,11 +668,33 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 09:18. 32/32 OK._
+_Généré par `npm run bdd` — 2026-09-02 22:54. 55/55 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
 |---|---|---|---|---|
+| US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/01-01-2.png` |
+| US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
+| US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
+| US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/01-01-13.png` |
+| US-01-01 | 01-01.14 | Les filtres de la V8 partent au serveur, et se réinitialisent | OK | `screenshots/01-01-14.png` |
+| US-01-01 | 01-01.15 | Solution et étiquette se choisissent dans les référentiels | OK | `screenshots/01-01-15.png` |
+| US-01-02 | 01-02.1 | La fenêtre s'ouvre sur la recherche officielle | OK | `screenshots/01-02-1.png` |
+| US-01-02 | 01-02.2 | Une recherche trop courte ne part pas | OK | `screenshots/01-02-2.png` |
+| US-01-02 | 01-02.3 | Un résultat du registre pré-remplit la saisie | OK | `screenshots/01-02-3.png` |
+| US-01-02 | 01-02.6 | Registre indisponible : la saisie manuelle est proposée | OK | `screenshots/01-02-6.png` |
+| US-01-02 | 01-02.8 | Trois champs obligatoires, refusés avant envoi | OK | `screenshots/01-02-8.png` |
+| US-01-02 | 01-02.9 | La ville n'est pas obligatoire, contrairement à la V8 | OK | `screenshots/01-02-9.png` |
+| US-01-02 | 01-02.13 | Doublon probable : les candidats de meta sont proposés | OK | `screenshots/01-02-13.png` |
+| US-01-02 | 01-02.14 | Confirmer un doublon rejoue la requête avec force | OK | `screenshots/01-02-14.png` |
+| US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
+| US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
+| US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
+| US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/01-03-10.png` |
+| US-01-03 | 01-03.11 | La fiche montre l’éditeur de la solution et ses dates | OK | `screenshots/01-03-11.png` |
+| US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/01-13-3.png` |
+| US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/01-13-4.png` |
+| US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/01-13-5.png` |
 | US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
 | US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
 | US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |
@@ -432,6 +708,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
 | US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
 | US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
+| US-00-04 | 04.18 | Le menu plateforme ne propose pas les utilisateurs de projet | OK | `screenshots/04-18.png` |
 | US-00-05 | 05.2 | Le filtre par rôle part bien dans la requête | OK | `screenshots/05-2.png` |
 | US-00-05 | 05.4 | Initiales hors format refusées avant envoi | OK | `screenshots/05-4.png` |
 | US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |
@@ -439,9 +716,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
-| US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |
-| US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-12.png` |
-| US-00-08 | 08.15 | Numérotation affichée en lecture seule | OK | `screenshots/08-15.png` |
+| US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |
+| US-00-08 | 08.13 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-13.png` |
+| US-00-08 | 08.16 | Numérotation affichée en lecture seule | OK | `screenshots/08-16.png` |
 | US-00-09 | 09.1 | Une catégorie à la fois, choisie dans un sélecteur chiffré | OK | `screenshots/09-1.png` |
 | US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/09-4.png` |
 | US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/09-5.png` |

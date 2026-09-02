@@ -7,6 +7,7 @@ import {
   SETTINGS_UI,
 } from '@/features/settings/constants/constants';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
+import OrganizationsTable from '@/features/organization/components/OrganizationsTable';
 import UsersTable from '@/features/user/components/UsersTable';
 import { UserInformationsPage } from '@/pages/UserInformationsPage';
 import { RequirePermission } from '@/guards/RequirePermission';
@@ -22,7 +23,6 @@ const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'dashboard', title: MENU_PROJECT.DASHBOARD, permission: PERMISSIONS.DASHBOARD.READ },
   { path: 'agenda', title: MENU_PROJECT.AGENDA, permission: PERMISSIONS.ACTIVITIES.READ },
   { path: 'stats', title: MENU_PROJECT.STATS, permission: PERMISSIONS.STATS.READ },
-  { path: 'organizations', title: MENU_PROJECT.ORGANIZATIONS, permission: PERMISSIONS.ORGANIZATIONS.READ },
   { path: 'campaigns', title: MENU_PROJECT.CAMPAIGNS, permission: PERMISSIONS.CAMPAIGNS.READ },
   { path: 'prospecting', title: MENU_PROJECT.PROSPECTING, permission: PERMISSIONS.ACTIVITIES.READ },
   { path: 'opportunities', title: MENU_PROJECT.OPPORTUNITIES, permission: PERMISSIONS.OPPORTUNITIES.READ },
@@ -43,6 +43,14 @@ export function ProjectWorkspaceRoutes() {
     <Routes>
       {/* Comme la V8, un projet s'ouvre sur son tableau de bord. */}
       <Route index element={<Navigate to="dashboard" replace />} />
+
+      <Route
+        element={
+          <RequirePermission permission={PERMISSIONS.ORGANIZATIONS.READ} />
+        }
+      >
+        <Route path="organizations" element={<OrganizationsTable />} />
+      </Route>
 
       <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>
         <Route path="users" element={<UsersTable />} />

@@ -1,4 +1,4 @@
-import { PERMISSIONS } from '@/constants';
+import { FILTER_ALL, FILTER_DEBOUNCE_MS, PERMISSIONS } from '@/constants';
 import { useCallback, useMemo, useState } from 'react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { CirclePlus } from 'lucide-react';
@@ -29,53 +29,35 @@ import type {
 } from '../types/userList';
 import { CreateUserWindow } from './CreateUserWindow';
 import { userColumns } from './userColumns';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { CreateUserHooks } from './CreateUserBody';
 
-type UsersTableProps = {
-  useData?: (params: UserListParams) => ReturnType<typeof useUsers>;
-  columns?: ColumnDef<UserListItem>[];
-  createPermission?: string;
-  createButtonText?: string;
-  createSheetTitle?: string;
-  createHooksFactory?: () => CreateUserHooks;
-  rolesFilter?: 'true' | 'false';
-  emptyStateConfig?: {
-    title: string;
-    description: string[];
-    illustration?: string;
-  };
-};
-
-export default function UsersTable({
-  useData,
-  columns,
-  createPermission,
-  createButtonText,
-  createSheetTitle,
-  createHooksFactory,
-  rolesFilter,
-  emptyStateConfig,
-}: UsersTableProps = {}) {
+/**
+ * Utilisateurs d'un projet — US-00-05.
+ *
+ * Ce composant a longtemps porte huit props de generalisation (`useData`,
+ * `columns`, `createHooksFactory`...) prevues pour qu'il serve aussi aux
+ * comptes back-office. Ce partage n'a jamais eu lieu : `BackofficeUsersTable`
+ * est un composant distinct, et les deux seuls appelants ecrivent
+ * `<UsersTable />` sans rien passer. Les props ont ete retirees — l'une
+ * d'elles imposait en prime un appel de hook conditionnel, masque par un
+ * `eslint-disable` sur les regles des hooks.
+ */
+export default function UsersTable() {
   const meStore = useMeStore();
   const hasPermission = meStore.hasPermission;
 
-  const effectiveCreatePermission = createPermission ?? PERMISSIONS.USERS.CREATE;
-  const effectiveColumns = columns ?? userColumns;
-  const effectiveCreateButtonText = createButtonText ?? ACTIONS.NEW_USER;
 
   // local filters
-  const [status, setStatus] = useState<UserStatus | 'ALL'>('ALL');
-  const [roleCode, setRoleCode] = useState<string>('ALL');
+  const [status, setStatus] = useState<UserStatus | typeof FILTER_ALL>(FILTER_ALL);
+  const [roleCode, setRoleCode] = useState<string>(FILTER_ALL);
 
-  const debouncedStatus = useDebouncedValue(status, 500);
-  const debouncedRoleCode = useDebouncedValue(roleCode, 500);
+  const debouncedStatus = useDebouncedValue(status, FILTER_DEBOUNCE_MS);
+  const debouncedRoleCode = useDebouncedValue(roleCode, FILTER_DEBOUNCE_MS);
   const [openCreate, setOpenCreate] = useState(false);
   const hasActiveFilters =
-    debouncedStatus !== 'ALL' || debouncedRoleCode !== 'ALL';
+    debouncedStatus !== FILTER_ALL || debouncedRoleCode !== FILTER_ALL;
 
   const toolbarActions = useMemo(() => {
-    if (!hasPermission(effectiveCreatePermission)) return null;
+    if (!hasPermission(PERMISSIONS.USERS.CREATE)) return null;
 
     return (
       <Button
@@ -85,10 +67,10 @@ export default function UsersTable({
         }}
       >
         <CirclePlus />
-        {effectiveCreateButtonText}
+        {ACTIONS.NEW_USER}
       </Button>
     );
-  }, [hasPermission, effectiveCreatePermission, effectiveCreateButtonText]);
+  }, [hasPermission]);
 
   const getData = useCallback((r: ReturnType<typeof useUsers>) => r.users, []);
   const getMeta = useCallback((r: ReturnType<typeof useUsers>) => r.meta, []);
@@ -113,7 +95,7 @@ export default function UsersTable({
             <SelectValue placeholder={SEARCH.STATUS_PLACEHOLDER} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">
+            <SelectItem value={FILTER_ALL}>
               {SEARCH.ALL_STATUSES_SELECT_OPTION}
             </SelectItem>
             {STATUS_OPTIONS.map((s) => (
@@ -132,7 +114,7 @@ export default function UsersTable({
             <SelectValue placeholder={SEARCH.ROLE_PLACEHOLDER} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">{SEARCH.ALL_ROLES_SELECT_OPTION}</SelectItem>
+            <SelectItem value={FILTER_ALL}>{SEARCH.ALL_ROLES_SELECT_OPTION}</SelectItem>
             {roles.data.map((r) => (
               <SelectItem key={r.id} value={r.code}>
                 {r.label}
@@ -151,10 +133,10 @@ export default function UsersTable({
         limit: pagination.pageSize,
         search: search || undefined,
         status:
-          debouncedStatus === 'ALL'
+          debouncedStatus === FILTER_ALL
             ? undefined
             : (debouncedStatus as UserStatus),
-        roleCode: debouncedRoleCode === 'ALL' ? undefined : debouncedRoleCode,
+        roleCode: debouncedRoleCode === FILTER_ALL ? undefined : debouncedRoleCode,
       } satisfies UserListParams;
     },
     [debouncedStatus, debouncedRoleCode],
@@ -166,22 +148,19 @@ export default function UsersTable({
         open={openCreate}
         onOpenChange={setOpenCreate}
         onCreated={() => {}}
-        hooksFactory={createHooksFactory}
-        rolesFilter={rolesFilter}
-        title={createSheetTitle}
       />
       <ReusableTable<UserListItem, UserListParams, ReturnType<typeof useUsers>>
         emptyTableMessage={
           <EmptyTableComponent
-            hasPermission={hasPermission(effectiveCreatePermission)}
-            illustration={emptyStateConfig?.illustration ?? '/media/illustrations/users.svg'}
-            title={emptyStateConfig?.title ?? USERS_TABLE_UI.EMPTY_STATE.TITLE}
-            description={emptyStateConfig?.description ?? USERS_TABLE_UI.EMPTY_STATE.DESCRIPTION}
+            hasPermission={hasPermission(PERMISSIONS.USERS.CREATE)}
+            illustration={USERS_TABLE_UI.EMPTY_STATE.ILLUSTRATION}
+            title={USERS_TABLE_UI.EMPTY_STATE.TITLE}
+            description={USERS_TABLE_UI.EMPTY_STATE.DESCRIPTION}
             onClick={() => {setOpenCreate(true);}}
             buttonIcon={<CirclePlus />}
-            buttonText={effectiveCreateButtonText}
+            buttonText={ACTIONS.NEW_USER}
             buttonId="user-create-btn"
-            tip={emptyStateConfig ? undefined : {
+            tip={{
               title: USERS_TABLE_UI.EMPTY_STATE.TIP.TITLE,
               content: USERS_TABLE_UI.EMPTY_STATE.TIP.CONTENT,
             }}
@@ -189,9 +168,8 @@ export default function UsersTable({
         }
         searchToolTipText={SEARCH_TOOLTIP_TEXT}
         hasActiveFilters={hasActiveFilters}
-        columns={effectiveColumns}
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useData={useData ? (params) => (useData as typeof useUsers)(params) : (params) => useUsers(params)}
+        columns={userColumns}
+        useData={useUsers}
         getData={getData}
         getMeta={getMeta}
         buildParams={buildParams}

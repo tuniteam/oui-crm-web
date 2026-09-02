@@ -25,15 +25,15 @@ export type CreateUserHooks = ReturnType<typeof useCreateUserForm>;
 type Props = {
   hooks: CreateUserHooks;
   open: boolean;
-  rolesFilter?: 'true' | 'false';
 };
 
-export function CreateUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
+export function CreateUserBody({ hooks, open }: Props) {
   const { form, create } = hooks;
   const isBusy = create.loading;
 
   const { LABELS, PLACEHOLDERS, HINTS } = CREATE_USER_WINDOW;
-  const roles = useRoles({ isBackoffice: rolesFilter }, { enabled: open });
+  // Ecran des utilisateurs de projet : jamais les roles back-office.
+  const roles = useRoles({ isBackoffice: 'false' }, { enabled: open });
 
   const isExternal = form.watch('isExternal');
 
