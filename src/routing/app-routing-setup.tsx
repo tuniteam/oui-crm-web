@@ -1,5 +1,6 @@
 import { PERMISSIONS } from '@/constants';
 import { NoPermissions } from '@/features/errors/components/no-permissions';
+import { WelcomePending } from '@/features/errors/components/welcome-pending';
 import { ProjectInformationsPage } from '@/pages/ProjectInformationsPage';
 import { BackofficeUserInformationsPage } from '@/pages/BackofficeUserInformationsPage';
 import BackofficeUsersPage from '@/pages/BackofficeUsersPage';
@@ -50,6 +51,14 @@ export function AppRoutingSetup() {
 
           {/* Client no-permissions page */}
           <Route path="/no-permissions" element={<NoPermissions />} />
+
+          {/*
+           * Accueil d'un compte dont les droits portent sur des ecrans encore
+           * a construire. Sans garde de permission : c'est precisement la
+           * destination de repli quand aucune permission ne trouve d'ecran,
+           * une garde la ferait renvoyer sur elle-meme.
+           */}
+          <Route path="/bienvenue" element={<WelcomePending />} />
 
           <Route
             element={
