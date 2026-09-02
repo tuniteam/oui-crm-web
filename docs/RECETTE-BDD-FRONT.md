@@ -402,7 +402,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-01-01 · Organismes, liste et recherche — 🟡 liste livrée
+## US-01-01 · Organismes, liste et recherche — 🟢 livré
 
 Première story du lot L1. La liste reprend les onze colonnes de l'écran
 Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
@@ -418,13 +418,28 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 | 7 | Fiche hors périmètre | ligne en retrait, « hors de votre périmètre », colonnes vidées | couvert |
 | 8 | Tri sur une colonne non triable | Type et Solution ne sont pas cliquables — l'API ne les trie pas | couvert |
 | 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
-| 10 | Filtre par commercial | demande la liste des membres du projet | à développer |
+| 10 | Filtre par commercial | le paramètre `salesRepId` existe, mais peupler le sélecteur demande `GET /users` et la permission `users:read`, qu'un commercial n'a pas | à développer |
 | 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | couvert |
 | 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
 | 13 | Action d'ouverture atteignable | colonne d'actions épinglée à droite et opaque, sans défilement | couvert |
+| 14 | Filtre par département | saisie libre de 2 à 3 caractères, `2A` et l'outre-mer compris | couvert |
+| 15 | Filtre par solution | valeurs du référentiel du projet, jamais une liste en dur | couvert |
+| 16 | Filtre par étiquette | idem, référentiel `TAG` | couvert |
+| 17 | Réinitialiser | n'apparaît que si un filtre est actif, et les efface tous | couvert |
 
 ### Pièges relevés pendant le développement
 
+- **Trois filtres de la V8 avaient été écartés à tort.** J'avais conclu que
+  seules la strate et le commercial manquaient. En réalité l'API filtre aussi
+  par **département**, **solution** et **étiquette** — vérifié en direct :
+  `department=89` ramène 2 fiches sur 7, `solution=JVS_ENFANCE` et `tag=WATCH`
+  en ramènent 1 chacune. Les paramètres étaient déjà typés côté front ; il ne
+  manquait que les sélecteurs. Lire un type ne dit pas ce que le serveur sait
+  faire.
+- **Le département se saisit, il ne se choisit pas.** La V8 construit sa liste
+  depuis les fiches affichées. Ici la liste est paginée : les départements de
+  la page courante ne sont pas ceux de la base, et un sélecteur construit ainsi
+  masquerait des valeurs existantes.
 - **Onze colonnes ne tiennent pas dans un écran.** Leurs largeurs déclarées
   totalisent 1770 px pour environ 1180 px utiles : la colonne d'actions sortait
   de l'écran, et l'unique action de la liste — ouvrir la fiche — devenait
@@ -577,9 +592,17 @@ Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
 | 8 | Sans permission de modification | formulaire en lecture seule, pas de bouton d'enregistrement | à couvrir |
 | 9 | Onglet Contacts | liste, ajout, contact principal unique (US-01-04) | à développer |
 | 10 | Fermeture du panneau | seuls la croix et « Annuler » ferment ; un clic à côté ou Échap ne ferment pas | couvert |
+| 11 | Éditeur de la solution | affiché sous le sélecteur, résolu depuis `metadata.vendor` ; rien quand l'éditeur est `NONE` | couvert |
+| 12 | Dates de la fiche | « Créée le … · modifiée le … » au pied, seulement si le serveur les envoie | couvert |
 
 ### Pièges relevés pendant le développement
 
+- **L'éditeur d'une solution est une clé, pas un texte.** Il vit dans le
+  `metadata` du référentiel `SOLUTION` (`metadata.vendor`) et pointe une valeur
+  de la catégorie `VENDOR` : il se résout comme n'importe quel référentiel.
+  L'afficher tel quel montrerait `JVS_MAIRISTEM` au lieu de « JVS-Mairistem ».
+  La valeur `NONE` — « sans éditeur » — n'affiche rien : « Éditeur : Sans
+  éditeur » n'apprendrait rien.
 - **« Annuler » ferme le panneau.** Il se contentait auparavant de restaurer
   les valeurs enregistrées, panneau ouvert : le câblage était correct, mais
   rien ne bougeait à l'écran et le bouton passait pour cassé — le même mot
@@ -645,7 +668,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 21:57. 52/52 OK._
+_Généré par `npm run bdd` — 2026-09-02 22:54. 55/55 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -654,6 +677,8 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
 | US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
 | US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/01-01-13.png` |
+| US-01-01 | 01-01.14 | Les filtres de la V8 partent au serveur, et se réinitialisent | OK | `screenshots/01-01-14.png` |
+| US-01-01 | 01-01.15 | Solution et étiquette se choisissent dans les référentiels | OK | `screenshots/01-01-15.png` |
 | US-01-02 | 01-02.1 | La fenêtre s'ouvre sur la recherche officielle | OK | `screenshots/01-02-1.png` |
 | US-01-02 | 01-02.2 | Une recherche trop courte ne part pas | OK | `screenshots/01-02-2.png` |
 | US-01-02 | 01-02.3 | Un résultat du registre pré-remplit la saisie | OK | `screenshots/01-02-3.png` |
@@ -666,6 +691,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
 | US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/01-03-10.png` |
+| US-01-03 | 01-03.11 | La fiche montre l’éditeur de la solution et ses dates | OK | `screenshots/01-03-11.png` |
 | US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/01-13-3.png` |
 | US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/01-13-4.png` |
 | US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/01-13-5.png` |

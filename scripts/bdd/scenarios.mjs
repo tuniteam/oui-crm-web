@@ -503,7 +503,22 @@ export const scenarios = [
         leaked.length === 0,
         `clé(s) de référentiel affichée(s) brutes : ${leaked.join(', ')}`,
       );
-      expect(body.includes('Chaud'), 'aucune étiquette traduite trouvée');
+      // Une cle absente ne prouve rien : elle peut manquer parce que le jeu de
+      // donnees n'en porte aucune. Il faut donc voir au moins une traduction.
+      // On n'en exige aucune en particulier : le seed change, et le scenario
+      // tombait quand la fiche portant « Chaud » a disparu — un rouge qui ne
+      // disait rien du produit.
+      const knownLabels = [
+        'Chaud',
+        'À surveiller',
+        'Marché public en cours',
+        'Renouvellement concurrent',
+        'Recommandation',
+      ];
+      expect(
+        knownLabels.some((l) => body.includes(l)),
+        'aucune étiquette traduite trouvée à l’écran',
+      );
     },
   },
   {
@@ -620,6 +635,147 @@ export const scenarios = [
       expect(
         bg !== 'rgba(0, 0, 0, 0)' && !/,\s*0?\.\d+\)$/.test(bg),
         `la cellule epinglee est translucide (${bg})`,
+      );
+    },
+  },
+
+  {
+    id: '01-01.14',
+    us: 'US-01-01',
+    title: 'Les filtres de la V8 partent au serveur, et se réinitialisent',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      'When je filtre par département',
+      'Then la requête porte ce département et la liste se restreint',
+      'When je clique sur « Réinitialiser »',
+      'Then tous les filtres sont effacés et la liste revient entière',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      const rows = page.locator('[data-testid^="organization-view-"]');
+      await rows.first().waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+      const before = await rows.count();
+
+      // Le bouton ne s'affiche qu'avec un filtre actif : rien a remettre a
+      // zero sur une liste vierge.
+      expect(
+        !(await page.getByTestId('organization-filters-reset').isVisible().catch(() => false)),
+        'Réinitialiser est proposé alors qu aucun filtre n est actif',
+      );
+
+      apiCalls(true);
+      await page.getByTestId('organization-filter-department').fill('89');
+      await page.waitForTimeout(1800);
+
+      expect(
+        apiCalls().some((c) => c.includes('department=89')),
+        `le département n est pas transmis : ${apiCalls().join(', ')}`,
+      );
+      const filtered = await rows.count();
+      expect(
+        filtered > 0 && filtered < before,
+        `la liste n a pas été restreinte : ${filtered} sur ${before}`,
+      );
+
+      await page.getByTestId('organization-filters-reset').click();
+      await page.waitForTimeout(1800);
+      expect(
+        (await rows.count()) === before,
+        'la liste n est pas revenue entière après réinitialisation',
+      );
+      expect(
+        (await page.getByTestId('organization-filter-department').inputValue()) === '',
+        'le champ département n a pas été vidé',
+      );
+    },
+  },
+
+  {
+    id: '01-01.15',
+    us: 'US-01-01',
+    title: 'Solution et étiquette se choisissent dans les référentiels',
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "Then les filtres solution et étiquette proposent les valeurs du projet",
+      'And aucune clé de référentiel ne s’y affiche',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+
+      for (const [testId, sample] of [
+        ['organization-filter-solution', 'JVS Enfance'],
+        ['organization-filter-tag', 'À surveiller'],
+      ]) {
+        await page.getByTestId(testId).click();
+        await page.waitForTimeout(500);
+        const options = await page.locator('[role="option"]').allInnerTexts();
+        expect(
+          options.some((o) => o.trim() === sample),
+          `« ${sample} » absent du filtre ${testId} : ${options.join(' | ')}`,
+        );
+        // Une cle brute trahirait une liste en dur ou un libelle non resolu.
+        expect(
+          !options.some((o) => /^[A-Z][A-Z0-9_]+$/.test(o.trim())),
+          `une clé de référentiel est affichée : ${options.join(' | ')}`,
+        );
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(400);
+      }
+    },
+  },
+
+  {
+    id: '01-03.11',
+    us: 'US-01-03',
+    title: 'La fiche montre l’éditeur de la solution et ses dates',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme équipé d'une solution éditée",
+      "Then l'éditeur est affiché sous le sélecteur, en libellé",
+      'And le pied porte les dates de création et de modification',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+
+      // La ligne n'est pas cliquable : seule l'action d'ouverture l'est.
+      await page
+        .locator('tr', { hasText: 'Commune de Rennes' })
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      const body = await sheet.innerText();
+      // Libelle resolu depuis `metadata.vendor`, jamais la cle JVS_MAIRISTEM.
+      expect(
+        body.includes('Éditeur : JVS-Mairistem'),
+        "l'éditeur de la solution n'est pas affiché en libellé",
+      );
+      expect(
+        !body.includes('JVS_MAIRISTEM'),
+        'la clé du référentiel est affichée telle quelle',
+      );
+
+      const stamps = await page
+        .getByTestId('organization-timestamps')
+        .innerText()
+        .catch(() => '');
+      expect(
+        /Créée le \d{2}\/\d{2}\/\d{4} · modifiée le \d{2}\/\d{2}\/\d{4}/.test(stamps),
+        `les dates de la fiche sont absentes ou mal formées : ${stamps}`,
       );
     },
   },

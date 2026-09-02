@@ -106,8 +106,11 @@ for (const scenario of selected) {
       await page.getByTestId('auth-login-email-input').fill(EMAIL);
       await page.getByTestId('auth-login-password-input').fill(password);
       await page.getByTestId('auth-login-submit-button').click();
+      // Meme raison que le delai de navigation ci-dessus : sous charge, ou
+      // juste apres un redemarrage de l'API, la redirection post-connexion
+      // depasse 20 s et le scenario echouait avant meme de commencer.
       await page.waitForURL((u) => !u.pathname.startsWith('/auth'), {
-        timeout: 20000,
+        timeout: 60000,
       });
     }
     if (scenario.needsProject && !projectId) {

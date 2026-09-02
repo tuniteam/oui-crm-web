@@ -47,6 +47,7 @@ export const ORGANIZATION_DETAIL_UI = {
   },
 
   HINTS: {
+    VENDOR: (vendor: string) => `Éditeur : ${vendor}`,
     /* La strate vient de la grille tarifaire active du projet : la V8 la rend
        aussi en champ desactive. */
     BRACKET: 'Calculée depuis la grille tarifaire du projet.',
@@ -85,6 +86,10 @@ export const ORGANIZATION_DETAIL_UI = {
     BODY:
       'Cet organisme est hors de votre périmètre. Vous voyez qu’il est suivi, par qui et à quel stade, sans accéder à ses coordonnées ni à ses contacts. Cette visibilité évite que deux commerciaux appellent la même mairie à trois jours d’intervalle.',
   },
+
+  /** Pied de la V8 : « Créée le … · modifiée le … ». */
+  TIMESTAMPS: (created: string, updated: string) =>
+    `Créée le ${created} · modifiée le ${updated}`,
 
   ACTIONS: {
     SAVE: 'Enregistrer les modifications',

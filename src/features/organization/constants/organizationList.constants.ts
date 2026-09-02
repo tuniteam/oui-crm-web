@@ -72,6 +72,10 @@ export const ORGANIZATIONS_UI = {
     ALL_CUSTOMER_STATUSES: 'Statut client',
     ALL_PRIORITIES: 'Toutes priorités',
     TYPE_PLACEHOLDER: 'Type',
+    DEPARTMENT_PLACEHOLDER: 'Dépt.',
+    ALL_SOLUTIONS: 'Toutes solutions',
+    ALL_TAGS: 'Toutes étiquettes',
+    RESET: 'Réinitialiser',
     INCOMPLETE_ONLY: 'Fiches incomplètes',
   },
 

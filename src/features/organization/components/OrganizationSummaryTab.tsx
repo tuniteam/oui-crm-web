@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PERMISSIONS } from '@/constants';
+import { formatShortDateFr } from '@/shared/utils/date-utils';
 import { useMeStore } from '@/contexts/useMeStore';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Button } from '@/components/ui/button';
@@ -179,7 +180,18 @@ function CheckboxGroup({
 export function OrganizationSummaryTab({ organization, onClose }: Props) {
   const { form, update, submit } = useOrganizationSummaryForm(organization);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const { optionsOf } = useReferenceLabels();
+  const { optionsOf, labelOf, metaOf } = useReferenceLabels();
+
+  /** Libelle de l'editeur d'une solution, ou `null` s'il n'y en a pas.
+   *  `NONE` est la valeur du referentiel pour « sans editeur » : afficher
+   *  « Editeur : Sans editeur » n'apprendrait rien. */
+  const vendorLabel = (solutionKey: string) => {
+    const vendor = metaOf('SOLUTION', solutionKey)?.vendor;
+    if (typeof vendor !== 'string' || vendor === '' || vendor === 'NONE') {
+      return null;
+    }
+    return labelOf('VENDOR', vendor);
+  };
   const canDelete = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.ORGANIZATIONS.DELETE),
   );
@@ -285,6 +297,14 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
                     </SelectContent>
                   </Select>
                 </FormControl>
+                {/* L'editeur de la solution, comme la V8. Il vit dans le
+                    `metadata` du referentiel et reste une cle : on le resout
+                    contre `VENDOR` plutot que de l'afficher tel quel. */}
+                {vendorLabel(field.value) ? (
+                  <p className="text-xs text-muted-foreground">
+                    {HINTS.VENDOR(vendorLabel(field.value) as string)}
+                  </p>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}
@@ -385,8 +405,23 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
           )}
         />
 
-        {canUpdate ? (
-          <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+          {/* Dates de la V8, a gauche des actions. Rendues seulement si le
+              serveur les envoie : elles sont facultatives au contrat. */}
+          {organization.createdAt && organization.updatedAt ? (
+            <span
+              data-testid="organization-timestamps"
+              className="me-auto text-xs text-muted-foreground"
+            >
+              {UI.TIMESTAMPS(
+                formatShortDateFr(organization.createdAt),
+                formatShortDateFr(organization.updatedAt),
+              )}
+            </span>
+          ) : null}
+
+          {canUpdate ? (
+            <>
             <Button
               type="button"
               variant="outline"
@@ -396,16 +431,17 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
             >
               {ACTIONS.CANCEL}
             </Button>
-            <Button
-              type="button"
-              data-testid="organization-save"
-              onClick={submit}
-              disabled={update.loading}
-            >
-              {ACTIONS.SAVE}
-            </Button>
-          </div>
-        ) : null}
+              <Button
+                type="button"
+                data-testid="organization-save"
+                onClick={submit}
+                disabled={update.loading}
+              >
+                {ACTIONS.SAVE}
+              </Button>
+            </>
+          ) : null}
+        </div>
 
         {/* Action destructrice, tenue a l'ecart des actions du formulaire. */}
         {canDelete ? (

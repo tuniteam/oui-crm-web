@@ -64,5 +64,20 @@ export function useReferenceLabels() {
     [optionsByCategory],
   );
 
-  return { labelOf, optionsOf, loading };
+  /**
+   * `metadata` d'une valeur de referentiel.
+   *
+   * Les attributs propres a une categorie y vivent : une solution y porte son
+   * editeur (`metadata.vendor`, une cle de `VENDOR`), qui reste donc a
+   * resoudre comme n'importe quelle autre cle.
+   */
+  const metaOf = useCallback(
+    (category: ReferenceCategory, key: string | null | undefined) =>
+      key
+        ? items.find((i) => i.category === category && i.key === key)?.metadata
+        : undefined,
+    [items],
+  );
+
+  return { labelOf, optionsOf, metaOf, loading };
 }

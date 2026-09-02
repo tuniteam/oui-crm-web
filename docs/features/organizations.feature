@@ -58,7 +58,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
 
   @a-couvrir
   Scenario: Filtre par commercial
-    Then demande la liste des membres du projet
+    Then le paramètre salesRepId existe, mais peupler le sélecteur demande GET /users et la permission users:read, qu'un commercial n'a pas
 
   @a-couvrir
   Scenario: Ouvrir une fiche
@@ -74,6 +74,28 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
     When j'affiche la liste sans faire défiler horizontalement
     Then l'action d'ouverture de la première ligne est visible
     And elle ne laisse pas transparaître le contenu qu'elle recouvre
+
+  @ok
+  Scenario: Filtre par département
+    Given je suis sur l'écran « Organismes »
+    When je filtre par département
+    Then la requête porte ce département et la liste se restreint
+    When je clique sur « Réinitialiser »
+    Then tous les filtres sont effacés et la liste revient entière
+
+  @ok
+  Scenario: Filtre par solution
+    Given je suis sur l'écran « Organismes »
+    Then les filtres solution et étiquette proposent les valeurs du projet
+    And aucune clé de référentiel ne s’y affiche
+
+  @a-couvrir
+  Scenario: Filtre par étiquette
+    Then idem, référentiel TAG
+
+  @a-couvrir
+  Scenario: Réinitialiser
+    Then n'apparaît que si un filtre est actif, et les efface tous
 
   # ── US-01-02 · Créer un organisme
 
@@ -222,6 +244,16 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
     When je clique sur « Annuler »
     Then le panneau se ferme
     And la croix le ferme aussi
+
+  @ok
+  Scenario: Éditeur de la solution
+    Given j'ouvre la fiche d'un organisme équipé d'une solution éditée
+    Then l'éditeur est affiché sous le sélecteur, en libellé
+    And le pied porte les dates de création et de modification
+
+  @a-couvrir
+  Scenario: Dates de la fiche
+    Then « Créée le … · modifiée le … » au pied, seulement si le serveur les envoie
 
   # ── US-01-13 · Supprimer un organisme
 
