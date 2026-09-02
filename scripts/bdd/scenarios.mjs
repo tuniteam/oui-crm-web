@@ -277,6 +277,92 @@ export const scenarios = [
 
   // ─────────────────────────────── US-00-05
   {
+    id: '05.2',
+    us: 'US-00-05',
+    title: 'Le filtre par rôle part bien dans la requête',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      const calls = [];
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/users'),
+        (route) => {
+          calls.push(route.request().url());
+          return route.continue();
+        },
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-filter-role').click();
+      await page.getByRole('option', { name: /sales representative/i }).first().click();
+
+      // Le filtre est debounce a 500 ms : on laisse l'appel repartir.
+      await page.waitForTimeout(1800);
+
+      const filtered = calls.filter((u) => u.includes('roleCode='));
+      expect(
+        filtered.length > 0,
+        `aucun appel avec roleCode= (${calls.length} appel(s) observé(s))`,
+      );
+    },
+  },
+  {
+    id: '05.14',
+    us: 'US-00-05',
+    title: "Le retrait n'est jamais présenté comme une suppression",
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page
+        .getByText(/retrait du projet/i)
+        .first()
+        .waitFor({ timeout: 10000 });
+
+      const body = (await page.locator('body').innerText()).toLowerCase();
+      // L'API suspend l'affectation, elle ne supprime rien : promettre une
+      // suppression definitive est faux, et sur des donnees personnelles c'est
+      // une promesse qu'on ne tient pas.
+      expect(
+        !body.includes('définitive') && !body.includes('definitive'),
+        'l’écran parle encore de suppression définitive',
+      );
+    },
+  },
+  {
+    id: '05.15',
+    us: 'US-00-05',
+    title: 'Après un retrait, on revient à la liste du projet',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Seul le DELETE est simule : le reste de l'ecran doit vivre.
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/users/'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({ status: 204, body: '' })
+            : route.continue(),
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page.getByText(/retrait du projet/i).first().waitFor({ timeout: 10000 });
+
+      const label = /retirer du projet/i;
+      await page.getByRole('button', { name: label }).first().click();
+      await page.getByRole('dialog').getByRole('button', { name: label }).click();
+
+      await page.waitForURL(`**/${projectId}/users`, { timeout: 8000 });
+
+      // Le vrai symptome : la liste plateforme appelle une route scopee sans
+      // x-project-id et affiche « Aucun projet selectionne ».
+      const body = await page.locator('body').innerText();
+      expect(
+        !body.includes('Aucun projet'),
+        'retour sur la liste plateforme au lieu de celle du projet',
+      );
+    },
+  },
+  {
     id: '05.4',
     us: 'US-00-05',
     title: 'Initiales hors format refusées avant envoi',
