@@ -380,6 +380,7 @@ export function OrganizationSummaryTab({ organization }: Props) {
             <Button
               type="button"
               variant="outline"
+              data-testid="organization-cancel"
               onClick={reset}
               disabled={update.loading}
             >
