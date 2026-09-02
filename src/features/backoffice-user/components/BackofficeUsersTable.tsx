@@ -1,4 +1,4 @@
-import { PERMISSIONS } from '@/constants';
+import { FILTER_ALL, FILTER_DEBOUNCE_MS, PERMISSIONS } from '@/constants';
 import { useCallback, useMemo, useState } from 'react';
 import { CirclePlus } from 'lucide-react';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -25,7 +25,6 @@ import {
 import { backofficeUserColumns } from './backofficeUserList/backofficeUserColumns';
 import { CreateBackofficeUserWindow } from './CreateBackofficeUserWindow';
 
-const ALL = 'ALL';
 
 /**
  * Comptes back-office. Route plateforme : accessible sans projet selectionne,
@@ -36,10 +35,10 @@ export default function BackofficeUsersTable() {
   const canCreate = hasPermission(PERMISSIONS.USER_BACKOFFICE.CREATE);
 
   const [openCreate, setOpenCreate] = useState(false);
-  const [status, setStatus] = useState<BackofficeUserStatus | typeof ALL>(ALL);
+  const [status, setStatus] = useState<BackofficeUserStatus | typeof FILTER_ALL>(FILTER_ALL);
 
-  const debouncedStatus = useDebouncedValue(status, 500);
-  const hasActiveFilters = debouncedStatus !== ALL;
+  const debouncedStatus = useDebouncedValue(status, FILTER_DEBOUNCE_MS);
+  const hasActiveFilters = debouncedStatus !== FILTER_ALL;
 
   const getData = useCallback(
     (r: ReturnType<typeof useBackofficeUsers>) => r.users,
@@ -86,7 +85,7 @@ export default function BackofficeUsersTable() {
             <SelectValue placeholder={SEARCH.STATUS_PLACEHOLDER} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>
+            <SelectItem value={FILTER_ALL}>
               {SEARCH.ALL_STATUSES_SELECT_OPTION}
             </SelectItem>
             {statusOptions.map((s) => (
@@ -108,7 +107,7 @@ export default function BackofficeUsersTable() {
         limit: pagination.pageSize,
         search: search || undefined,
         status:
-          debouncedStatus === ALL
+          debouncedStatus === FILTER_ALL
             ? undefined
             : (debouncedStatus as BackofficeUserStatus),
       }) satisfies BackofficeUserListParams,

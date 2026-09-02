@@ -68,6 +68,13 @@ Feature: Base des organismes (L1 · US-01-01, US-01-03)
   Scenario: Sélection multiple
     Then actions groupées (US-01-05), non livrée côté API
 
+  @ok
+  Scenario: Action d'ouverture atteignable
+    Given l'écran « Organismes », dont les colonnes dépassent la largeur de l'écran
+    When j'affiche la liste sans faire défiler horizontalement
+    Then l'action d'ouverture de la première ligne est visible
+    And elle ne laisse pas transparaître le contenu qu'elle recouvre
+
   # ── US-01-03 · Organismes, fiche et modification
 
   @ok

@@ -8,6 +8,7 @@ import { useProjectModeStore } from '@/contexts/useProjectModeStore';
 import { useProject } from '@/features/project/hooks/useProject';
 import { cn } from '@/lib/utils';
 import { useMenu } from '@/hooks/use-menu';
+import { PROFILE_UI } from '@/features/profile/constants/profile.constants';
 import { ProjectScope } from './project-switcher';
 
 /**
@@ -24,6 +25,17 @@ import { ProjectScope } from './project-switcher';
  * vivent sous `/:projectId/...` : les resoudre contre `MENU_SIDEBAR`, le menu
  * plateforme, ne donnait aucune correspondance et le fil d'Ariane restait vide.
  */
+/**
+ * Ecrans atteints hors du menu.
+ *
+ * Le fil d'Ariane se resout contre le menu affiche. `/profile` s'ouvre depuis
+ * le menu du compte, en pied de rail : il n'est dans aucun menu, et l'entete
+ * restait donc entierement vide — l'ecran avait l'air inacheve.
+ */
+const OFF_MENU_TITLES: Record<string, string> = {
+  '/profile': PROFILE_UI.PAGE_SUBTITLE,
+};
+
 /** Barre oblique de separation, purement decorative. */
 function Slash() {
   return (
@@ -80,7 +92,14 @@ export function Breadcrumb() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isProjectMode, activeProjectId, projectName, meStore.me]);
 
-  const items: MenuItem[] = getBreadcrumb(menuConfig);
+  const menuItems: MenuItem[] = getBreadcrumb(menuConfig);
+  const offMenuTitle = OFF_MENU_TITLES[pathname];
+  const items: MenuItem[] =
+    menuItems.length > 0
+      ? menuItems
+      : offMenuTitle
+        ? [{ title: offMenuTitle }]
+        : [];
 
   if (!projectName && items.length === 0) {
     return null;

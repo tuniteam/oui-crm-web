@@ -16,7 +16,7 @@ export function SecuritySection({ onChangePassword }: Props) {
     <DetailsSection
       title={SECTIONS.SECURITY}
       action={
-        <Button type="button" onClick={onChangePassword}>
+        <Button type="button" variant="outline" size="sm" onClick={onChangePassword}>
           <KeyRound className="mr-2 h-4 w-4" />
           {BUTTONS.CHANGE_PASSWORD}
         </Button>

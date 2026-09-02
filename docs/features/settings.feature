@@ -27,7 +27,7 @@ Feature: Réglages du projet, gabarits et cachet (L0 · US-00-08)
   Scenario: Panneau dans l'URL
     Then ?panneau=references ouvre les Référentiels ; le rafraîchissement le conserve
 
-  @ok
+  @a-couvrir
   Scenario: Modifier un champ
     Then le PATCH ne porte que ce champ — le serveur fusionne clé par clé, un envoi complet écraserait la modification d'un autre administrateur
 

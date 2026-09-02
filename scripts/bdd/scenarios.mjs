@@ -556,6 +556,43 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '01-01.13',
+    us: 'US-01-01',
+    title: "L'action d'ouverture reste atteignable sans defilement",
+    needsProject: true,
+    gherkin: [
+      "Given l'écran « Organismes », dont les colonnes dépassent la largeur de l'écran",
+      "When j'affiche la liste sans faire défiler horizontalement",
+      "Then l'action d'ouverture de la première ligne est visible",
+      "And elle ne laisse pas transparaître le contenu qu'elle recouvre",
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      const view = page.locator('[data-testid^="organization-view-"]').first();
+      await view.waitFor({ timeout: 10000 });
+
+      // `isVisible` ne suffit pas : une colonne sortie de l'ecran reste
+      // « visible » au sens du DOM. On compare sa position a la fenetre.
+      const box = await view.boundingBox();
+      const width = page.viewportSize().width;
+      expect(
+        box && box.x >= 0 && box.x + box.width <= width,
+        `l'action sort de l'ecran (x=${box?.x}, largeur fenetre=${width})`,
+      );
+
+      // Colonne epinglee : opaque, sinon le texte du dessous se lit au travers.
+      const cell = view.locator('xpath=ancestor::td[1]');
+      const bg = await cell.evaluate(
+        (el) => getComputedStyle(el).backgroundColor,
+      );
+      expect(
+        bg !== 'rgba(0, 0, 0, 0)' && !/,\s*0?\.\d+\)$/.test(bg),
+        `la cellule epinglee est translucide (${bg})`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-01-03
   {
     id: '01-03.1',
@@ -706,7 +743,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.7',
+    id: '08.8',
     us: 'US-00-08',
     title: 'SIREN invalide refusé avant envoi',
     needsProject: true,
@@ -727,7 +764,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.12',
+    id: '08.13',
     us: 'US-00-08',
     title: 'Gagnée et Perdue sont figées et désactivées',
     needsProject: true,
@@ -742,7 +779,7 @@ export const scenarios = [
     },
   },
   {
-    id: '08.15',
+    id: '08.16',
     us: 'US-00-08',
     title: 'Numérotation affichée en lecture seule',
     needsProject: true,

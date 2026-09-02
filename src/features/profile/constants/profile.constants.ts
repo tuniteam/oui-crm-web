@@ -6,7 +6,7 @@ export const PROFILE_ROUTES = {
 } as const;
 
 export const PROFILE_UI = {
-  PAGE_TITLE: 'Mon Profil',
+  PAGE_TITLE: 'Mon profil',
   PAGE_SUBTITLE: 'Mon profil',
 
   SECTIONS: {

@@ -10,7 +10,11 @@ export const USER_ROUTES = {
   USER_DETAILS: (userId: string) =>
     `/users/${userId}/informations`,
   
+  /** Meme chemin pour trois verbes : lecture, modification, retrait du projet.
+   *  Constantes distinctes pour que l'intention se lise sur l'appel. */
+  USER_DETAIL_API: (userId: string) => `/users/${userId}`,
   USER_UPDATE_API: (userId: string) => `/users/${userId}`,
+  USER_DELETE_API: (userId: string) => `/users/${userId}`,
   USER_CORRECT_EMAIL_API: (userId: string) => `/users/${userId}/email`,
 
   /** Renvoi du lien d'activation (US-00-05). Il n'y a pas de route /invite. */

@@ -96,6 +96,8 @@ export const SEARCH_TOOLTIP_TEXT = 'Rechercher par nom, prénom ou e-mail.';
 
 export const USERS_TABLE_UI = {
   EMPTY_STATE: {
+    /** Piochee dans docs/assets (unDraw), deplacee sous public/media. */
+    ILLUSTRATION: '/media/illustrations/users.svg',
     TITLE: 'Aucun utilisateur',
     DESCRIPTION: [
       'Aucun utilisateur trouvé pour ce projet.',
@@ -111,6 +113,7 @@ export const USERS_TABLE_UI = {
   },
 } satisfies {
   EMPTY_STATE: {
+    ILLUSTRATION: string;
     TITLE: string;
     DESCRIPTION: string[];
     TIP: {

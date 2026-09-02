@@ -9,3 +9,5 @@ export * from './ui';
 export * from './menu';
 export * from './permissions';
 export * from './image-crop';
+export * from './table';
+

@@ -1,4 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { ACTIONS_COLUMN_ID } from '@/constants';
 import { Eye } from 'lucide-react';
 import { COMMON } from '@/constants/common';
 import {
@@ -183,7 +184,7 @@ export const organizationColumns = (
     enableSorting: true,
   },
   {
-    id: 'actions',
+    id: ACTIONS_COLUMN_ID,
     header: () => (
       <span className="flex w-full justify-center text-sm">{H.ACTIONS}</span>
     ),

@@ -8,24 +8,25 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: () => void;
-  hooksFactory?: () => CreateUserHooks;
-  rolesFilter?: 'true' | 'false';
-  title?: string;
 };
 
-export function CreateUserWindow({ open, onOpenChange, onCreated, hooksFactory, rolesFilter, title }: Props) {
+/**
+ * Trois props d'injection (`hooksFactory`, `rolesFilter`, `title`) ont ete
+ * retirees avec celles de `UsersTable` : aucun appelant ne les renseignait, et
+ * `hooksFactory` rendait l'appel de hook conditionnel.
+ */
+export function CreateUserWindow({ open, onOpenChange, onCreated }: Props) {
   return (
     <ReusableWindow<CreateUserHooks>
       open={open}
       onOpenChange={onOpenChange}
-      title={title ?? CREATE_USER_WINDOW.TITLE}
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      useHooks={hooksFactory ?? (() => useCreateUserForm())}
+      title={CREATE_USER_WINDOW.TITLE}
+      useHooks={useCreateUserForm}
       preventClose
       onClosed={({ form }) => {
         form.reset();
       }}
-      renderBody={(hooks) => <CreateUserBody hooks={hooks} open={open} rolesFilter={rolesFilter} />}
+      renderBody={(hooks) => <CreateUserBody hooks={hooks} open={open} />}
       renderFooter={(hooks) => (
         <CreateUserFooter
           hooks={hooks}

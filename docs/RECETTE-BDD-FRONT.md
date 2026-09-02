@@ -288,34 +288,39 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ### Société
 
+<!-- La numerotation d'une US est continue d'un sous-tableau a l'autre : le
+     rapport rapproche les executions par US + numero, et « Societe » repartait
+     a 4, deja pris par « Navigation ». Un seul resultat couvrait alors deux
+     lignes, et le compte des scenarios couverts etait surevalue d'une unite. -->
+
 | # | Scénario | Attendu |
 |---|---|---|
-| 4 | Modifier un champ | le PATCH ne porte **que** ce champ — le serveur fusionne clé par clé, un envoi complet écraserait la modification d'un autre administrateur |
-| 5 | Enregistrer sans changement | aucune requête (corps vide refusé par l'API) |
-| 6 | Vider un champ | chaîne vide envoyée, jamais `null` |
-| 7-9 | SIREN, SIRET, e-mail invalides | message sous le champ, aucun appel |
-| 10 | Lecture seule | champs désactivés, pas de bouton d'enregistrement |
+| 5 | Modifier un champ | le PATCH ne porte **que** ce champ — le serveur fusionne clé par clé, un envoi complet écraserait la modification d'un autre administrateur |
+| 6 | Enregistrer sans changement | aucune requête (corps vide refusé par l'API) |
+| 7 | Vider un champ | chaîne vide envoyée, jamais `null` |
+| 8-10 | SIREN, SIRET, e-mail invalides | message sous le champ, aucun appel |
+| 11 | Lecture seule | champs désactivés, pas de bouton d'enregistrement |
 
 ### Règles commerciales
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 11 | Étapes | les sept, dans l'ordre du contrat |
-| 12 | Gagnée et Perdue | **désactivées**, mention « Valeur figée par le serveur » |
-| 13 | Modifier une étape | seule celle-ci est envoyée, jamais `WON` ni `LOST` |
-| 14 | Probabilité hors 0–100 | refusée avant envoi |
+| 12 | Étapes | les sept, dans l'ordre du contrat |
+| 13 | Gagnée et Perdue | **désactivées**, mention « Valeur figée par le serveur » |
+| 14 | Modifier une étape | seule celle-ci est envoyée, jamais `WON` ni `LOST` |
+| 15 | Probabilité hors 0–100 | refusée avant envoi |
 
 ### Documents et numérotation
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 15 | Numérotation | trois exemples, **en lecture seule** — les formats sont fixes côté serveur |
-| 16 | Type sans gabarit | « Aucun gabarit téléversé », bouton « Téléverser » |
-| 17 | Téléverser un gabarit | version, nom, date et lien de téléchargement |
-| 18 | Gabarit refusé | les balises manquantes de `messages.details` **restent affichées** pendant la correction, pas dans un toast |
-| 19 | Fichier trop lourd ou de mauvais type | message, gabarit actif inchangé |
-| 20 | Re-téléverser le même nom de fichier | l'envoi se déclenche — le champ est réinitialisé après chaque choix |
-| 21 | Cachet en place | aperçu affiché, bouton « Remplacer » |
+| 16 | Numérotation | trois exemples, **en lecture seule** — les formats sont fixes côté serveur |
+| 17 | Type sans gabarit | « Aucun gabarit téléversé », bouton « Téléverser » |
+| 18 | Téléverser un gabarit | version, nom, date et lien de téléchargement |
+| 19 | Gabarit refusé | les balises manquantes de `messages.details` **restent affichées** pendant la correction, pas dans un toast |
+| 20 | Fichier trop lourd ou de mauvais type | message, gabarit actif inchangé |
+| 21 | Re-téléverser le même nom de fichier | l'envoi se déclenche — le champ est réinitialisé après chaque choix |
+| 22 | Cachet en place | aperçu affiché, bouton « Remplacer » |
 
 ---
 
@@ -403,11 +408,20 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 | 8 | Tri sur une colonne non triable | Type et Solution ne sont pas cliquables — l'API ne les trie pas | couvert |
 | 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
 | 10 | Filtre par commercial | demande la liste des membres du projet | à développer |
-| 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | à développer |
+| 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | couvert |
 | 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
+| 13 | Action d'ouverture atteignable | colonne d'actions épinglée à droite et opaque, sans défilement | couvert |
 
 ### Pièges relevés pendant le développement
 
+- **Onze colonnes ne tiennent pas dans un écran.** Leurs largeurs déclarées
+  totalisent 1770 px pour environ 1180 px utiles : la colonne d'actions sortait
+  de l'écran, et l'unique action de la liste — ouvrir la fiche — devenait
+  inatteignable. Le défilement horizontal existait, mais sa barre Radix ne se
+  montre qu'au survol : rien n'indiquait qu'il fallait défiler. La colonne est
+  désormais épinglée à droite par le tableau partagé, pour les quatre listes.
+  Une colonne épinglée doit aussi être **opaque** : posée à 90 % d'opacité,
+  elle laissait lire le texte des colonnes qu'elle recouvre.
 - **La recherche ne fait pas ce que promet la V8.** Son placeholder annonce
   « Nom, ville, code postal, SIRET, contact… ». Vérifié contre l'API : `14000`
   et `Lemarchand` ne rendent **rien**. Le placeholder dit désormais la vérité —
@@ -508,7 +522,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 13:25. 38/38 OK._
+_Généré par `npm run bdd` — 2026-09-02 14:38. 39/39 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -516,6 +530,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/01-01-2.png` |
 | US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
 | US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
+| US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/01-01-13.png` |
 | US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
 | US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
@@ -539,9 +554,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
-| US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |
-| US-00-08 | 08.12 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-12.png` |
-| US-00-08 | 08.15 | Numérotation affichée en lecture seule | OK | `screenshots/08-15.png` |
+| US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |
+| US-00-08 | 08.13 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-13.png` |
+| US-00-08 | 08.16 | Numérotation affichée en lecture seule | OK | `screenshots/08-16.png` |
 | US-00-09 | 09.1 | Une catégorie à la fois, choisie dans un sélecteur chiffré | OK | `screenshots/09-1.png` |
 | US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/09-4.png` |
 | US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/09-5.png` |

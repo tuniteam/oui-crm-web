@@ -1,6 +1,6 @@
 // src/components/table/reusable-table.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { COMMON, UI } from '@/constants';
+import { ACTIONS_COLUMN_ID, COMMON, UI } from '@/constants';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -199,6 +199,25 @@ export function ReusableTable<
     memoizedColumns.map((c) => c.id as string).filter(Boolean),
   );
 
+  /**
+   * La colonne d'actions reste collee a droite.
+   *
+   * Sans cela elle sort de l'ecran des que la somme des largeurs depasse la
+   * carte — sur Organismes, 1770 px de colonnes pour ~1180 px utiles : l'oeil
+   * d'ouverture du panneau devenait inatteignable sans defilement horizontal,
+   * dont la barre Radix ne se montre qu'au survol. L'epinglage est pose ici
+   * plutot que dans chaque tableau : les quatre listes nomment leur colonne
+   * `actions`, et la grille sait deja la rendre sticky (`data-pinned`).
+   */
+  const columnPinning = useMemo(
+    () => ({
+      right: memoizedColumns.some((c) => c.id === ACTIONS_COLUMN_ID)
+        ? [ACTIONS_COLUMN_ID]
+        : [],
+    }),
+    [memoizedColumns],
+  );
+
   const table = useReactTable({
     columns: memoizedColumns,
     data,
@@ -213,8 +232,10 @@ export function ReusableTable<
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
 
+    enableColumnPinning: true,
+
     getRowId: (row) => row.id,
-    state: { pagination, sorting, columnOrder, rowSelection },
+    state: { pagination, sorting, columnOrder, rowSelection, columnPinning },
     onColumnOrderChange: setColumnOrder,
 
     columnResizeMode: 'onChange',

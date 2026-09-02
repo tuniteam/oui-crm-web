@@ -152,6 +152,21 @@ if (md.includes(START) && md.includes(END)) {
 }
 for (const r of results) previous.set(r.id, row(r));
 
+/**
+ * Elague les identifiants disparus.
+ *
+ * La fusion ne faisait qu'ajouter : un scenario renumerote ou supprime laissait
+ * sa ligne verte dans la recette, indefiniment. Le tableau annoncait alors une
+ * couverture que plus rien ne verifiait — exactement l'assurance trompeuse que
+ * ce document doit eviter. On ne garde que les identifiants encore declares.
+ */
+const declared = new Set(scenarios.map((s) => s.id));
+for (const id of [...previous.keys()])
+  if (!declared.has(id)) {
+    previous.delete(id);
+    console.log(`  (retire de la recette : ${id}, scenario supprime)`);
+  }
+
 const rows = [...previous.entries()]
   .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
   .map(([, line]) => line)
@@ -193,6 +208,9 @@ const merged = new Map(previousRun.map((r) => [r.id, r]));
 for (const r of results) {
   merged.set(r.id, { id: r.id, us: r.us, title: r.title, ok: r.ok, failures: r.failures, file: r.file });
 }
+// Meme elagage que pour la recette : sans lui, le rapport HTML comptait encore
+// les scenarios disparus et annoncait plus de verts qu'il n'y a d'executions.
+for (const id of [...merged.keys()]) if (!declared.has(id)) merged.delete(id);
 writeFileSync(
   RESULTS,
   JSON.stringify({ runAt: new Date().toISOString(), results: [...merged.values()] }, null, 2),
