@@ -75,20 +75,46 @@ export function SidebarMenu() {
   // Les permissions restent celles de l'utilisateur : elles le suivent,
   // seul le perimetre des ecrans change.
   const isProjectMode = useProjectModeStore((s) => s.isProjectMode);
+  const isBackoffice = meStore.isBackoffice();
+
+  // Le menu decrit le contact, pas la route.
+  //
+  // Un contact de projet n'a que son projet : sur /profile ou /bienvenue —
+  // hors espace projet — `ProjectScopeBinder` a remis `activeProjectId` a
+  // null, mais son menu ne doit pas disparaitre pour autant. On retombe sur
+  // le projet de son rattachement.
+  //
+  // Un operateur back-office bascule, lui : menu plateforme par defaut, menu
+  // projet quand il en ouvre un.
   const activeProjectId = meStore.getActiveProjectId();
-  const { data: activeProject } = useProject(
-    isProjectMode ? (activeProjectId ?? undefined) : undefined,
+  const relationshipProjectId =
+    meStore.getActiveRoleRelationship()?.projectId ?? null;
+  const menuProjectId = isBackoffice
+    ? isProjectMode
+      ? activeProjectId
+      : null
+    : (activeProjectId ?? relationshipProjectId);
+
+  // Le nom vient du rattachement du contact quand il en a un. On n'interroge
+  // l'API que sinon — le cas d'un operateur back-office, qui n'est rattache a
+  // aucun projet. Un contact de projet, lui, n'a pas `projects:read` : appeler
+  // GET /projects/:id lui renvoyait un 403 a chaque page, et le nom restait
+  // vide.
+  const nameFromRelationship = meStore.getActiveProjectName();
+  const { data: fetchedProject } = useProject(
+    menuProjectId && !nameFromRelationship ? menuProjectId : undefined,
   );
+  const projectName = nameFromRelationship ?? fetchedProject?.name ?? '';
 
   const menuConfig = useMemo(() => {
-    if (!isProjectMode || !activeProjectId) return MENU_SIDEBAR;
+    if (!menuProjectId) return MENU_SIDEBAR;
     return buildProjectMenu(
-      activeProjectId,
-      activeProject?.name ?? '',
+      menuProjectId,
+      projectName,
       meStore.getPermissionCodes(),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isProjectMode, activeProjectId, activeProject?.name, meStore.me]);
+  }, [menuProjectId, projectName, meStore.me]);
 
   // Collect section values for localStorage persistence
   const sectionValues = useMemo(
@@ -143,7 +169,10 @@ export function SidebarMenu() {
 
   const buildMenu = (items: MenuConfig): JSX.Element[] => {
     return items
-      .filter((item: MenuItem) => !item.activeProject) // Exclude activeProject from scrollable menu
+      // On teste la presence de la cle, pas sa valeur : un nom de projet vide
+      // est falsy, l'entete passait alors le filtre et rendait un bouton vide
+      // en haut du rail.
+      .filter((item: MenuItem) => item.activeProject === undefined)
       .filter((item: MenuItem) => {
         if (!item.readPermission) return true;
         return meStore.hasPermission(item.readPermission);

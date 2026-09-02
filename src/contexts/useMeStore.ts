@@ -92,7 +92,19 @@ export const useMeStore = create<MeStoreState>((set, get) => ({
     }
 
     const activeProjectId = store.activeProjectId;
-    if (!activeProjectId) return null;
+
+    // Hors espace projet — /profile, /bienvenue — `ProjectScopeBinder` remet
+    // `activeProjectId` a null au demontage, pour que l'en-tete x-project-id
+    // ne suive pas sur des routes qui ne sont pas scopees.
+    //
+    // Sans repli, le contact perdait alors ses droits et son menu : un rail
+    // vide sur son propre profil. On retombe donc sur son premier projet par
+    // ordre d'affichage — exactement ce que `setMe` choisit a la connexion.
+    // Ce n'est qu'un defaut d'affichage : rien n'est envoye au serveur tant
+    // qu'aucun projet n'est reellement actif, et c'est lui qui decide.
+    if (!activeProjectId) {
+      return [...me.roleRelationships].sort(byDisplayOrder).find((r) => !!r.projectId) ?? null;
+    }
 
     return (
       me.roleRelationships.find(
