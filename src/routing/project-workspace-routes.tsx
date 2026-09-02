@@ -8,6 +8,7 @@ import {
 } from '@/features/settings/constants/constants';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
 import UsersTable from '@/features/user/components/UsersTable';
+import { UserInformationsPage } from '@/pages/UserInformationsPage';
 import { RequirePermission } from '@/guards/RequirePermission';
 
 /**
@@ -45,6 +46,12 @@ export function ProjectWorkspaceRoutes() {
 
       <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>
         <Route path="users" element={<UsersTable />} />
+        {/* Sans cette route, la fiche d'un utilisateur du projet etait
+            inatteignable : ni modification, ni retrait, ni surcharges. */}
+        <Route
+          path="users/:userId/informations"
+          element={<UserInformationsPage />}
+        />
       </Route>
 
       <Route

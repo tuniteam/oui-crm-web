@@ -5,17 +5,26 @@ export const CREATE_USER_WINDOW = {
     LAST_NAME: 'Nom',
     EMAIL: 'Email',
     ROLE: 'Rôle',
+    INITIALS: 'Initiales',
+    EXTERNAL: 'Accès externe',
+    EXPIRES_AT: "Fin d'accès",
   },
   PLACEHOLDERS: {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
     EMAIL: 'email@exemple.com',
     ROLE: 'Sélectionner un rôle',
+    INITIALS: 'WB',
+  },
+  HINTS: {
+    INITIALS: 'Deux ou trois majuscules ou chiffres. Servent à numéroter les devis.',
+    EXTERNAL: "Un accès externe expire à la date choisie. Sans date, l'accès est permanent.",
   },
   LOADING_LABELS: {
     CREATING: 'Création...',
   },
   ROLES: {
+    LOADING: 'Chargement des rôles...',
     ERROR: 'Impossible de charger les rôles',
     NO_ROLE: 'Aucun rôle disponible',
     CANNOT_EDIT: 'Vous ne pouvez pas modifier votre propre rôle.',
@@ -23,6 +32,18 @@ export const CREATE_USER_WINDOW = {
 } as const;
 
 export const TOASTS = {
+  /*
+   * Le serveur rend le statut resultant, et il change le sens de l'operation :
+   * un e-mail inconnu cree un compte en attente et lui envoie une invitation,
+   * un e-mail deja connu rattache le compte au projet sans rien envoyer.
+   *
+   * On ne distingue pas le rattachement de la reactivation d'une affectation
+   * suspendue : le serveur rend ACTIVE dans les deux cas, et le front n'a pas
+   * de quoi trancher. Un message commun vaut mieux qu'un message invente.
+   */
+  USER_INVITED: (email: string) => `Invitation envoyée à ${email}`,
+  USER_ATTACHED: 'Utilisateur rattaché au projet',
+
   USER_CREATED: 'Utilisateur créé',
   CREATE_USER_ERROR: 'Erreur création utilisateur',
   SLOT_ASSIGNED: 'Le créneau a été assigné à la structure',
@@ -40,6 +61,9 @@ export const ZOD_ERRORS = {
   MIN_LENGTH: 'Longueur minimale invalide',
   MAX_LENGTH: 'Longueur maximale dépassée',
   STRUCTURE_REQUIRED: 'Établissement requis',
+  INVALID_INITIALS: 'Deux ou trois majuscules ou chiffres',
+  EXPIRATION_REQUIRED: "Une date de fin est requise pour un accès externe",
+  INVALID_DATE: 'Date invalide',
 } as const;
 
 export const USER_INFORMATION_UI = {

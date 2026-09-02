@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { CreateUserPayload, CreateUserResponse } from '../types/createUser';
 import { userService } from '../services/user.service';
 import { TOASTS } from '../constants/users.constants';
+import { USER_STATUS } from '../constants/userList.constants';
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
@@ -10,8 +11,12 @@ export function useCreateUser() {
   const mutation = useMutation<CreateUserResponse, Error, CreateUserPayload>({
     mutationFn: (payload) => userService.create(payload),
 
-    onSuccess: async () => {
-      toast.success(TOASTS.USER_CREATED);
+    onSuccess: async (created, payload) => {
+      toast.success(
+        created.status === USER_STATUS.PENDING
+          ? TOASTS.USER_INVITED(payload.email)
+          : TOASTS.USER_ATTACHED,
+      );
 
       await queryClient.invalidateQueries({
         queryKey: ['users', 'list'],

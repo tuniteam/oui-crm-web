@@ -20,6 +20,7 @@ import {
   USER_STATUS_LABELS,
   USERS_TABLE_UI,
 } from '../constants/userList.constants';
+import { useRoles } from '../hooks/useRoles';
 import { useUsers } from '../hooks/useUsers';
 import type {
   UserListItem,
@@ -65,10 +66,13 @@ export default function UsersTable({
 
   // local filters
   const [status, setStatus] = useState<UserStatus | 'ALL'>('ALL');
+  const [roleCode, setRoleCode] = useState<string>('ALL');
 
   const debouncedStatus = useDebouncedValue(status, 500);
+  const debouncedRoleCode = useDebouncedValue(roleCode, 500);
   const [openCreate, setOpenCreate] = useState(false);
-  const hasActiveFilters = debouncedStatus !== 'ALL';
+  const hasActiveFilters =
+    debouncedStatus !== 'ALL' || debouncedRoleCode !== 'ALL';
 
   const toolbarActions = useMemo(() => {
     if (!hasPermission(effectiveCreatePermission)) return null;
@@ -90,6 +94,8 @@ export default function UsersTable({
   const getMeta = useCallback((r: ReturnType<typeof useUsers>) => r.meta, []);
 
   // Options
+  const roles = useRoles({ isBackoffice: 'false' });
+
   const STATUS_OPTIONS: { value: UserStatus; label: string }[] = useMemo(
     () => USER_STATUS_LABELS,
     [],
@@ -117,9 +123,26 @@ export default function UsersTable({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Role : filtre supporte par GET /users (`roleCode`). Les roles
+            viennent de l'API, jamais d'une liste en dur — un projet peut
+            dupliquer un role et lui donner son propre code. */}
+        <Select value={roleCode} onValueChange={setRoleCode}>
+          <SelectTrigger data-testid="user-filter-role" className="w-60">
+            <SelectValue placeholder={SEARCH.ROLE_PLACEHOLDER} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">{SEARCH.ALL_ROLES_SELECT_OPTION}</SelectItem>
+            {roles.data.map((r) => (
+              <SelectItem key={r.id} value={r.code}>
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
-  }, [STATUS_OPTIONS, status]);
+  }, [STATUS_OPTIONS, status, roleCode, roles.data]);
 
   const buildParams = useCallback(
     (pagination: { pageIndex: number; pageSize: number }, search: string) => {
@@ -131,9 +154,10 @@ export default function UsersTable({
           debouncedStatus === 'ALL'
             ? undefined
             : (debouncedStatus as UserStatus),
+        roleCode: debouncedRoleCode === 'ALL' ? undefined : debouncedRoleCode,
       } satisfies UserListParams;
     },
-    [debouncedStatus],
+    [debouncedStatus, debouncedRoleCode],
   );
 
   return (

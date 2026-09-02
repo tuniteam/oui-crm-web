@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { UserMinus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useContent } from '@/hooks/useContent';
@@ -24,8 +24,8 @@ export function UserDeleteCard({ user, onDeleteClick, title, description }: Prop
         </div>
 
         <Button variant="destructive" onClick={onDeleteClick} disabled={!user}>
-          <Trash2 className="mr-2 h-4 w-4" />
-          {content.common.ACTIONS.DELETE}
+          <UserMinus className="mr-2 h-4 w-4" />
+          {content.user.delete.sheet.ACTIONS.CONFIRM}
         </Button>
       </CardContent>
     </Card>

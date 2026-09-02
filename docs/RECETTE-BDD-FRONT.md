@@ -23,7 +23,7 @@ travail, et la colonne Statut dit où on en est.
 | US-00-02 | Activation, mot de passe oublié, changement d'e-mail | ✅ livré |
 | US-00-03 | Profil | 🟡 livré ; volet légal écarté |
 | US-00-04 | Projets, mode projet | ✅ livré |
-| US-00-05 | Utilisateurs du projet | 🟡 liste seule |
+| US-00-05 | Utilisateurs du projet | 🟡 tout est là sauf les surcharges de permissions |
 | US-00-06 | Rôles et droits | ❌ à développer |
 | US-00-07 | Périmètres | ❌ à développer |
 | US-00-08 | Paramètres du projet | 🟡 livré hors grille tarifaire |
@@ -176,20 +176,72 @@ travail, et la colonne Statut dit où on en est.
 
 ---
 
-## US-00-05 · Utilisateurs du projet — 🟡 liste seule
+## US-00-05 · Utilisateurs du projet — 🟡 création et modification remises au contrat
 
-Scénarios couverts par la liste existante ; le reste est **à développer**.
+Les payloads d'écriture étaient hérités de soft-m et **échouaient à 100 %** :
+`roleId` au lieu de `roleCode`, `initials` et `isExternal` absents, `status`
+envoyé alors que l'API le refuse. Remis au contrat, vérifiés contre l'API.
+Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 | # | Scénario | Attendu | État |
 |---|---|---|---|
 | 1 | Liste sans projet actif | erreur « Aucun projet sélectionné » tant qu'aucun projet n'est ouvert | couvert |
 | 2 | Liste dans un projet | les utilisateurs du projet, filtrables par statut et rôle | couvert |
-| 3 | Créer un utilisateur | rôle et périmètre choisis, e-mail d'activation envoyé | à développer |
-| 4 | Modifier un utilisateur | rôle, périmètre, date de fin d'accès | à développer |
-| 5 | Surcharges de permissions | ajouts et retraits par rapport au rôle, remplacement en bloc | à développer |
-| 6 | Renvoyer l'activation | proposé sur un compte en attente seulement | à développer |
-| 7 | Retirer un utilisateur | affectation suspendue, réversible — jamais présentée comme une suppression | à développer |
-| 8 | Accès externe | date de fin affichée, utilisateur signalé comme externe | à développer |
+| 3 | Créer un utilisateur | prénom, nom, e-mail, initiales et rôle demandés ; e-mail d'activation envoyé | couvert |
+| 4 | Initiales hors format | « Deux ou trois majuscules ou chiffres » sous le champ, aucun appel | couvert |
+| 5 | Initiales déjà prises | message dédié après réponse du serveur, le formulaire reste rempli | couvert |
+| 6 | E-mail déjà rattaché au projet | « Cet utilisateur est déjà rattaché à ce projet » | couvert |
+| 7 | E-mail d'un compte back-office | message expliquant que les deux types de comptes sont distincts | couvert |
+| 8 | Accès externe sans date | la date de fin devient obligatoire dès que l'interrupteur est activé | couvert |
+| 9 | Modifier un utilisateur | prénom, nom, initiales, rôle et date de fin ; le statut n'y figure pas | couvert |
+| 10 | Modifier son propre compte | rôle et accès désactivés, avec l'explication sous le champ | couvert |
+| 11 | Retirer le dernier administrateur | refus expliqué, l'utilisateur reste en place | couvert |
+| 12 | Surcharges de permissions | ajouts et retraits par rapport au rôle, remplacement en bloc | à développer |
+| 16 | Filtrer par rôle | la liste se restreint au rôle choisi, rôles chargés depuis l'API | couvert |
+| 17 | Ouvrir une fiche depuis la liste | l'icône de la colonne Actions mène à la fiche du projet | couvert |
+| 18 | Retour après un retrait | on revient à la liste **du projet**, jamais à la liste plateforme | couvert |
+| 13 | Renvoyer l'activation | proposé sur un compte en attente seulement | à développer |
+| 14 | Retirer un utilisateur | affectation suspendue, réversible — jamais présentée comme une suppression | couvert |
+| 15 | Corriger l'e-mail | **route inexistante côté API** : l'écran appelle `PATCH /users/:id/email`, qui répond 404 | à retirer ou à faire ouvrir côté API |
+
+### Pièges relevés pendant le développement
+
+- **Le rôle se choisit par son `code`, jamais par son `id`.** L'API répond
+  explicitement « property roleId should not exist ». `GET /roles` rend les deux,
+  la tentation de prendre l'`id` est réelle.
+- **Le statut ne se modifie pas par `PATCH /users/:id`.** Suspendre passe par
+  `DELETE`, réactiver par un nouveau `POST`. Un sélecteur de statut dans le
+  formulaire d'édition fait échouer tout l'enregistrement.
+- **La date de fin est un jour calendaire `YYYY-MM-DD`.** Un `Date` sérialisé en
+  ISO est refusé. D'où le `<input type="date">`, qui ne peut produire que ce
+  format — ne pas le remplacer par un sélecteur qui rend un `Date`.
+- **Sur son propre compte**, le serveur refuse le rôle
+  (`CANNOT_UPDATE_OWN_ROLE`) *et* le périmètre ou la date
+  (`CANNOT_UPDATE_OWN_ACCESS`) : anti-escalade de privilèges. Le front n'envoie
+  donc aucun des trois, et désactive les champs plutôt que de laisser découvrir
+  le refus à l'enregistrement.
+- **Le retrait ne supprime rien.** `DELETE /users/:id` suspend l'affectation ;
+  un nouveau `POST` la réactive. Les libellés promettaient une « suppression
+  définitive des données associées » — faux, et sur des données personnelles
+  c'est une promesse qu'on ne tient pas.
+- **La création a trois issues, le serveur n'en distingue que deux.** `PENDING`
+  = compte créé et invitation envoyée ; `ACTIVE` = rattachement **ou**
+  réactivation d'une affectation suspendue, sans moyen de trancher côté front.
+  Ne pas inventer un troisième message.
+- **Une fiche revient à sa liste en relatif, jamais en absolu.**
+  `USER_ROUTES.USERS_LIST()` rend `/users` : depuis
+  `/:projectId/users/:id/informations`, cela sortait de l'espace projet et
+  atterrissait sur la liste plateforme, qui appelle une route scopée sans
+  `x-project-id` — « Aucun projet sélectionné » juste après un retrait.
+  `navigate('../..', { relative: 'path' })` : `relative: 'path'` est
+  indispensable, React Router remonte d'une *route* par défaut, pas d'un
+  segment d'URL.
+- **`UserDetailsLink` rendait `null` sans prop `getPath`**, ce qui vidait la
+  colonne Actions de la liste projet : plus aucun moyen d'ouvrir une fiche, donc
+  ni modification ni retrait. Il utilise désormais un chemin relatif par défaut.
+- **`scopeId` n'est pas encore proposé** : il dépend de la feature « périmètres »
+  (US-00-07), non commencée. Le contrat le rend optionnel, la création
+  fonctionne sans.
 
 ---
 
@@ -362,7 +414,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-01 23:03. 27/27 OK._
+_Généré par `npm run bdd` — 2026-09-02 09:18. 32/32 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -380,6 +432,11 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
 | US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
 | US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
+| US-00-05 | 05.2 | Le filtre par rôle part bien dans la requête | OK | `screenshots/05-2.png` |
+| US-00-05 | 05.4 | Initiales hors format refusées avant envoi | OK | `screenshots/05-4.png` |
+| US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |
+| US-00-05 | 05.14 | Le retrait n'est jamais présenté comme une suppression | OK | `screenshots/05-14.png` |
+| US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.7 | SIREN invalide refusé avant envoi | OK | `screenshots/08-7.png` |

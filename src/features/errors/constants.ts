@@ -24,4 +24,24 @@ export const NO_PERMISSIONS={
         DARK: '/media/illustrations/no-permission.svg',
     },
     IMAGE_ALT: 'Illustration accès restreint',
-} as const
+} as const;
+
+/**
+ * Accueil d'un compte dont les droits portent sur des ecrans a venir.
+ *
+ * A ne pas confondre avec NO_PERMISSIONS : ici rien n'est casse et il n'y a
+ * personne a prevenir. Ni badge d'alerte, ni bouton de deconnexion — les deux
+ * feraient croire a une anomalie de compte.
+ */
+export const WELCOME_PENDING = {
+    TITLE: 'Bienvenue',
+    SUBTITLE: 'Vos écrans arrivent',
+    DESCRIPTION:
+        "Votre compte est bien configuré. Les écrans qui correspondent à votre rôle sont en cours de développement et apparaîtront ici au fur et à mesure des livraisons.",
+    SCOPE_LABEL: 'Votre périmètre',
+    IMAGES: {
+        LIGHT: '/media/illustrations/coming-soon.svg',
+        DARK: '/media/illustrations/coming-soon.svg',
+    },
+    IMAGE_ALT: 'Illustration écrans à venir',
+} as const;

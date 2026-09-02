@@ -1,16 +1,46 @@
-// src/features/users/forms/edit-user-schema.ts
 import { z } from 'zod';
 import { ZOD_ERRORS } from '../constants/users.constants';
-import { USER_STATUS_VALUES } from '../constants/userList.constants';
+import { CALENDAR_DAY_PATTERN, INITIALS_PATTERN } from './create-user-schema';
 
+/**
+ * PATCH /users/:id. Pas de `status` : le serveur le refuse, le statut se pilote
+ * par la suspension et la re-creation. Pas d'e-mail non plus, il n'est pas
+ * modifiable par cette route.
+ */
 export const getEditUserSchema = () =>
-  z.object({
-    firstName: z.string().trim().min(1, ZOD_ERRORS.REQUIRED).max(100, ZOD_ERRORS.MAX_LENGTH),
-    lastName: z.string().trim().min(1, ZOD_ERRORS.REQUIRED).max(100, ZOD_ERRORS.MAX_LENGTH),
+  z
+    .object({
+      firstName: z
+        .string()
+        .trim()
+        .min(1, ZOD_ERRORS.REQUIRED)
+        .max(100, ZOD_ERRORS.MAX_LENGTH),
 
-    status: z.enum(USER_STATUS_VALUES),
+      lastName: z
+        .string()
+        .trim()
+        .min(1, ZOD_ERRORS.REQUIRED)
+        .max(100, ZOD_ERRORS.MAX_LENGTH),
 
-    roleId: z.string().trim().min(1, ZOD_ERRORS.REQUIRED),
-  });
+      initials: z
+        .string()
+        .trim()
+        .min(1, ZOD_ERRORS.REQUIRED)
+        .regex(INITIALS_PATTERN, ZOD_ERRORS.INVALID_INITIALS),
+
+      roleCode: z.string().trim().min(1, ZOD_ERRORS.REQUIRED),
+
+      isExternal: z.boolean(),
+
+      expiresAt: z
+        .string()
+        .trim()
+        .regex(CALENDAR_DAY_PATTERN, ZOD_ERRORS.INVALID_DATE)
+        .or(z.literal('')),
+    })
+    .refine((v) => !v.isExternal || v.expiresAt !== '', {
+      path: ['expiresAt'],
+      message: ZOD_ERRORS.EXPIRATION_REQUIRED,
+    });
 
 export type EditUserSchemaType = z.infer<ReturnType<typeof getEditUserSchema>>;

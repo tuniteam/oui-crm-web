@@ -5,14 +5,22 @@ export const UPDATE_USER_WINDOW = {
   LABELS: {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
-    STATUS: 'Statut',
+    /* Le statut n'est plus modifiable ici : l'API refuse `status` sur
+       PATCH /users/:id. Il se pilote par la suspension et la re-creation. */
     ROLE: 'Rôle',
+    INITIALS: 'Initiales',
+    EXTERNAL: 'Accès externe',
+    EXPIRES_AT: "Fin d'accès",
   },
   PLACEHOLDERS: {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
-    STATUS: 'Sélectionner un statut',
     ROLE: 'Sélectionner un rôle',
+    INITIALS: 'WB',
+  },
+  HINTS: {
+    OWN_ACCOUNT:
+      "Sur votre propre compte, le rôle et l'accès ne sont pas modifiables.",
   },
   LOADING_LABELS: {
     SAVING: 'Enregistrement...',

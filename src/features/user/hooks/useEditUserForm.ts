@@ -9,7 +9,11 @@ import type { UpdateUserPayload } from '../types/updateUser';
 import { useUpdateUser } from './useUpdateUser';
 import { useUser } from './useUser';
 
-export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,currentUserEmail?:string) {
+export function useEditUserForm(
+  userId: string,
+  isEditDrawerOpen: boolean,
+  currentUserEmail?: string,
+) {
   const schema = useMemo(() => getEditUserSchema(), []);
   const update = useUpdateUser();
   const userQuery = useUser(userId, isEditDrawerOpen);
@@ -19,8 +23,10 @@ export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,curren
     defaultValues: {
       firstName: '',
       lastName: '',
-      status: 'PENDING',
-      roleId: '',
+      initials: '',
+      roleCode: '',
+      isExternal: false,
+      expiresAt: '',
     },
     mode: 'onChange',
   });
@@ -32,8 +38,12 @@ export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,curren
     form.reset({
       firstName: u.firstName ?? '',
       lastName: u.lastName ?? '',
-      status: u.status ?? 'PENDING',
-      roleId: '',
+      initials: u.initials ?? '',
+      roleCode: u.roleCode ?? '',
+      isExternal: u.isExternal ?? false,
+      // Le serveur rend un jour calendaire ; on ne garde que la partie date au
+      // cas ou il renverrait un horodatage complet.
+      expiresAt: u.expiresAt ? u.expiresAt.slice(0, 10) : '',
     });
   }, [userQuery.data, form]);
 
@@ -43,11 +53,22 @@ export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,curren
 
     const v = form.getValues();
     const isCurrentUser = currentUserEmail === userQuery.data?.email;
+
     const payload: UpdateUserPayload = {
       firstName: v.firstName.trim(),
       lastName: v.lastName.trim(),
-      status: v.status,
-      ...(isCurrentUser ? {} : { roleId: v.roleId }),
+      initials: v.initials.trim().toUpperCase(),
+      // Sur son propre compte, le serveur refuse le changement de role
+      // (CANNOT_UPDATE_OWN_ROLE) et d'acces (CANNOT_UPDATE_OWN_ACCESS) :
+      // anti-escalade de privileges. On n'envoie donc ni l'un ni l'autre.
+      ...(isCurrentUser
+        ? {}
+        : {
+            roleCode: v.roleCode,
+            // `null` retire explicitement la date : c'est ainsi qu'un acces
+            // externe redevient permanent.
+            expiresAt: v.isExternal && v.expiresAt ? v.expiresAt : null,
+          }),
     };
 
     return update.updateUser(userId, payload);
@@ -64,3 +85,4 @@ export function useEditUserForm(userId: string, isEditDrawerOpen: boolean,curren
 }
 
 export type EditUserHooks = ReturnType<typeof useEditUserForm>;
+

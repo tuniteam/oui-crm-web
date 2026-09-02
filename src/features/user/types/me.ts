@@ -58,6 +58,8 @@ export type MeScope = {
  */
 export type MeRoleRelationship = {
   roleCode: string;
+  /** Libelle lisible du role, rendu par /profile/me a cote du code. */
+  roleLabel: string;
   /** null pour une relation BACKOFFICE : elle n'est rattachee a aucun projet. */
   projectId: string | null;
   projectName: string | null;

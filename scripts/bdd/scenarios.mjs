@@ -275,6 +275,151 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-00-05
+  {
+    id: '05.2',
+    us: 'US-00-05',
+    title: 'Le filtre par rôle part bien dans la requête',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      const calls = [];
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/users'),
+        (route) => {
+          calls.push(route.request().url());
+          return route.continue();
+        },
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-filter-role').click();
+      await page.getByRole('option', { name: /sales representative/i }).first().click();
+
+      // Le filtre est debounce a 500 ms : on laisse l'appel repartir.
+      await page.waitForTimeout(1800);
+
+      const filtered = calls.filter((u) => u.includes('roleCode='));
+      expect(
+        filtered.length > 0,
+        `aucun appel avec roleCode= (${calls.length} appel(s) observé(s))`,
+      );
+    },
+  },
+  {
+    id: '05.14',
+    us: 'US-00-05',
+    title: "Le retrait n'est jamais présenté comme une suppression",
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page
+        .getByText(/retrait du projet/i)
+        .first()
+        .waitFor({ timeout: 10000 });
+
+      const body = (await page.locator('body').innerText()).toLowerCase();
+      // L'API suspend l'affectation, elle ne supprime rien : promettre une
+      // suppression definitive est faux, et sur des donnees personnelles c'est
+      // une promesse qu'on ne tient pas.
+      expect(
+        !body.includes('définitive') && !body.includes('definitive'),
+        'l’écran parle encore de suppression définitive',
+      );
+    },
+  },
+  {
+    id: '05.15',
+    us: 'US-00-05',
+    title: 'Après un retrait, on revient à la liste du projet',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Seul le DELETE est simule : le reste de l'ecran doit vivre.
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/users/'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({ status: 204, body: '' })
+            : route.continue(),
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page.getByText(/retrait du projet/i).first().waitFor({ timeout: 10000 });
+
+      const label = /retirer du projet/i;
+      await page.getByRole('button', { name: label }).first().click();
+      await page.getByRole('dialog').getByRole('button', { name: label }).click();
+
+      await page.waitForURL(`**/${projectId}/users`, { timeout: 8000 });
+
+      // Le vrai symptome : la liste plateforme appelle une route scopee sans
+      // x-project-id et affiche « Aucun projet selectionne ».
+      const body = await page.locator('body').innerText();
+      expect(
+        !body.includes('Aucun projet'),
+        'retour sur la liste plateforme au lieu de celle du projet',
+      );
+    },
+  },
+  {
+    id: '05.4',
+    us: 'US-00-05',
+    title: 'Initiales hors format refusées avant envoi',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      let called = false;
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/users'),
+        (route) => {
+          if (route.request().method() === 'POST') called = true;
+          return route.continue();
+        },
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByRole('button', { name: /nouvel utilisateur/i }).click();
+      await page.getByTestId('user-initials-input').fill('A');
+      // Le message doit apparaitre sans qu'aucun appel ne parte.
+      await page
+        .getByText(/deux ou trois majuscules ou chiffres/i)
+        .first()
+        .waitFor({ timeout: 6000 });
+      expect(called === false, 'un POST /users est parti malgré des initiales invalides');
+    },
+  },
+  {
+    id: '05.8',
+    us: 'US-00-05',
+    title: "Accès externe : la date de fin reste visible et atteignable",
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Fenetre courte : c'est la seule hauteur ou le formulaire depasse la
+      // fenetre modale. En 900px il tient, et le defaut ne se voit pas.
+      await page.setViewportSize({ width: 1280, height: 720 });
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByRole('button', { name: /nouvel utilisateur/i }).click();
+      await page.getByTestId('user-external-switch').click();
+
+      const date = page.getByTestId('user-expires-input');
+      await date.waitFor({ timeout: 6000 });
+
+      // Le champ ne doit pas passer sous le pied de fenetre : on compare sa
+      // base au haut du pied. C'est ce que le corps defilant garantit.
+      const field = await date.boundingBox();
+      const footer = await page
+        .locator('[data-slot="dialog-footer"]')
+        .first()
+        .boundingBox();
+      expect(!!field, 'le champ de date est introuvable');
+      expect(
+        !footer || field.y + field.height <= footer.y + 1,
+        'le champ de date passe sous le pied de fenêtre',
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
@@ -373,7 +518,14 @@ export const scenarios = [
     async run({ page, expect, projectId }) {
       await page.goto(`/${projectId}/settings`);
       await page.getByTestId('settings-tab-documents').click();
-      await page.getByText('Numérotation').first().waitFor({ timeout: 8000 });
+      // On attend le titre de section du panneau, pas un texte quelconque :
+      // « numérotation » figure aussi dans la description de l'onglet, a
+      // gauche, donc une attente sur le texte est satisfaite avant meme que le
+      // panneau bascule — et le comptage partait sur le panneau Societe.
+      await page
+        .getByRole('heading', { name: /num[ée]rotation/i })
+        .first()
+        .waitFor({ timeout: 8000 });
       // Les exemples sont du texte, pas des champs de saisie.
       const inputs = await page
         .locator('input[type="text"], input:not([type])')

@@ -16,7 +16,10 @@ export function useCreateUserForm() {
       firstName: '',
       lastName: '',
       email: '',
-      roleId: '',
+      initials: '',
+      roleCode: '',
+      isExternal: false,
+      expiresAt: '',
     },
     mode: 'onChange',
   });
@@ -30,7 +33,12 @@ export function useCreateUserForm() {
       firstName: v.firstName.trim(),
       lastName: v.lastName.trim(),
       email: v.email.toLowerCase().trim(),
-      roleId: v.roleId,
+      initials: v.initials.trim().toUpperCase(),
+      roleCode: v.roleCode,
+      isExternal: v.isExternal,
+      // Le champ n'est envoye que s'il a un sens : le serveur refuse une date
+      // sur un acces interne, et une chaine vide n'est pas une date valide.
+      ...(v.isExternal && v.expiresAt ? { expiresAt: v.expiresAt } : {}),
     };
   };
 
@@ -44,3 +52,4 @@ export function useCreateUserForm() {
 
   return { form, create, submit };
 }
+

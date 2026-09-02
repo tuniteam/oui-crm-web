@@ -49,7 +49,11 @@ export function DetailsPageHeader({
             <Button
               data-testid="details-back-btn"
               variant="outline"
-              onClick={() => navigate(backRoute)}
+              /* `relative: 'path'` remonte des segments d'URL et non des
+                 routes : c'est ce qui permet a une fiche de revenir a sa liste
+                 sans savoir si elle vit sous `/users` ou sous
+                 `/:projectId/users`. Sans effet sur un chemin absolu. */
+              onClick={() => navigate(backRoute, { relative: 'path' })}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               {common.ACTIONS.BACK}
