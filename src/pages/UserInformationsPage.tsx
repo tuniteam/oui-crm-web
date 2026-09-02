@@ -12,13 +12,27 @@ import { UserInformationsTab } from '@/features/user/components/user-details/Use
 import { UserInviteCard } from '@/features/user/components/user-invite/UserInviteCard';
 import { EditUserWindow } from '@/features/user/components/user-update/EditUserWindow';
 import { INVITABLE_STATUSES } from '@/features/user/constants/invite-user.constants';
-import { USER_ROUTES } from '@/features/user/constants/user.routes';
 import { useInviteUser } from '@/features/user/hooks/useInviteUser';
 import { useUser } from '@/features/user/hooks/useUser';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { DetailsPageHeader } from '@/components/layouts/layout-1/shared/details-page/DetailsPageHeader';
 import { DetailsPageHeaderSkeleton } from '@/components/layouts/layout-1/shared/details-page/skeletons/DetailsPageHeaderSkeleton';
+
+/**
+ * Retour a la liste, en relatif.
+ *
+ * `USER_ROUTES.USERS_LIST()` rend `/users` en absolu : depuis
+ * `/:projectId/users/:userId/informations`, cela sortait de l'espace projet et
+ * atterrissait sur la liste plateforme, qui appelle une route scopee sans
+ * `x-project-id` — d'ou « Aucun projet selectionne » apres un retrait.
+ *
+ * Deux segments d'URL en arriere ramenent a la liste, aussi bien depuis
+ * `/users/:id/informations` que depuis `/:projectId/users/:id/informations`.
+ * `relative: 'path'` est indispensable : par defaut React Router remonte d'un
+ * *route* et non d'un segment.
+ */
+const USERS_LIST_RELATIVE = '../..';
 
 export function UserInformationsPage() {
   const navigate = useNavigate();
@@ -59,7 +73,7 @@ export function UserInformationsPage() {
     <>
       <DetailsPageHeader
         title={title}
-        backRoute={USER_ROUTES.USERS_LIST()}
+        backRoute={USERS_LIST_RELATIVE}
         targetId={data?.id ?? ''}
         onEditClick={() => setOpenEdit(true)}
         editPermission={PERMISSIONS.USERS.UPDATE}
@@ -102,7 +116,9 @@ export function UserInformationsPage() {
           open={openDelete}
           onOpenChange={setOpenDelete}
           userId={data.id}
-          onDeleted={() => navigate(USER_ROUTES.USERS_LIST())}
+          onDeleted={() =>
+            navigate(USERS_LIST_RELATIVE, { relative: 'path', replace: true })
+          }
         />
       ) : null}
 
