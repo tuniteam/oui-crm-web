@@ -30,6 +30,7 @@ travail, et la colonne Statut dit où on en est.
 | US-00-09 | Référentiels | ❌ à développer |
 | US-00-10 | Journal d'activité | ❌ à développer |
 | US-00-11 | Comptes back-office | ✅ livré |
+| **US-01-01** | **Organismes — liste et recherche** | 🟡 liste livrée ; création, fiche et contacts à développer |
 
 ---
 
@@ -384,6 +385,55 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
+## US-01-01 · Organismes, liste et recherche — 🟡 liste livrée
+
+Première story du lot L1. La liste reprend les onze colonnes de l'écran
+Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Liste dans un projet | les organismes du projet, paginés, tri par nom par défaut | couvert |
+| 2 | Types, solutions et étiquettes | affichés en libellés, jamais en clés de référentiel | couvert |
+| 3 | Strate | valeur rendue par l'API, jamais recalculée côté front | couvert |
+| 4 | Statuts | libellés français de la V8, dans son ordre | couvert |
+| 5 | Filtre « fiches incomplètes » | envoie `completenessMax=99`, pas 100 | couvert |
+| 6 | Recherche | nom, ville, et début du SIRET si la saisie est numérique | couvert |
+| 7 | Fiche hors périmètre | ligne en retrait, « hors de votre périmètre », colonnes vidées | couvert |
+| 8 | Tri sur une colonne non triable | Type et Solution ne sont pas cliquables — l'API ne les trie pas | couvert |
+| 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
+| 10 | Filtre par commercial | demande la liste des membres du projet | à développer |
+| 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | à développer |
+| 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
+
+### Pièges relevés pendant le développement
+
+- **La recherche ne fait pas ce que promet la V8.** Son placeholder annonce
+  « Nom, ville, code postal, SIRET, contact… ». Vérifié contre l'API : `14000`
+  et `Lemarchand` ne rendent **rien**. Le placeholder dit désormais la vérité —
+  ne pas le « rétablir » sur la maquette.
+- **La strate vient de l'API.** Les grilles tarifaires sont par projet et
+  versionnées : Caen (105 512) et Paris (2 145 906) partagent « Plus de 10 000
+  hab. » parce que c'est la tranche haute de *cette* grille. La V8 ne code pas
+  les tranches en dur non plus (`STRATES = PRICING.strates.map(...)`). Ne jamais
+  recalculer `bracketLabel`.
+- **`completenessMax` est inclusif** : le compteur « fiches incomplètes » vaut
+  99, pas 100 — 100 ramènerait toute la base.
+- **`type`, `solution` et les étiquettes sont des clés de référentiel.**
+  Affichées brutes, l'utilisateur lit « HOT · PUBLIC_TENDER ». Elles passent
+  toutes par `useReferenceLabels`, y compris les étiquettes du sous-titre.
+- **Une clé inconnue s'affiche telle quelle**, jamais masquée : une fiche peut
+  porter une valeur devenue inactive, l'effacer donnerait une colonne vide sans
+  explication.
+- **`access: "RESTRICTED"` ne rend que neuf champs.** Tout le reste est
+  optionnel dans le type — ne jamais le lire sans vérifier l'accès. Le cas
+  `NONE` n'existe pas côté front : ces fiches n'apparaissent pas en liste et
+  répondent 404 en détail.
+- **Type et Solution ne sont pas triables** côté API, alors que la V8 rend leurs
+  en-têtes cliquables. Ils ne le sont pas ici, plutôt que d'offrir un tri qui
+  échouerait.
+
+---
+
 ## Conventions
 
 Reprises de la recette de l'API pour que les deux se lisent pareil.
@@ -414,11 +464,14 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 09:18. 32/32 OK._
+_Généré par `npm run bdd` — 2026-09-02 11:36. 35/35 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
 |---|---|---|---|---|
+| US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/01-01-2.png` |
+| US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
+| US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
 | US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
 | US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
 | US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |

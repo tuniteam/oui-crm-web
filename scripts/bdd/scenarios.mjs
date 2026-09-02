@@ -420,6 +420,97 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-01-01
+  {
+    id: '01-01.2',
+    us: 'US-01-01',
+    title: 'Types, solutions et étiquettes affichés en libellés',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId(/^organization-name-/).first().waitFor({ timeout: 10000 });
+
+      const body = await page.locator('body').innerText();
+      // Les cles de referentiel du jeu de donnees. Les voir a l'ecran signifie
+      // qu'une traduction manque quelque part.
+      const rawKeys = ['HOT', 'PUBLIC_TENDER', 'WATCH', 'COMPETITOR_RENEWAL'];
+      const leaked = rawKeys.filter((k) => body.includes(k));
+      expect(
+        leaked.length === 0,
+        `clé(s) de référentiel affichée(s) brutes : ${leaked.join(', ')}`,
+      );
+      expect(body.includes('Chaud'), 'aucune étiquette traduite trouvée');
+    },
+  },
+  {
+    id: '01-01.5',
+    us: 'US-01-01',
+    title: 'Le filtre « fiches incomplètes » envoie completenessMax=99',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      const calls = [];
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/organizations'),
+        (route) => {
+          calls.push(route.request().url());
+          return route.continue();
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-filter-incomplete').click();
+      await page.waitForTimeout(1800);
+
+      const withMax = calls.filter((u) => u.includes('completenessMax='));
+      expect(withMax.length > 0, 'aucun appel avec completenessMax=');
+      expect(
+        withMax.every((u) => u.includes('completenessMax=99')),
+        `attendu 99, vu : ${withMax.map((u) => u.split('completenessMax=')[1]?.split('&')[0]).join(', ')}`,
+      );
+    },
+  },
+  {
+    id: '01-01.7',
+    us: 'US-01-01',
+    title: 'Une fiche hors périmètre est signalée et ses colonnes vidées',
+    needsProject: true,
+    async run({ page, expect, projectId }) {
+      // Le jeu de donnees n'a que des fiches FULL : on simule la projection a
+      // neuf champs que le serveur rend sur un acces restreint.
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'cxxxxxxxxxxxxxxxxxxxxxxxx',
+            name: 'Commune hors secteur',
+            type: 'COMMUNE',
+            city: 'Ailleurs',
+            department: '99',
+            salesStatus: 'IN_PROGRESS',
+            customerStatus: 'NOT_CUSTOMER',
+            salesRep: { id: 'c1', fullName: 'Wiem Bousaid' },
+            access: 'RESTRICTED',
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByText('Commune hors secteur').first().waitFor({ timeout: 10000 });
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('hors de votre périmètre'),
+        'la ligne restreinte ne porte pas la mention',
+      );
+      // La population n'est pas rendue par le serveur : elle doit rester vide,
+      // pas afficher 0 ni undefined.
+      expect(
+        !body.includes('undefined') && !body.includes('NaN'),
+        'un champ absent est rendu tel quel',
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
