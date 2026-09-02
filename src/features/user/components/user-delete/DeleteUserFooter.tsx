@@ -1,4 +1,4 @@
-import { LoaderCircleIcon, Trash2, X } from 'lucide-react';
+import { LoaderCircleIcon, UserMinus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDeleteUser } from '@/features/user/hooks/useDeleteUser';
 import { useContent } from '@/hooks/useContent';
@@ -51,8 +51,8 @@ export function DeleteUserFooter({ userId, onCloseSheet, onDeleted, useDeleteHoo
           </span>
         ) : (
           <span className="flex items-center gap-2">
-            <Trash2 />
-            {content.common.ACTIONS.DELETE}
+            <UserMinus />
+            {content.user.delete.sheet.ACTIONS.CONFIRM}
           </span>
         )}
       </Button>
