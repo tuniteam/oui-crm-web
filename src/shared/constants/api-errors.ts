@@ -58,6 +58,23 @@ export const API_ERROR = {
   USER_INACTIVE: 'Cet utilisateur est suspendu.',
   USER_ALREADY_ACTIVE: 'Cet utilisateur est déjà activé.',
 
+  // Users du projet (US-00-05)
+  INITIALS_ALREADY_USED:
+    'Ces initiales sont déjà utilisées dans ce projet.',
+  EMAIL_EXISTS_FOR_PROJECT:
+    'Cet utilisateur est déjà rattaché à ce projet.',
+  EMAIL_ALREADY_TAKEN:
+    "Cette adresse appartient à un compte back-office. Les deux types de comptes sont distincts.",
+  EXPIRATION_REQUIRED_FOR_EXTERNAL:
+    "Un accès externe demande une date de fin d'accès.",
+  SCOPE_NOT_FOUND: 'Périmètre introuvable.',
+  USER_IS_LAST_ADMIN:
+    "Impossible : c'est le dernier administrateur actif du projet.",
+  EMPTY_UPDATE_PAYLOAD: 'Aucune modification à enregistrer.',
+  PERMISSION_NOT_FOUND: 'Permission inconnue.',
+  CANNOT_UPDATE_OWN_ACCESS:
+    "Vous ne pouvez pas modifier votre propre périmètre ni votre date de fin d'accès.",
+
   // Users / Backoffice / Roles
   CANNOT_UPDATE_OWN_ROLE: 'Vous ne pouvez pas modifier votre propre rôle.',
   CANNOT_DELETE_SELF: 'Vous ne pouvez pas vous supprimer de ce client.',
@@ -113,4 +130,13 @@ export const API_ERROR_CODE = {
   PROJECT_MISMATCH: 'PROJECT_MISMATCH',
   PROJECT_NOT_ACTIVE: 'PROJECT_NOT_ACTIVE',
   USER_HAS_NO_PROJECT: 'USER_HAS_NO_PROJECT',
+  INITIALS_ALREADY_USED: 'INITIALS_ALREADY_USED',
+  EMAIL_EXISTS_FOR_PROJECT: 'EMAIL_EXISTS_FOR_PROJECT',
+  EMAIL_ALREADY_TAKEN: 'EMAIL_ALREADY_TAKEN',
+  EXPIRATION_REQUIRED_FOR_EXTERNAL: 'EXPIRATION_REQUIRED_FOR_EXTERNAL',
+  SCOPE_NOT_FOUND: 'SCOPE_NOT_FOUND',
+  USER_IS_LAST_ADMIN: 'USER_IS_LAST_ADMIN',
+  EMPTY_UPDATE_PAYLOAD: 'EMPTY_UPDATE_PAYLOAD',
+  PERMISSION_NOT_FOUND: 'PERMISSION_NOT_FOUND',
+  CANNOT_UPDATE_OWN_ACCESS: 'CANNOT_UPDATE_OWN_ACCESS',
 } as const satisfies Record<string, ApiErrorCode>;

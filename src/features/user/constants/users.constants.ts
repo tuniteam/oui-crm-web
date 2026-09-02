@@ -5,17 +5,26 @@ export const CREATE_USER_WINDOW = {
     LAST_NAME: 'Nom',
     EMAIL: 'Email',
     ROLE: 'Rôle',
+    INITIALS: 'Initiales',
+    EXTERNAL: 'Accès externe',
+    EXPIRES_AT: "Fin d'accès",
   },
   PLACEHOLDERS: {
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
     EMAIL: 'email@exemple.com',
     ROLE: 'Sélectionner un rôle',
+    INITIALS: 'WB',
+  },
+  HINTS: {
+    INITIALS: 'Deux ou trois majuscules ou chiffres. Servent à numéroter les devis.',
+    EXTERNAL: "Un accès externe expire à la date choisie. Sans date, l'accès est permanent.",
   },
   LOADING_LABELS: {
     CREATING: 'Création...',
   },
   ROLES: {
+    LOADING: 'Chargement des rôles...',
     ERROR: 'Impossible de charger les rôles',
     NO_ROLE: 'Aucun rôle disponible',
     CANNOT_EDIT: 'Vous ne pouvez pas modifier votre propre rôle.',
@@ -40,6 +49,9 @@ export const ZOD_ERRORS = {
   MIN_LENGTH: 'Longueur minimale invalide',
   MAX_LENGTH: 'Longueur maximale dépassée',
   STRUCTURE_REQUIRED: 'Établissement requis',
+  INVALID_INITIALS: 'Deux ou trois majuscules ou chiffres',
+  EXPIRATION_REQUIRED: "Une date de fin est requise pour un accès externe",
+  INVALID_DATE: 'Date invalide',
 } as const;
 
 export const USER_INFORMATION_UI = {
