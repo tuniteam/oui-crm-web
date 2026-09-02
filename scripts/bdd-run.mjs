@@ -16,6 +16,7 @@ import { chromium } from 'playwright';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { scenarios } from './bdd/scenarios.mjs';
+import { AUTO_END, AUTO_START, RECIPE_PATH } from './bdd/recipe.mjs';
 
 const FRONT = process.env.PROBE_FRONT ?? 'http://localhost:5174';
 const API = process.env.PROBE_API ?? 'http://localhost:3001/api/v1';
@@ -125,11 +126,11 @@ const passed = results.filter((r) => r.ok).length;
 console.log(`\n${passed}/${results.length} scénario(s) OK.`);
 
 // ── Réinjection dans la recette ────────────────────────────────────────────
-const RECIPE = 'docs/RECETTE-BDD-FRONT.md';
+const RECIPE = RECIPE_PATH;
 let md = readFileSync(RECIPE, 'utf8');
 
-const START = '<!-- bdd:auto:start -->';
-const END = '<!-- bdd:auto:end -->';
+const START = AUTO_START;
+const END = AUTO_END;
 
 const row = (r) =>
   `| ${r.us} | ${r.id} | ${r.title} | ${r.ok ? 'OK' : 'KO'} | \`${r.file.replace('docs/', '')}\` |`;
@@ -142,7 +143,10 @@ const previous = new Map();
 if (md.includes(START) && md.includes(END)) {
   const existing = md.slice(md.indexOf(START), md.indexOf(END));
   for (const line of existing.split('\n')) {
-    const m = line.match(/^\|\s*US-\d\d-\d\d\s*\|\s*([\d.]+)\s*\|/);
+    // `[\d.\-]+` et non `[\d.]+` : les identifiants du lot L1 portent un
+    // tiret (`01-01.2`). Sans lui, une execution filtree effacait du tableau
+    // les scenarios qu'elle n'avait pas rejoues, au lieu de les preserver.
+    const m = line.match(/^\|\s*US-\d\d-\d\d\s*\|\s*([\d.\-]+)\s*\|/);
     if (m) previous.set(m[1], line);
   }
 }
@@ -172,6 +176,11 @@ md =
 
 writeFileSync(RECIPE, md);
 console.log(`Recette mise à jour : ${RECIPE}`);
+
+// Le Gherkin est une vue de la recette : il se regenere avec elle. Appele ici
+// et non chaine en `&&` dans package.json — `npm run bdd -- --us=08` aurait
+// passe le filtre au dernier maillon, et le runner aurait tout rejoue.
+await import('./bdd-features.mjs');
 
 // Persiste le résultat pour le rapport HTML, qui croise la recette entière
 // avec ce qui a réellement été exécuté.

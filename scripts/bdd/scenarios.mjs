@@ -278,6 +278,11 @@ export const scenarios = [
   // ─────────────────────────────── US-00-05
   {
     id: '05.2',
+    gherkin: [
+      "Given je suis sur la liste des utilisateurs d'un projet",
+      "When je choisis un rôle dans le filtre",
+      "Then la requête envoyée porte roleCode",
+    ],
     us: 'US-00-05',
     title: 'Le filtre par rôle part bien dans la requête',
     needsProject: true,
@@ -307,6 +312,11 @@ export const scenarios = [
   },
   {
     id: '05.14',
+    gherkin: [
+      "Given j'ouvre la fiche d'un utilisateur du projet",
+      "When je regarde le bloc de retrait",
+      "Then il ne parle jamais de suppression définitive",
+    ],
     us: 'US-00-05',
     title: "Le retrait n'est jamais présenté comme une suppression",
     needsProject: true,
@@ -330,6 +340,12 @@ export const scenarios = [
   },
   {
     id: '05.15',
+    gherkin: [
+      "Given j'ouvre la fiche d'un utilisateur du projet",
+      "When je confirme son retrait du projet",
+      "Then je reviens à la liste du projet",
+      "And jamais à la liste plateforme, qui n'a pas de projet actif",
+    ],
     us: 'US-00-05',
     title: 'Après un retrait, on revient à la liste du projet',
     needsProject: true,
@@ -364,6 +380,12 @@ export const scenarios = [
   },
   {
     id: '05.4',
+    gherkin: [
+      "Given j'ouvre la fenêtre « Créer un utilisateur »",
+      "When je saisis une seule lettre dans « Initiales »",
+      "Then le message « Deux ou trois majuscules ou chiffres » s'affiche",
+      "And aucun appel de création n'est parti",
+    ],
     us: 'US-00-05',
     title: 'Initiales hors format refusées avant envoi',
     needsProject: true,
@@ -390,6 +412,11 @@ export const scenarios = [
   },
   {
     id: '05.8',
+    gherkin: [
+      "Given j'ouvre la fenêtre « Créer un utilisateur »",
+      "When j'active « Accès externe »",
+      "Then le champ « Fin d'accès » reste visible et atteignable",
+    ],
     us: 'US-00-05',
     title: "Accès externe : la date de fin reste visible et atteignable",
     needsProject: true,
@@ -423,6 +450,12 @@ export const scenarios = [
   // ─────────────────────────────── US-01-01
   {
     id: '01-01.2',
+    gherkin: [
+      "Given je suis connecté comme administrateur du projet",
+      "When j'ouvre l'écran « Organismes »",
+      "Then aucune clé de référentiel n'est visible à l'écran",
+      "And je vois l'étiquette « Chaud » à la place de « HOT »",
+    ],
     us: 'US-01-01',
     title: 'Types, solutions et étiquettes affichés en libellés',
     needsProject: true,
@@ -444,6 +477,12 @@ export const scenarios = [
   },
   {
     id: '01-01.5',
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      "When j'active le filtre « Fiches incomplètes »",
+      "Then la requête envoyée porte completenessMax=99",
+      "And jamais 100, qui ramènerait toute la base",
+    ],
     us: 'US-01-01',
     title: 'Le filtre « fiches incomplètes » envoie completenessMax=99',
     needsProject: true,
@@ -471,6 +510,12 @@ export const scenarios = [
   },
   {
     id: '01-01.7',
+    gherkin: [
+      "Given une fiche hors de mon périmètre, rendue en projection restreinte",
+      "When j'ouvre l'écran « Organismes »",
+      "Then la ligne porte la mention « hors de votre périmètre »",
+      "And les champs que le serveur ne renvoie pas restent vides",
+    ],
     us: 'US-01-01',
     title: 'Une fiche hors périmètre est signalée et ses colonnes vidées',
     needsProject: true,
