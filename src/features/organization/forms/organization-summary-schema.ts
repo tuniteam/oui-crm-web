@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PRIORITY_VALUES } from '../types/organizationList';
 
-const ZOD = {
+export const ZOD = {
   REQUIRED: 'Champ requis',
   MAX: 'Longueur maximale dépassée',
   EMAIL: 'Email invalide',
@@ -11,12 +11,12 @@ const ZOD = {
 };
 
 /** Champs texte facultatifs : la chaine vide vaut « efface ». */
-const optionalText = (max = 200) =>
+export const optionalText = (max = 200) =>
   z.string().trim().max(max, ZOD.MAX).or(z.literal(''));
 
 /** Nombre facultatif saisi en texte : `<input type="number">` rend '' quand
  *  le champ est vide, et une chaine sinon. */
-const optionalNumber = z
+export const optionalNumber = z
   .string()
   .trim()
   .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) >= 0), ZOD.POSITIVE);

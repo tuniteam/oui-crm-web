@@ -33,6 +33,13 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
 };
 
 export const ORGANIZATIONS_UI = {
+  /**
+   * Fiche ouverte, portee par l'URL — meme principe que le panneau de
+   * Parametres. Sans cela, un doublon signale a la creation ne pouvait pas
+   * etre propose a l'ouverture : il n'y avait aucune adresse a viser.
+   */
+  PANEL_PARAM: 'fiche',
+
   TITLE: 'Organismes',
   SUBTITLE:
     'La base de référence : communes, syndicats, EPCI, crèches et associations gestionnaires, avec leur environnement périscolaire et leur suivi.',

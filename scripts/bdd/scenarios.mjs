@@ -593,6 +593,361 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-01-02
+  {
+    id: '01-02.1',
+    us: 'US-01-02',
+    title: "La fenêtre s'ouvre sur la recherche officielle",
+    needsProject: true,
+    gherkin: [
+      "Given je suis sur l'écran « Organismes »",
+      'When je clique sur « Nouvel organisme »',
+      'Then la recherche au registre officiel est le mode actif',
+      'And « Créer la fiche » est inactif, faute de saisie',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').waitFor({ timeout: 10000 });
+
+      expect(
+        await page.getByTestId('org-create-submit').isDisabled(),
+        'le bouton de creation est actif alors que rien n est saisi',
+      );
+    },
+  },
+
+  {
+    id: '01-02.2',
+    us: 'US-01-02',
+    title: 'Une recherche trop courte ne part pas',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, mode registre',
+      'When je saisis moins de trois caractères',
+      'Then le bouton « Rechercher » reste inactif',
+      "And aucun appel n'est fait au registre",
+    ],
+    async run({ page, expect, projectId }) {
+      let calls = 0;
+      await page.route('**/search-registry**', (route) => {
+        calls += 1;
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: '{"data":[]}',
+        });
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('ba');
+
+      expect(
+        await page.getByTestId('registry-search-btn').isDisabled(),
+        'la recherche est proposee avec moins de trois caracteres',
+      );
+      expect(calls === 0, `le registre a ete interroge ${calls} fois`);
+    },
+  },
+
+  {
+    id: '01-02.3',
+    us: 'US-01-02',
+    title: 'Un résultat du registre pré-remplit la saisie',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, mode registre',
+      'When je recherche une structure et retiens un résultat',
+      'Then la saisie manuelle est pré-remplie avec ses valeurs',
+      "And le département vient du code INSEE rendu par l'API",
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/search-registry', 200, {
+        data: [
+          {
+            name: 'COMMUNE DE JOIGNY',
+            siret: '21890206500013',
+            siren: '218902065',
+            address: '3 QUAI DU 1ER DRAGONS',
+            postalCode: '89300',
+            city: 'JOIGNY',
+            inseeCode: '89206',
+            department: '89',
+            isActive: true,
+          },
+        ],
+      });
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('Joigny');
+      await page.getByTestId('registry-search-btn').click();
+      await page.getByTestId('registry-use-21890206500013').click();
+
+      await page.getByTestId('org-create-name').waitFor({ timeout: 10000 });
+      const name = await page.getByTestId('org-create-name').inputValue();
+      const dept = await page.getByTestId('org-create-department').inputValue();
+      const siret = await page.getByTestId('org-create-siret').inputValue();
+
+      expect(name === 'COMMUNE DE JOIGNY', `nom pre-rempli : ${name}`);
+      // Derive par l'API a partir du code INSEE, jamais recalcule ici.
+      expect(dept === '89', `departement pre-rempli : ${dept}`);
+      expect(siret === '21890206500013', `SIRET pre-rempli : ${siret}`);
+    },
+  },
+
+  {
+    id: '01-02.6',
+    us: 'US-01-02',
+    title: 'Registre indisponible : la saisie manuelle est proposée',
+    needsProject: true,
+    gherkin: [
+      'Given le registre officiel ne répond pas',
+      'When je lance une recherche',
+      'Then un message propose la saisie manuelle',
+      "And ce n'est pas présenté comme un échec bloquant",
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/search-registry', 503, err(503, 'REGISTRY_UNAVAILABLE'));
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('registry-search-input').fill('Bayeux');
+      await page.getByTestId('registry-search-btn').click();
+
+      const notice = page.getByTestId('registry-degraded');
+      await notice.waitFor({ timeout: 10000 });
+      const text = await notice.innerText();
+      expect(
+        text.includes('manuellement'),
+        `le message ne renvoie pas vers la saisie manuelle : ${text}`,
+      );
+
+      // La bascule doit rester possible : c'est tout l'interet du message.
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').waitFor({ timeout: 5000 });
+    },
+  },
+
+  {
+    id: '01-02.8',
+    us: 'US-01-02',
+    title: 'Trois champs obligatoires, refusés avant envoi',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, en saisie manuelle',
+      'When je valide sans rien renseigner',
+      'Then nom, type et département sont signalés',
+      "And aucun appel de création n'est fait",
+    ],
+    async run({ page, expect, projectId }) {
+      let calls = 0;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() === 'POST') calls += 1;
+          route.fallback();
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-submit').click();
+      await page.waitForTimeout(900);
+
+      const body = await page.locator('body').innerText();
+      expect(body.includes('Champ requis'), 'aucun champ obligatoire signale');
+      expect(calls === 0, `la creation a ete tentee (${calls} appel(s))`);
+    },
+  },
+
+  {
+    id: '01-02.9',
+    us: 'US-01-02',
+    title: "La ville n'est pas obligatoire, contrairement à la V8",
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de création, en saisie manuelle',
+      'When je renseigne nom, type et département, sans ville',
+      'Then la création part',
+      "And le champ vide n'est pas transmis",
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              id: 'cnew',
+              name: sent.name,
+              completenessScore: 40,
+            }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('EPCI sans ville');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucune creation envoyee sans ville');
+      // Champ vide non transmis : le serveur appliquerait sinon son defaut.
+      expect(
+        sent && !('city' in sent),
+        `la ville vide a ete transmise : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '01-02.13',
+    us: 'US-01-02',
+    title: 'Doublon probable : les candidats de meta sont proposés',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche de même nom au même code postal',
+      "When je crée l'organisme",
+      'Then les candidats de messages.meta.duplicates sont listés',
+      'And la saisie reste intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          return route.fulfill({
+            status: 409,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              err(409, 'ORGANIZATION_POSSIBLE_DUPLICATE', {
+                text: 'An organization with a similar name already exists',
+                meta: {
+                  duplicates: [
+                    { id: 'cdup1', name: 'Commune de Joigny', city: 'Joigny' },
+                  ],
+                },
+              }),
+            ),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('Commune de Joigny');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+
+      const warn = page.getByTestId('organization-duplicate-warning');
+      await warn.waitFor({ timeout: 10000 });
+      const text = await warn.innerText();
+      // Le candidat vient de `meta`, pas du texte du message, qui est anglais.
+      expect(
+        text.includes('Commune de Joigny') && text.includes('Joigny'),
+        `le candidat de meta n est pas affiche : ${text}`,
+      );
+      const kept = await page.getByTestId('org-create-name').inputValue();
+      expect(kept === 'Commune de Joigny', `la saisie a ete perdue : ${kept}`);
+    },
+  },
+
+  {
+    id: '01-02.14',
+    us: 'US-01-02',
+    title: 'Confirmer un doublon rejoue la requête avec force',
+    needsProject: true,
+    gherkin: [
+      'Given un doublon probable signalé',
+      'When je confirme la création',
+      'Then la même requête repart avec force à vrai',
+    ],
+    async run({ page, expect, projectId }) {
+      const posts = [];
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          const body = JSON.parse(route.request().postData() ?? '{}');
+          posts.push(body);
+          if (body.force) {
+            return route.fulfill({
+              status: 201,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                id: 'cnew',
+                name: body.name,
+                completenessScore: 40,
+              }),
+            });
+          }
+          return route.fulfill({
+            status: 409,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              err(409, 'ORGANIZATION_POSSIBLE_DUPLICATE', {
+                meta: {
+                  duplicates: [
+                    { id: 'cdup1', name: 'Commune de Joigny', city: 'Joigny' },
+                  ],
+                },
+              }),
+            ),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.getByTestId('organization-create-btn').first().click();
+      await page.getByTestId('org-create-mode-manual').click();
+      await page.getByTestId('org-create-name').fill('Commune de Joigny');
+      await page.getByTestId('org-create-department').fill('89');
+      await page.getByTestId('org-create-type').click();
+      await page.locator('[role="option"]').first().click();
+      await page.getByTestId('org-create-submit').click();
+
+      const confirm = page.getByTestId('organization-duplicate-confirm');
+      await confirm.waitFor({ timeout: 10000 });
+      await confirm.click();
+      await page.waitForTimeout(1500);
+
+      expect(
+        posts.length === 2,
+        `${posts.length} appel(s) de creation au lieu de deux`,
+      );
+      expect(posts[1]?.force === true, 'le rejeu ne porte pas force: true');
+      // Rejeu a l'identique : seul `force` s'ajoute.
+      const { force: _force, ...replayed } = posts[1] ?? {};
+      expect(
+        JSON.stringify(replayed) === JSON.stringify(posts[0]),
+        'le rejeu n est pas la meme requete',
+      );
+    },
+  },
+
   // ─────────────────────────────── US-01-03
   {
     id: '01-03.1',

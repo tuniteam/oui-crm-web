@@ -2,7 +2,7 @@
 # Source : docs/RECETTE-BDD-FRONT.md. Découpage aligné sur oui-crm-api/docs/features/.
 
 @organizations
-Feature: Base des organismes (L1 · US-01-01, US-01-03)
+Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03)
   Vue Gherkin de la recette front : ce que voit l’utilisateur, là où la
   recette de l’API décrit le contrat HTTP.
 
@@ -74,6 +74,99 @@ Feature: Base des organismes (L1 · US-01-01, US-01-03)
     When j'affiche la liste sans faire défiler horizontalement
     Then l'action d'ouverture de la première ligne est visible
     And elle ne laisse pas transparaître le contenu qu'elle recouvre
+
+  # ── US-01-02 · Créer un organisme
+
+  @ok
+  Scenario: Ouverture
+    Given je suis sur l'écran « Organismes »
+    When je clique sur « Nouvel organisme »
+    Then la recherche au registre officiel est le mode actif
+    And « Créer la fiche » est inactif, faute de saisie
+
+  @ok
+  Scenario: Recherche trop courte
+    Given la fenêtre de création, mode registre
+    When je saisis moins de trois caractères
+    Then le bouton « Rechercher » reste inactif
+    And aucun appel n'est fait au registre
+
+  @ok
+  Scenario: Résultat du registre
+    Given la fenêtre de création, mode registre
+    When je recherche une structure et retiens un résultat
+    Then la saisie manuelle est pré-remplie avec ses valeurs
+    And le département vient du code INSEE rendu par l'API
+
+  @a-couvrir
+  Scenario: Département dérivé
+    Then pré-rempli depuis le code INSEE renvoyé par l'API, jamais recalculé côté front
+
+  @a-couvrir
+  Scenario: Établissement fermé
+    Then isActive: false affiche un avertissement, sans bloquer la création
+
+  @ok
+  Scenario: Registre indisponible
+    Given le registre officiel ne répond pas
+    When je lance une recherche
+    Then un message propose la saisie manuelle
+    And ce n'est pas présenté comme un échec bloquant
+
+  @a-couvrir
+  Scenario: Aucun résultat
+    Then 200 avec une liste vide : message distinct de l'indisponibilité
+
+  @ok
+  Scenario: Champs obligatoires
+    Given la fenêtre de création, en saisie manuelle
+    When je valide sans rien renseigner
+    Then nom, type et département sont signalés
+    And aucun appel de création n'est fait
+
+  @ok
+  Scenario: Ville non obligatoire
+    Given la fenêtre de création, en saisie manuelle
+    When je renseigne nom, type et département, sans ville
+    Then la création part
+    And le champ vide n'est pas transmis
+
+  @a-couvrir
+  Scenario: Champ vide non transmis
+    Then une chaîne vide n'est pas envoyée : le serveur appliquerait sa valeur par défaut
+
+  @a-couvrir
+  Scenario: SIRET déjà pris
+    Then 409 ORGANIZATION_SIRET_EXISTS : message sous le champ, fenêtre maintenue
+
+  @a-couvrir
+  Scenario: Code INSEE déjà pris
+    Then idem sous son champ
+
+  @ok
+  Scenario: Doublon probable
+    Given une fiche de même nom au même code postal
+    When je crée l'organisme
+    Then les candidats de messages.meta.duplicates sont listés
+    And la saisie reste intacte
+
+  @ok
+  Scenario: Confirmation du doublon
+    Given un doublon probable signalé
+    When je confirme la création
+    Then la même requête repart avec force à vrai
+
+  @a-couvrir
+  Scenario: Refus du doublon
+    Then « Revenir à la saisie » ferme l'avertissement sans rien perdre de la saisie
+
+  @a-couvrir
+  Scenario: Après création
+    Then la fiche créée s'ouvre, et la liste est rafraîchie
+
+  @a-couvrir
+  Scenario: Sans permission
+    Then organizations:create absente : ni bouton, ni fenêtre
 
   # ── US-01-03 · Organismes, fiche et modification
 

@@ -9,6 +9,11 @@ import type {
   OrganizationDetail,
   UpdateOrganizationPayload,
 } from '../types/organizationDetail';
+import type {
+  CreateOrganizationPayload,
+  CreateOrganizationResponse,
+  RegistrySearchResponse,
+} from '../types/organizationCreate';
 
 export const organizationService = {
   getAll: async (
@@ -34,6 +39,33 @@ export const organizationService = {
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }
+  },
+
+  /**
+   * Volontairement non enveloppe par `getApiErrorMessage` : l'appelant a
+   * besoin du code brut et de `messages.meta.duplicates` pour proposer les
+   * fiches existantes puis rejouer avec `force`.
+   */
+  create: async (
+    payload: CreateOrganizationPayload,
+  ): Promise<CreateOrganizationResponse> => {
+    const res = await api.post<CreateOrganizationResponse>(
+      ORGANIZATION_ROUTES.ORGANIZATIONS_API,
+      payload,
+    );
+    return res.data;
+  },
+
+  /** Idem : un 503 ou un 504 du registre n'est pas une erreur a afficher,
+   *  c'est le signal de basculer en saisie manuelle. */
+  searchRegistry: async (q: string): Promise<RegistrySearchResponse> => {
+    const res = await api.get<RegistrySearchResponse>(
+      ORGANIZATION_ROUTES.SEARCH_REGISTRY_API,
+      // `503` et `504` sont documentes comme nominaux : ils font basculer en
+      // saisie manuelle, ils n'emmenent pas l'application sur l'ecran d'erreur.
+      { params: { q }, expectedServerError: true },
+    );
+    return res.data;
   },
 
   update: async (

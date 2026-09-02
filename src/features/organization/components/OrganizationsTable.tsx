@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FILTER_ALL, FILTER_DEBOUNCE_MS, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { CirclePlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -19,6 +22,7 @@ import {
   PRIORITY_LABELS,
   SALES_STATUS_LABELS,
 } from '../constants/organizationList.constants';
+import { CREATE_ORGANIZATION_UI } from '../constants/organizationCreate.constants';
 import { useOrganizations } from '../hooks/useOrganizations';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import {
@@ -32,6 +36,7 @@ import {
   type SalesStatus,
 } from '../types/organizationList';
 import { organizationColumns } from './organizationColumns';
+import { CreateOrganizationWindow } from './CreateOrganizationWindow';
 import { OrganizationPanel } from './OrganizationPanel';
 
 const { SEARCH, EMPTY_STATE } = ORGANIZATIONS_UI;
@@ -55,8 +60,31 @@ export default function OrganizationsTable() {
   const [customerStatus, setCustomerStatus] = useState<string>(FILTER_ALL);
   const [priority, setPriority] = useState<string>(FILTER_ALL);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
+  const canCreate = hasPermission(PERMISSIONS.ORGANIZATIONS.CREATE);
   /** Fiche ouverte dans le panneau lateral, ou `null`. */
-  const [openedId, setOpenedId] = useState<string | null>(null);
+  // La fiche ouverte vit dans l'URL : elle survit au rafraichissement, et une
+  // fiche peut etre proposee depuis ailleurs — un doublon signale a la
+  // creation, par exemple.
+  const [params, setParams] = useSearchParams();
+  const openedId = params.get(ORGANIZATIONS_UI.PANEL_PARAM);
+  // Mise a jour fonctionnelle : sans elle le callback dependrait de `params`,
+  // et les colonnes memorisees garderaient une version perimee qui effacerait
+  // les autres parametres de l'URL.
+  const setOpenedId = useCallback(
+    (id: string | null) => {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (id) next.set(ORGANIZATIONS_UI.PANEL_PARAM, id);
+          else next.delete(ORGANIZATIONS_UI.PANEL_PARAM);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setParams],
+  );
 
   const debouncedType = useDebouncedValue(type, FILTER_DEBOUNCE_MS);
   const debouncedSalesStatus = useDebouncedValue(salesStatus, FILTER_DEBOUNCE_MS);
@@ -75,7 +103,7 @@ export default function OrganizationsTable() {
 
   const columns = useMemo(
     () => organizationColumns(labelOf, setOpenedId),
-    [labelOf],
+    [labelOf, setOpenedId],
   );
 
   const getData = useCallback(
@@ -201,6 +229,13 @@ export default function OrganizationsTable() {
 
   return (
     <>
+      <CreateOrganizationWindow
+        open={openCreate}
+        onOpenChange={setOpenCreate}
+        // On enchaine sur la fiche creee : c'est la ou l'utilisateur va
+        // completer ce que la creation ne demande pas.
+        onCreated={(id) => setOpenedId(id)}
+      />
       <OrganizationPanel
         organizationId={openedId}
         onOpenChange={(next) => !next && setOpenedId(null)}
@@ -222,9 +257,20 @@ export default function OrganizationsTable() {
       headerFilters={headerFilters}
       hasActiveFilters={hasActiveFilters}
       defaultPageSize={10}
+      toolbarActions={
+        canCreate ? (
+          <Button
+            data-testid="organization-create-btn"
+            onClick={() => setOpenCreate(true)}
+          >
+            <CirclePlus />
+            {CREATE_ORGANIZATION_UI.TITLE}
+          </Button>
+        ) : null
+      }
       emptyTableMessage={
         <EmptyTableComponent
-          hasPermission={hasPermission(PERMISSIONS.ORGANIZATIONS.CREATE)}
+          hasPermission={canCreate}
           illustration={EMPTY_STATE.ILLUSTRATION}
           title={EMPTY_STATE.TITLE}
           description={[...EMPTY_STATE.DESCRIPTION]}
@@ -232,6 +278,10 @@ export default function OrganizationsTable() {
             title: EMPTY_STATE.TIP.TITLE,
             content: EMPTY_STATE.TIP.CONTENT,
           }}
+          onClick={() => setOpenCreate(true)}
+          buttonIcon={<CirclePlus />}
+          buttonText={CREATE_ORGANIZATION_UI.TITLE}
+          buttonId="organization-create-btn"
           />
         }
       />

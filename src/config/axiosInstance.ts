@@ -161,9 +161,17 @@ api.interceptors.response.use(
         return new Promise(() => {});
       }
     }
-    // If the server returns an error (500+),
-    // show a global server error state
-    if (status >= 500) {
+    /**
+     * 5xx : ecran d'erreur global — sauf si l'appelant a declare que le sien
+     * est attendu.
+     *
+     * La consultation du registre officiel est le cas type : son `503`
+     * (source indisponible) et son `504` (delai depasse) sont documentes
+     * comme nominaux, et la reponse est de basculer en saisie manuelle. Sans
+     * cette derogation, une panne d'une API publique tierce emmenait toute
+     * l'application sur « Erreur interne du serveur », saisie perdue.
+     */
+    if (status >= 500 && !error.config?.expectedServerError) {
       useServerErrorStore.getState().setServerError(true);
     }
 
@@ -173,3 +181,11 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** L'appelant traite lui-meme les 5xx de cette requete : pas d'ecran
+     *  d'erreur global. A reserver aux 5xx prevus par le contrat. */
+    expectedServerError?: boolean;
+  }
+}

@@ -449,6 +449,63 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 
 ---
 
+## US-01-02 · Créer un organisme — 🟢 livré
+
+Fenêtre `openCreateOrg` de la V8, ses deux chemins : la recherche au registre
+officiel, qui pré-remplit la saisie, et la saisie manuelle.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Ouverture | la fenêtre s'ouvre sur la recherche officielle ; « Créer la fiche » est inactif tant qu'aucune saisie n'existe | couvert |
+| 2 | Recherche trop courte | moins de trois caractères : le bouton reste inactif, aucun appel — l'API refuserait par `400 INVALID_DATA` | couvert |
+| 3 | Résultat du registre | nom, adresse, SIRET et code INSEE ; « Utiliser cette fiche » bascule sur la saisie pré-remplie | couvert |
+| 4 | Département dérivé | pré-rempli depuis le code INSEE renvoyé par l'API, jamais recalculé côté front | couvert |
+| 5 | Établissement fermé | `isActive: false` affiche un avertissement, **sans bloquer** la création | à couvrir |
+| 6 | Registre indisponible | `503` ou `504` : message proposant la saisie manuelle, jamais un échec bloquant | couvert |
+| 7 | Aucun résultat | `200` avec une liste vide : message distinct de l'indisponibilité | à couvrir |
+| 8 | Champs obligatoires | nom, type et département seuls ; refusés avant envoi s'ils manquent | couvert |
+| 9 | Ville non obligatoire | la V8 la marque requise, l'API non — un EPCI n'a pas de ville | couvert |
+| 10 | Champ vide non transmis | une chaîne vide n'est pas envoyée : le serveur appliquerait sa valeur par défaut | à couvrir |
+| 11 | SIRET déjà pris | `409 ORGANIZATION_SIRET_EXISTS` : message **sous le champ**, fenêtre maintenue | à couvrir |
+| 12 | Code INSEE déjà pris | idem sous son champ | à couvrir |
+| 13 | Doublon probable | `409 ORGANIZATION_POSSIBLE_DUPLICATE` : les candidats de `messages.meta.duplicates` sont listés, avec un lien pour les ouvrir | couvert |
+| 14 | Confirmation du doublon | « Créer quand même » rejoue **la même requête** avec `force: true` | couvert |
+| 15 | Refus du doublon | « Revenir à la saisie » ferme l'avertissement sans rien perdre de la saisie | à couvrir |
+| 16 | Après création | la fiche créée s'ouvre, et la liste est rafraîchie | à couvrir |
+| 17 | Sans permission | `organizations:create` absente : ni bouton, ni fenêtre | à couvrir |
+
+### Pièges relevés pendant le développement
+
+- **La strate n'a pas sa place ici.** La V8 la calcule dans le navigateur à
+  partir de la population et l'affiche en lecture seule. Notre règle est
+  qu'elle vient de l'API (`bracketLabel`) : avant création il n'y a pas de
+  fiche, donc pas de strate. Elle apparaît sur la fiche, une fois créée.
+- **Le contact principal de la V8 est retiré.** `POST /organizations` ne
+  l'accepte pas : les contacts sont une route distincte (US-01-04), non
+  développée. Le laisser aurait donné un champ dont la saisie serait perdue.
+- **La « formule envisagée » aussi.** `targetPlan` ne fait pas partie des
+  référentiels du projet — c'est un plan du moteur tarifaire (SPEC-04), que
+  rien ne porte encore côté front.
+- **Un doublon probable n'est pas une erreur.** Le serveur pose une question :
+  la fenêtre reste ouverte, la saisie intacte, et la même requête se rejoue
+  avec `force`. La traiter comme un échec ferait ressaisir toute la fiche.
+- **Les candidats se lisent dans `meta`, jamais dans le texte.**
+  `messages.text` est écrit pour un humain et peut changer ; `meta.duplicates`
+  est le contrat.
+- **Le registre qui ne répond pas est un cas nominal.** `503` et `504` sont
+  documentés comme tels : la saisie manuelle reste le chemin de secours, et
+  chaque source dégrade indépendamment. Le scénario 6 a révélé que
+  l'intercepteur envoyait **tout** 5xx sur l'écran « Erreur interne du
+  serveur » : une panne d'une API publique tierce emmenait donc toute
+  l'application hors du formulaire, saisie perdue. Une requête peut désormais
+  déclarer que son 5xx est prévu par le contrat (`expectedServerError`), et
+  seules celles-là y échappent.
+- **La fiche ouverte est passée dans l'URL** (`?fiche=`) pour ce
+  développement : sans adresse, un doublon signalé ne pouvait pas être proposé
+  à l'ouverture.
+
+---
+
 ## US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
 
 Panneau latéral, onglet Synthèse — le `openDrawer` de la V8. Les onglets
@@ -522,7 +579,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 15:18. 39/39 OK._
+_Généré par `npm run bdd` — 2026-09-02 18:46. 47/47 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -531,6 +588,14 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
 | US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
 | US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/01-01-13.png` |
+| US-01-02 | 01-02.1 | La fenêtre s'ouvre sur la recherche officielle | OK | `screenshots/01-02-1.png` |
+| US-01-02 | 01-02.2 | Une recherche trop courte ne part pas | OK | `screenshots/01-02-2.png` |
+| US-01-02 | 01-02.3 | Un résultat du registre pré-remplit la saisie | OK | `screenshots/01-02-3.png` |
+| US-01-02 | 01-02.6 | Registre indisponible : la saisie manuelle est proposée | OK | `screenshots/01-02-6.png` |
+| US-01-02 | 01-02.8 | Trois champs obligatoires, refusés avant envoi | OK | `screenshots/01-02-8.png` |
+| US-01-02 | 01-02.9 | La ville n'est pas obligatoire, contrairement à la V8 | OK | `screenshots/01-02-9.png` |
+| US-01-02 | 01-02.13 | Doublon probable : les candidats de meta sont proposés | OK | `screenshots/01-02-13.png` |
+| US-01-02 | 01-02.14 | Confirmer un doublon rejoue la requête avec force | OK | `screenshots/01-02-14.png` |
 | US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
 | US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
