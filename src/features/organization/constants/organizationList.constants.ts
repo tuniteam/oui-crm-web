@@ -49,6 +49,7 @@ export const ORGANIZATIONS_UI = {
     PRIORITY: 'Priorité',
     NEXT_ACTIVITY: 'Prochaine action',
     SALES_REP: 'Commercial',
+    ACTIONS: 'Actions',
   },
 
   SEARCH: {

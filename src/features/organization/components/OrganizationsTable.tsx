@@ -32,6 +32,7 @@ import {
   type SalesStatus,
 } from '../types/organizationList';
 import { organizationColumns } from './organizationColumns';
+import { OrganizationPanel } from './OrganizationPanel';
 
 const ALL = 'ALL';
 /** Un seul delai pour tous les filtres : cinq valeurs identiques disseminees
@@ -58,6 +59,8 @@ export default function OrganizationsTable() {
   const [customerStatus, setCustomerStatus] = useState<string>(ALL);
   const [priority, setPriority] = useState<string>(ALL);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  /** Fiche ouverte dans le panneau lateral, ou `null`. */
+  const [openedId, setOpenedId] = useState<string | null>(null);
 
   const debouncedType = useDebouncedValue(type, FILTER_DEBOUNCE_MS);
   const debouncedSalesStatus = useDebouncedValue(salesStatus, FILTER_DEBOUNCE_MS);
@@ -74,7 +77,10 @@ export default function OrganizationsTable() {
 
   const typeOptions = useMemo(() => optionsOf('STRUCTURE_TYPE'), [optionsOf]);
 
-  const columns = useMemo(() => organizationColumns(labelOf), [labelOf]);
+  const columns = useMemo(
+    () => organizationColumns(labelOf, setOpenedId),
+    [labelOf],
+  );
 
   const getData = useCallback(
     (r: ReturnType<typeof useOrganizations>) => r.organizations,
@@ -198,7 +204,12 @@ export default function OrganizationsTable() {
   );
 
   return (
-    <ReusableTable<
+    <>
+      <OrganizationPanel
+        organizationId={openedId}
+        onOpenChange={(next) => !next && setOpenedId(null)}
+      />
+      <ReusableTable<
       OrganizationListItem,
       OrganizationListParams,
       ReturnType<typeof useOrganizations>
@@ -225,8 +236,9 @@ export default function OrganizationsTable() {
             title: EMPTY_STATE.TIP.TITLE,
             content: EMPTY_STATE.TIP.CONTENT,
           }}
-        />
-      }
-    />
+          />
+        }
+      />
+    </>
   );
 }

@@ -1,4 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
+import { COMMON } from '@/constants/common';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { cn } from '@/lib/utils';
 import type { ReferenceCategory } from '@/features/settings/types/reference-items';
@@ -40,6 +47,7 @@ const dateFr = (iso?: string | null) =>
  */
 export const organizationColumns = (
   labelOf: LabelOf,
+  onOpen: (id: string) => void,
 ): ColumnDef<OrganizationListItem>[] => [
   {
     accessorKey: 'name',
@@ -173,6 +181,36 @@ export const organizationColumns = (
     cell: ({ row }) => dateFr(row.original.nextActivityAt) ?? dash(),
     size: 140,
     enableSorting: true,
+  },
+  {
+    id: 'actions',
+    header: () => (
+      <span className="flex w-full justify-center text-sm">{H.ACTIONS}</span>
+    ),
+    // Colonne d'actions plutot qu'une ligne cliquable : c'est le patron des
+    // ecrans Projets et Utilisateurs, et `ReusableTable` n'expose pas de
+    // `onRowClick`.
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid={`organization-view-${row.original.id}`}
+              onClick={() => onOpen(row.original.id)}
+              className="text-brand-secondary hover:opacity-80"
+            >
+              <Eye size={18} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{COMMON.ACTIONS.VIEW}</TooltipContent>
+        </Tooltip>
+      </div>
+    ),
+    size: 90,
+    enableSorting: false,
+    enableHiding: false,
+    enableResizing: false,
   },
   {
     id: 'salesRep',
