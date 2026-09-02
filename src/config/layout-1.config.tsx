@@ -62,12 +62,6 @@ export const MENU_SIDEBAR: MenuConfig = [
     path: '/backoffice-users',
     readPermission: PERMISSIONS.USER_BACKOFFICE.READ,
   },
-  {
-    title: MENU.USERS,
-    icon: Users,
-    path: '/users',
-    readPermission: PERMISSIONS.USERS.READ,
-  },
 ];
 
 export const MENU_MEGA: MenuConfig = [

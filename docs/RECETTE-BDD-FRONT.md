@@ -175,6 +175,17 @@ travail, et la colonne Statut dit où on en est.
 | 15 | Quitter le projet | le scope est vidé, les appels suivants ne portent plus l'en-tête |
 | 16 | Écran non livré | écran d'attente, entrée ni grisée ni masquée |
 | 17 | Écran d'attente et permission | l'accès reste refusé sans la permission |
+| 18 | Menu plateforme | Projets et Opérateurs seulement — les utilisateurs d'un projet ne s'y atteignent pas |
+
+### Pièges relevés pendant le développement
+
+- **Les utilisateurs ne sont pas un écran de plateforme.** Le menu de
+  l'opérateur back-office portait une entrée « Utilisateurs » vers `/users`.
+  Or `GET /users` est une route de projet : sans projet sélectionné elle répond
+  `400`, et l'écran affichait « Aucun utilisateur trouvé pour ce projet » —
+  alors qu'aucun projet n'était sélectionné — avec un bouton de création qui
+  aurait échoué de même. L'entrée est retirée du menu plateforme ; elle reste
+  dans le menu du projet, sous Administration.
 
 ---
 
@@ -587,7 +598,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 19:21. 47/47 OK._
+_Généré par `npm run bdd` — 2026-09-02 19:30. 48/48 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -620,6 +631,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
 | US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
 | US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
+| US-00-04 | 04.18 | Le menu plateforme ne propose pas les utilisateurs de projet | OK | `screenshots/04-18.png` |
 | US-00-05 | 05.2 | Le filtre par rôle part bien dans la requête | OK | `screenshots/05-2.png` |
 | US-00-05 | 05.4 | Initiales hors format refusées avant envoi | OK | `screenshots/05-4.png` |
 | US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |

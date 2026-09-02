@@ -78,3 +78,7 @@ Feature: Administration des projets (L0 · US-00-04)
   @a-couvrir
   Scenario: Écran d'attente et permission
     Then l'accès reste refusé sans la permission
+
+  @ok
+  Scenario: Menu plateforme
+    Then Projets et Opérateurs seulement — les utilisateurs d'un projet ne s'y atteignent pas

@@ -275,6 +275,37 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '04.18',
+    us: 'US-00-04',
+    title: 'Le menu plateforme ne propose pas les utilisateurs de projet',
+    async run({ page, expect }) {
+      await page.goto('/projects');
+      await page.getByTestId('project-view-cell, [data-testid^="project-view-"]')
+        .first()
+        .waitFor({ timeout: 10000 })
+        .catch(() => {});
+
+      const rail = page.locator('.sidebar');
+      await rail.waitFor({ timeout: 10000 });
+      const entries = (await rail.innerText())
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      // `GET /users` est une route de projet : hors projet elle ne peut rien
+      // renvoyer. L'entree menait donc a un ecran en erreur.
+      expect(
+        !entries.includes('Utilisateurs'),
+        `le menu plateforme propose encore les utilisateurs : ${entries.join(' | ')}`,
+      );
+      expect(
+        entries.includes('Projets') && entries.includes('Opérateurs'),
+        `le menu plateforme a perdu ses entrees : ${entries.join(' | ')}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-05
   {
     id: '05.2',
