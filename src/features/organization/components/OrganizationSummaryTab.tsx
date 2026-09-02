@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
@@ -33,6 +34,10 @@ import type { OrganizationSummarySchemaType } from '../forms/organization-summar
 import type { OrganizationDetail } from '../types/organizationDetail';
 import { PRIORITY_VALUES } from '../types/organizationList';
 import { OrganizationCompletenessNotice } from './OrganizationCompletenessNotice';
+import { DeleteOrganizationWindow } from './DeleteOrganizationWindow';
+import { ORGANIZATION_DELETE_CARD } from '../constants/organizationDelete.constants';
+import { Card, CardContent } from '@/components/ui/card';
+import { Trash2 } from 'lucide-react';
 
 const UI = ORGANIZATION_DETAIL_UI;
 const { LABELS, SECTIONS, HINTS, ACTIONS, EMPTY_VALUE, UNASSIGNED } = UI;
@@ -173,7 +178,11 @@ function CheckboxGroup({
 
 export function OrganizationSummaryTab({ organization, onClose }: Props) {
   const { form, update, submit } = useOrganizationSummaryForm(organization);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { optionsOf } = useReferenceLabels();
+  const canDelete = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.ORGANIZATIONS.DELETE),
+  );
   const canUpdate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.ORGANIZATIONS.UPDATE),
   );
@@ -397,6 +406,39 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
             </Button>
           </div>
         ) : null}
+
+        {/* Action destructrice, tenue a l'ecart des actions du formulaire. */}
+        {canDelete ? (
+          <Card>
+            <CardContent className="flex items-center justify-between gap-3 py-4">
+              <div>
+                <div className="text-sm font-semibold">
+                  {ORGANIZATION_DELETE_CARD.TITLE}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {ORGANIZATION_DELETE_CARD.DESCRIPTION}
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                data-testid="organization-delete"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="size-4" />
+                {ORGANIZATION_DELETE_CARD.TITLE}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <DeleteOrganizationWindow
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          organizationId={organization.id}
+          organizationName={organization.name}
+          onDeleted={onClose}
+        />
       </form>
     </Form>
   );

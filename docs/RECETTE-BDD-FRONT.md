@@ -517,6 +517,40 @@ officiel, qui pré-remplit la saisie, et la saisie manuelle.
 
 ---
 
+## US-01-13 · Supprimer un organisme — 🟢 livré
+
+Suppression **logique** : la fiche disparaît des lectures, la ligne demeure en
+base. La purge définitive relève du RGPD (US-06-01).
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Emplacement de l'action | carte dédiée en bas de la fiche, à l'écart des actions du formulaire | couvert |
+| 2 | Confirmation obligatoire | une fenêtre s'interpose, aucune suppression au premier clic | couvert |
+| 3 | Ce que dit la fenêtre | disparition des lectures, identifiants libérés, pas d'effacement définitif, journalisation | couvert |
+| 4 | Confirmer | `DELETE` envoyé, panneau fermé, liste rafraîchie | couvert |
+| 5 | Renoncer | aucune requête, la fiche reste ouverte | couvert |
+| 6 | Sans la permission | ni carte ni bouton — un commercial n'a pas `organizations:delete` | à couvrir |
+| 7 | Fiche déjà supprimée | `404 ORGANIZATION_NOT_FOUND` : message, pas de page blanche | à couvrir |
+| 8 | Fiche hors périmètre | `403 ACCESS_DENIED` avec un rôle restreint | à couvrir |
+| 9 | Identifiants libérés | le SIRET d'une fiche supprimée peut resservir à la création | à couvrir |
+| 10 | Contrats rattachés | `409 ORGANIZATION_HAS_CONTRACTS` — arrive au lot L3, pas encore émis | à développer |
+
+### Pièges relevés pendant le développement
+
+- **La maquette décrit une autre suppression.** La V8 n'offre qu'une
+  suppression groupée (US-01-05, non livrée côté API) et annonce que « les
+  contacts et actions rattachés » partent avec la fiche. L'API, elle, fait une
+  suppression **logique** et ne dit rien d'une cascade. Reprendre la
+  formulation de la maquette aurait fait croire à un effacement définitif qui
+  n'a pas lieu — même erreur que celle déjà corrigée sur le retrait d'un
+  utilisateur.
+- **Les identifiants redeviennent disponibles.** Les index d'unicité sont
+  partiels sur `deleted_at IS NULL` : recréer une commune supprimée par erreur
+  fonctionne. C'est une information utile à l'utilisateur, elle est dans la
+  fenêtre.
+
+---
+
 ## US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
 
 Panneau latéral, onglet Synthèse — le `openDrawer` de la V8. Les onglets
@@ -602,7 +636,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 19:43. 49/49 OK._
+_Généré par `npm run bdd` — 2026-09-02 21:57. 52/52 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -623,6 +657,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
 | US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
 | US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/01-03-10.png` |
+| US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/01-13-3.png` |
+| US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/01-13-4.png` |
+| US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/01-13-5.png` |
 | US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
 | US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
 | US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |

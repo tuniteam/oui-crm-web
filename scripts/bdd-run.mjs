@@ -70,6 +70,17 @@ for (const scenario of selected) {
   });
   const page = await context.newPage();
 
+  /**
+   * 30 s ne suffisent pas en fin de suite complete.
+   *
+   * Les echecs intermittents observes sur US-00-09 n'etaient pas des
+   * assertions mais des `page.goto` expirees : le serveur de developpement
+   * ralentit sous la charge d'une cinquantaine de scenarios, et les memes
+   * scenarios passent isolement. Un rouge qui ne dit rien du produit fait
+   * douter de toute la suite.
+   */
+  page.setDefaultNavigationTimeout(60000);
+
   let calls = [];
   let headers = [];
   page.on('request', (r) => {

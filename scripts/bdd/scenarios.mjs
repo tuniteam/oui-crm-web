@@ -1095,6 +1095,14 @@ export const scenarios = [
       };
       const isOpen = () =>
         page.getByTestId('reusable-sheet').isVisible().catch(() => false);
+      // Attendre la fermeture plutot que l'echantillonner : la sortie du
+      // panneau est animee, et sous charge elle n'est pas immediate.
+      const waitClosed = () =>
+        page
+          .getByTestId('reusable-sheet')
+          .waitFor({ state: 'hidden', timeout: 10000 })
+          .then(() => true)
+          .catch(() => false);
 
       await page.goto(`/${projectId}/organizations`);
       await openPanel();
@@ -1110,14 +1118,143 @@ export const scenarios = [
       expect(await isOpen(), 'la touche Echap a ferme le panneau');
 
       await page.getByTestId('organization-cancel').click();
-      await page.waitForTimeout(900);
-      expect(!(await isOpen()), '« Annuler » n a pas ferme le panneau');
+      expect(await waitClosed(), '« Annuler » n a pas ferme le panneau');
 
       // La croix reste le second chemin de sortie.
       await openPanel();
       await page.locator('[data-slot="sheet-close"]').first().click();
-      await page.waitForTimeout(900);
-      expect(!(await isOpen()), 'la croix n a pas ferme le panneau');
+      expect(await waitClosed(), 'la croix n a pas ferme le panneau');
+    },
+  },
+
+  // ─────────────────────────────── US-01-13
+  {
+    id: '01-13.3',
+    us: 'US-01-13',
+    title: 'La fenêtre annonce une suppression logique, pas un effacement',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je demande sa suppression',
+      "Then une fenêtre s'interpose avant toute suppression",
+      'And elle dit que les identifiants redeviennent disponibles',
+      "And qu'il ne s'agit pas d'un effacement définitif",
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page
+        .getByTestId('organization-delete-confirm')
+        .waitFor({ timeout: 8000 });
+
+      // Rien n'est supprime au premier clic : la confirmation s'interpose.
+      expect(
+        !apiCalls().some((c) => c.startsWith('DELETE')),
+        `une suppression est partie sans confirmation : ${apiCalls().join(', ')}`,
+      );
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('redeviennent disponibles'),
+        'la fenêtre ne dit pas que les identifiants sont libérés',
+      );
+      // La V8 annonce un effacement definitif ; l'API fait une suppression
+      // logique. Le texte doit dire ce que fait le serveur.
+      expect(
+        body.includes('pas effacées définitivement'),
+        "la fenêtre laisse croire à un effacement définitif",
+      );
+    },
+  },
+
+  {
+    id: '01-13.4',
+    us: 'US-01-13',
+    title: 'Confirmer supprime et referme le panneau',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de confirmation ouverte',
+      'When je confirme la suppression',
+      'Then un DELETE part sur la fiche',
+      'And le panneau se referme',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      // Le jeu de donnees est partage : la suppression est interceptee.
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/organizations/'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({ status: 204, body: '' })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page.getByTestId('organization-delete-confirm').click();
+
+      // Attendre la fermeture, plutot que d'echantillonner la visibilite une
+      // fois : sous la charge de la suite complete, la sortie du panneau
+      // n'etait pas encore jouee et le scenario echouait a tort.
+      const closed = await sheet
+        .waitFor({ state: 'hidden', timeout: 10000 })
+        .then(() => true)
+        .catch(() => false);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('DELETE /organizations/')),
+        `aucun DELETE envoyé : ${apiCalls().join(', ')}`,
+      );
+      expect(closed, 'le panneau est resté ouvert sur une fiche supprimée');
+    },
+  },
+
+  {
+    id: '01-13.5',
+    us: 'US-01-13',
+    title: 'Renoncer ne supprime rien',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre de confirmation ouverte',
+      'When je renonce',
+      "Then aucune requête n'est envoyée",
+      'And la fiche reste ouverte',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('[data-testid^="organization-view-"]').first().click();
+      const sheet = page.getByTestId('reusable-sheet');
+      await sheet.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1500);
+
+      apiCalls(true);
+      await page.getByTestId('organization-delete').click();
+      await page
+        .getByTestId('organization-delete-confirm')
+        .waitFor({ timeout: 8000 });
+
+      // Le « Annuler » de la fenêtre, pas celui de la fiche derrière.
+      await page
+        .locator('[data-slot="dialog-content"] button', { hasText: 'Annuler' })
+        .first()
+        .click();
+      await page.waitForTimeout(1000);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('DELETE')),
+        `une suppression est partie malgré le renoncement : ${apiCalls().join(', ')}`,
+      );
+      expect(await sheet.isVisible(), 'la fiche a été fermée');
     },
   },
 

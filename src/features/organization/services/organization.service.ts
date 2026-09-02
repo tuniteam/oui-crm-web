@@ -68,6 +68,15 @@ export const organizationService = {
     return res.data;
   },
 
+  /** Suppression logique : la fiche disparait des lectures, la ligne demeure. */
+  remove: async (id: string): Promise<void> => {
+    try {
+      await api.delete(ORGANIZATION_ROUTES.ORGANIZATION_API(id));
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err));
+    }
+  },
+
   update: async (
     id: string,
     payload: UpdateOrganizationPayload,

@@ -2,7 +2,7 @@
 # Source : docs/RECETTE-BDD-FRONT.md. Découpage aligné sur oui-crm-api/docs/features/.
 
 @organizations
-Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03)
+Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
   Vue Gherkin de la recette front : ce que voit l’utilisateur, là où la
   recette de l’API décrit le contrat HTTP.
 
@@ -222,3 +222,55 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03)
     When je clique sur « Annuler »
     Then le panneau se ferme
     And la croix le ferme aussi
+
+  # ── US-01-13 · Supprimer un organisme
+
+  @a-couvrir
+  Scenario: Emplacement de l'action
+    Then carte dédiée en bas de la fiche, à l'écart des actions du formulaire
+
+  @a-couvrir
+  Scenario: Confirmation obligatoire
+    Then une fenêtre s'interpose, aucune suppression au premier clic
+
+  @ok
+  Scenario: Ce que dit la fenêtre
+    Given j'ouvre la fiche d'un organisme
+    When je demande sa suppression
+    Then une fenêtre s'interpose avant toute suppression
+    And elle dit que les identifiants redeviennent disponibles
+    And qu'il ne s'agit pas d'un effacement définitif
+
+  @ok
+  Scenario: Confirmer
+    Given la fenêtre de confirmation ouverte
+    When je confirme la suppression
+    Then un DELETE part sur la fiche
+    And le panneau se referme
+
+  @ok
+  Scenario: Renoncer
+    Given la fenêtre de confirmation ouverte
+    When je renonce
+    Then aucune requête n'est envoyée
+    And la fiche reste ouverte
+
+  @a-couvrir
+  Scenario: Sans la permission
+    Then ni carte ni bouton — un commercial n'a pas organizations:delete
+
+  @a-couvrir
+  Scenario: Fiche déjà supprimée
+    Then 404 ORGANIZATION_NOT_FOUND : message, pas de page blanche
+
+  @a-couvrir
+  Scenario: Fiche hors périmètre
+    Then 403 ACCESS_DENIED avec un rôle restreint
+
+  @a-couvrir
+  Scenario: Identifiants libérés
+    Then le SIRET d'une fiche supprimée peut resservir à la création
+
+  @a-couvrir
+  Scenario: Contrats rattachés
+    Then 409 ORGANIZATION_HAS_CONTRACTS — arrive au lot L3, pas encore émis
