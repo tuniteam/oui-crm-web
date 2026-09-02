@@ -213,3 +213,12 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03)
   @a-couvrir
   Scenario: Onglet Contacts
     Then liste, ajout, contact principal unique (US-01-04)
+
+  @ok
+  Scenario: Fermeture du panneau
+    Given j'ouvre la fiche d'un organisme
+    When je clique à côté du panneau, puis appuie sur Échap
+    Then le panneau reste ouvert
+    When je clique sur « Annuler »
+    Then le panneau se ferme
+    And la croix le ferme aussi

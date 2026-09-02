@@ -1074,6 +1074,53 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '01-03.10',
+    us: 'US-01-03',
+    title: 'Le panneau ne se ferme que par la croix ou par « Annuler »',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme",
+      'When je clique à côté du panneau, puis appuie sur Échap',
+      'Then le panneau reste ouvert',
+      'When je clique sur « Annuler »',
+      'Then le panneau se ferme',
+      "And la croix le ferme aussi",
+    ],
+    async run({ page, expect, projectId }) {
+      const openPanel = async () => {
+        await page.locator('[data-testid^="organization-view-"]').first().click();
+        await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+        await page.waitForTimeout(1200);
+      };
+      const isOpen = () =>
+        page.getByTestId('reusable-sheet').isVisible().catch(() => false);
+
+      await page.goto(`/${projectId}/organizations`);
+      await openPanel();
+
+      // Le panneau porte un formulaire : une fermeture accidentelle perdrait
+      // la saisie sans le dire.
+      await page.mouse.click(60, 450);
+      await page.waitForTimeout(700);
+      expect(await isOpen(), 'un clic a cote a ferme le panneau');
+
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(700);
+      expect(await isOpen(), 'la touche Echap a ferme le panneau');
+
+      await page.getByTestId('organization-cancel').click();
+      await page.waitForTimeout(900);
+      expect(!(await isOpen()), '« Annuler » n a pas ferme le panneau');
+
+      // La croix reste le second chemin de sortie.
+      await openPanel();
+      await page.locator('[data-slot="sheet-close"]').first().click();
+      await page.waitForTimeout(900);
+      expect(!(await isOpen()), 'la croix n a pas ferme le panneau');
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

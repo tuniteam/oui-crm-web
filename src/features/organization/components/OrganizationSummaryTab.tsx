@@ -39,6 +39,8 @@ const { LABELS, SECTIONS, HINTS, ACTIONS, EMPTY_VALUE, UNASSIGNED } = UI;
 
 type Props = {
   organization: OrganizationDetail;
+  /** Ferme le panneau : c'est ce que fait « Annuler ». */
+  onClose: () => void;
 };
 
 /** Champs du schema rendus par un simple `<Input>`. */
@@ -169,9 +171,8 @@ function CheckboxGroup({
   );
 }
 
-export function OrganizationSummaryTab({ organization }: Props) {
-  const { form, update, submit } =
-    useOrganizationSummaryForm(organization);
+export function OrganizationSummaryTab({ organization, onClose }: Props) {
+  const { form, update, submit } = useOrganizationSummaryForm(organization);
   const { optionsOf } = useReferenceLabels();
   const canUpdate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.ORGANIZATIONS.UPDATE),
@@ -377,6 +378,15 @@ export function OrganizationSummaryTab({ organization }: Props) {
 
         {canUpdate ? (
           <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              data-testid="organization-cancel"
+              onClick={onClose}
+              disabled={update.loading}
+            >
+              {ACTIONS.CANCEL}
+            </Button>
             <Button
               type="button"
               data-testid="organization-save"

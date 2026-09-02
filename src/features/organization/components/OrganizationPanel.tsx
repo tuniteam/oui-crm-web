@@ -65,8 +65,10 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
     <ReusableSheet<PanelHooks>
       open={open}
       onOpenChange={onOpenChange}
-      preventClose={false}
-       
+      // Le panneau porte un formulaire : un clic a cote ou une touche Echap
+      // ferait perdre la saisie sans le dire. Il ne se ferme qu'a la croix ou
+      // par « Annuler ». (`preventClose` vaut deja `true` par defaut ; il
+      // etait force a `false` ici.)
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHooks={() => usePanelData(organizationId, open)}
       title={
@@ -132,6 +134,7 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
           <OrganizationSummaryTab
             key={organization.id}
             organization={organization}
+            onClose={() => onOpenChange(false)}
           />
         );
       }}
