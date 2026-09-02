@@ -1,7 +1,6 @@
 // components/window/ReusableWindow.tsx
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogBody,
@@ -67,7 +66,7 @@ export function ReusableWindow<THooks>({
         className={cn(
           // p-0 et max-w-none neutralisent les valeurs par defaut de la
           // variante (p-6, max-w-lg) qui bridaient la fenetre.
-          'p-0 gap-0 flex flex-col rounded-lg max-w-none',
+          'p-0 gap-0 flex flex-col rounded-lg max-w-none overflow-hidden',
           // Mobile : pleine hauteur utile, marge de 12px. 100dvh et non 100vh,
           // sinon la barre d'adresse mobile rogne le pied de page.
           'w-[calc(100%-1.5rem)] h-[calc(100dvh-1.5rem)]',
@@ -90,12 +89,20 @@ export function ReusableWindow<THooks>({
           ) : null}
         </DialogHeader>
 
-        {/* min-h-0 est indispensable : sans lui, un enfant flex refuse de
-            retrecir sous sa taille de contenu et le defilement ne prend pas. */}
-        <DialogBody className="min-h-0 flex-1 px-4 py-0 sm:px-6">
-          <ScrollArea className="h-full pe-3 -me-3 px-1">
-            <div className="px-1 py-5">{renderBody(hooks)}</div>
-          </ScrollArea>
+        {/*
+         * Le corps est lui-meme la zone defilante.
+         *
+         * `min-h-0` est indispensable : sans lui, un enfant flex refuse de
+         * retrecir sous sa taille de contenu et le defilement ne prend pas.
+         *
+         * On n'imbrique pas de ScrollArea ici : sa hauteur `h-full` est un
+         * pourcentage, et un pourcentage ne resout rien quand le parent tire sa
+         * hauteur du flex (`sm:h-auto` + `sm:max-h-*`) plutot que d'une hauteur
+         * explicite. La zone grandissait donc avec le contenu et passait sous
+         * le pied de fenetre.
+         */}
+        <DialogBody className="min-h-0 flex-1 overflow-y-auto px-4 py-0 sm:px-6">
+          <div className="px-1 py-5">{renderBody(hooks)}</div>
         </DialogBody>
 
         {renderFooter ? (
