@@ -58,6 +58,35 @@ export const API_ERROR = {
   USER_INACTIVE: 'Cet utilisateur est suspendu.',
   USER_ALREADY_ACTIVE: 'Cet utilisateur est déjà activé.',
 
+  // ==============================
+  // Lot L1 — Base commerciale
+  // ==============================
+  ORGANIZATION_NOT_FOUND: 'Organisme introuvable.',
+  ORGANIZATION_SIRET_EXISTS:
+    'Ce SIRET est déjà utilisé par un organisme du projet.',
+  ORGANIZATION_INSEE_CODE_EXISTS:
+    'Ce code INSEE est déjà utilisé par un organisme du projet.',
+  ORGANIZATION_POSSIBLE_DUPLICATE:
+    'Un organisme portant ce nom existe déjà à ce code postal.',
+  ORGANIZATION_HAS_CONTRACTS:
+    'Cet organisme porte un contrat : il ne peut pas être supprimé.',
+  INVALID_REFERENCE_VALUE:
+    "Cette valeur n'existe pas dans les référentiels du projet.",
+  CONTACT_NOT_FOUND: 'Contact introuvable.',
+  CONTACT_PRIMARY_CONFLICT: 'Un autre contact est déjà le contact principal.',
+  CONTACT_HAS_ACTIVITIES:
+    "Ce contact est référencé par une action : l'historique garde ses acteurs.",
+
+  /*
+   * Registre officiel : ce ne sont PAS des erreurs a afficher en rouge. Le
+   * contrat les designe comme le signal de basculer en saisie manuelle — cas
+   * nominal. Les libelles restent neutres pour cette raison.
+   */
+  REGISTRY_UNAVAILABLE:
+    'Le registre officiel est momentanément indisponible. Vous pouvez saisir la fiche manuellement.',
+  REGISTRY_TIMEOUT:
+    "Le registre officiel n'a pas répondu. Vous pouvez saisir la fiche manuellement.",
+
   // Users du projet (US-00-05)
   INITIALS_ALREADY_USED:
     'Ces initiales sont déjà utilisées dans ce projet.',
@@ -139,4 +168,15 @@ export const API_ERROR_CODE = {
   EMPTY_UPDATE_PAYLOAD: 'EMPTY_UPDATE_PAYLOAD',
   PERMISSION_NOT_FOUND: 'PERMISSION_NOT_FOUND',
   CANNOT_UPDATE_OWN_ACCESS: 'CANNOT_UPDATE_OWN_ACCESS',
+  ORGANIZATION_NOT_FOUND: 'ORGANIZATION_NOT_FOUND',
+  ORGANIZATION_SIRET_EXISTS: 'ORGANIZATION_SIRET_EXISTS',
+  ORGANIZATION_INSEE_CODE_EXISTS: 'ORGANIZATION_INSEE_CODE_EXISTS',
+  ORGANIZATION_POSSIBLE_DUPLICATE: 'ORGANIZATION_POSSIBLE_DUPLICATE',
+  ORGANIZATION_HAS_CONTRACTS: 'ORGANIZATION_HAS_CONTRACTS',
+  INVALID_REFERENCE_VALUE: 'INVALID_REFERENCE_VALUE',
+  CONTACT_NOT_FOUND: 'CONTACT_NOT_FOUND',
+  CONTACT_PRIMARY_CONFLICT: 'CONTACT_PRIMARY_CONFLICT',
+  CONTACT_HAS_ACTIVITIES: 'CONTACT_HAS_ACTIVITIES',
+  REGISTRY_UNAVAILABLE: 'REGISTRY_UNAVAILABLE',
+  REGISTRY_TIMEOUT: 'REGISTRY_TIMEOUT',
 } as const satisfies Record<string, ApiErrorCode>;

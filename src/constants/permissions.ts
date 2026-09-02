@@ -8,7 +8,23 @@ export const PERMISSIONS = {
   DASHBOARD: { READ: 'dashboard:read' },
   STATS: { READ: 'stats:read' },
   ACTIVITIES: { READ: 'activities:read' },
-  ORGANIZATIONS: { READ: 'organizations:read' },
+  /** Codes releves sur GET /permissions du projet, pas devines. */
+  ORGANIZATIONS: {
+    READ: 'organizations:read',
+    CREATE: 'organizations:create',
+    UPDATE: 'organizations:update',
+    DELETE: 'organizations:delete',
+    /** Actions groupees (US-01-05), import et export (US-01-06/07). */
+    BULK: 'organizations:bulk',
+    IMPORT: 'organizations:import',
+    EXPORT: 'organizations:export',
+  },
+  CONTACTS: {
+    READ: 'contacts:read',
+    CREATE: 'contacts:create',
+    UPDATE: 'contacts:update',
+    DELETE: 'contacts:delete',
+  },
   CAMPAIGNS: { READ: 'campaigns:read' },
   OPPORTUNITIES: { READ: 'opportunities:read' },
   QUOTES: { READ: 'quotes:read' },

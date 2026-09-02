@@ -23,6 +23,12 @@ export type ApiErrorEnvelope = {
     meta?: {
       /** Fin du verrouillage, ISO 8601 UTC (423 AUTH_ACCOUNT_LOCKED). */
       lockedUntil?: string;
+      /**
+       * Fiches candidates sur `409 ORGANIZATION_POSSIBLE_DUPLICATE`.
+       * Le contrat les place ici et non dans `details` : ce sont des donnees,
+       * pas des phrases.
+       */
+      duplicates?: { id: string; name: string; city: string | null }[];
       [key: string]: unknown;
     };
   };
@@ -41,6 +47,22 @@ export function getApiErrorDetails(err: unknown): string[] | null {
     const ax = err as AxiosError<ApiErrorEnvelope>;
     const details = ax.response?.data?.messages?.details;
     return details && details.length > 0 ? details : null;
+  }
+  return null;
+}
+
+/**
+ * Valeurs structurees accompagnant l'erreur.
+ *
+ * `messages.text` est humain et peut changer ; `messages.details` est une liste
+ * de lignes lisibles. Tout ce qui doit etre *exploite* passe par `meta` :
+ * `lockedUntil` sur un compte verrouille, `duplicates` sur un doublon
+ * d'organisme. Les lire ici plutot que de parser un message.
+ */
+export function getApiErrorMeta(err: unknown): Record<string, unknown> | null {
+  if (err && typeof err === 'object' && 'isAxiosError' in err) {
+    const ax = err as AxiosError<ApiErrorEnvelope>;
+    return ax.response?.data?.messages?.meta ?? null;
   }
   return null;
 }
