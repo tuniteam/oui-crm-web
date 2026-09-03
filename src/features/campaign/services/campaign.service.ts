@@ -81,11 +81,15 @@ export const campaignService = {
     await api.delete(CAMPAIGN_ROUTES.CAMPAIGN_ORGANIZATION_API(id, orgId));
   },
 
-  /** Detail par organisme cible. Non paginee : le serveur rend toute la cible. */
-  getResults: async (id: string): Promise<CampaignResultsResponse> => {
+  /** Detail par organisme cible, pagine et filtre par le perimetre. */
+  getResults: async (
+    id: string,
+    params: { page?: number; limit?: number },
+  ): Promise<CampaignResultsResponse> => {
     try {
       const res = await api.get<CampaignResultsResponse>(
         CAMPAIGN_ROUTES.CAMPAIGN_RESULTS_API(id),
+        { params },
       );
       return res.data;
     } catch (err) {

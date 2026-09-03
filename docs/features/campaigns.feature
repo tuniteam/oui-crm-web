@@ -136,10 +136,28 @@ Feature: Campagnes (L1 · US-01-11)
     Then le périmètre est réécrit avec ses autres campagnes seulement
     And le périmètre disparaît des bloquants
 
-  @a-couvrir
+  @ok
   Scenario: Refus non nommé
-    Then meta.scopes absent : l'écran le dit au lieu d'inventer un périmètre
+    Given une campagne dont la cible dépasse une page de résultats
+    When je passe à la page suivante
+    Then le serveur est interrogé pour cette page
+    Et les totaux affichés restent ceux de toute la campagne
+
+  @ok
+  Scenario: Sans campaigns:delete
+    Given une fiche ciblée hors de mon périmètre
+    When j’ouvre le détail des résultats
+    Then elle est signalée comme hors de mon périmètre
+    Et sa dernière action est dite non communiquée, pas absente
 
   @a-couvrir
-  Scenario: Sans campaigns:delete
-    Then pas de bouton Supprimer — le commercial ne l'a pas
+  Scenario: Résultats paginés
+    Then la page suivante est demandée au serveur, et les totaux ne suivent pas la page
+
+  @a-couvrir
+  Scenario: Cible paginée
+    Then même pagination sur la cible : un import de territoire dépasse une page
+
+  @a-couvrir
+  Scenario: Hors périmètre dans les résultats
+    Then fiche signalée, et dernière action « non communiqué » — le champ est absent, pas nul

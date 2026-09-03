@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ReusableSheet } from '@/components/drawer/ReusableSheet';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +10,7 @@ import {
 } from '../constants/campaign.constants';
 import { useCampaignResults } from '../hooks/useCampaignResults';
 import type { Campaign } from '../types/campaign';
+import { CampaignPager } from './CampaignPager';
 
 const UI = CAMPAIGN_RESULTS_UI;
 
@@ -116,7 +118,18 @@ export function CampaignResultsPanel({ campaign, onOpenChange }: Props) {
                           data-testid={`campaign-results-row-${row.organizationId}`}
                           className="border-b border-border/60"
                         >
-                          <td className="py-2 pe-3">{row.name}</td>
+                          <td className="py-2 pe-3">
+                            <span className="flex flex-wrap items-center gap-2">
+                              {row.name}
+                              {/* Une fiche hors périmètre reste listée, en
+                                  projection restreinte. */}
+                              {row.access === 'RESTRICTED' ? (
+                                <Badge variant="secondary" appearance="outline">
+                                  {UI.RESTRICTED}
+                                </Badge>
+                              ) : null}
+                            </span>
+                          </td>
                           <td className="py-2 pe-3 text-muted-foreground">
                             {SALES_STATUS_LABELS[row.salesStatus]}
                           </td>
@@ -125,10 +138,16 @@ export function CampaignResultsPanel({ campaign, onOpenChange }: Props) {
                           </td>
                           {/* Une fiche ciblée sans action reste listée, à zéro :
                               c'est justement celle qu'il reste à travailler. */}
+                          {/* Trois cas distincts, et non deux : une date, une
+                              fiche sans action (`null`), et une fiche hors
+                              périmètre dont le champ est **absent**. Dire
+                              « Aucune » dans ce dernier cas serait faux. */}
                           <td className="py-2 text-muted-foreground">
                             {row.lastActivityAt
                               ? formatShortDateFr(row.lastActivityAt)
-                              : UI.NEVER}
+                              : row.lastActivityAt === null
+                                ? UI.NEVER
+                                : UI.NOT_DISCLOSED}
                           </td>
                         </tr>
                       ))}
@@ -136,6 +155,13 @@ export function CampaignResultsPanel({ campaign, onOpenChange }: Props) {
                   </table>
                 </div>
               )}
+
+              <CampaignPager
+                meta={results.meta}
+                page={results.page}
+                onPage={results.setPage}
+                testId="campaign-results"
+              />
             </>
           )}
         </div>

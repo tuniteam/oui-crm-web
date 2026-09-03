@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CAMPAIGN_TARGET_UI } from '../constants/campaign.constants';
 import { useCampaignTarget } from '../hooks/useCampaignTarget';
 import type { Campaign } from '../types/campaign';
+import { CampaignPager } from './CampaignPager';
 import { CampaignTargetPicker } from './CampaignTargetPicker';
 
 const UI = CAMPAIGN_TARGET_UI;
@@ -122,6 +123,15 @@ export function CampaignTargetPanel({ campaign, onOpenChange }: Props) {
                 ))}
               </ul>
             )}
+
+            {/* La cible est paginée elle aussi : un import de territoire en
+                met des centaines, inatteignables sans ces boutons. */}
+            <CampaignPager
+              meta={target.meta}
+              page={target.page}
+              onPage={target.setPage}
+              testId="campaign-target"
+            />
           </div>
         )}
         renderFooter={() => (

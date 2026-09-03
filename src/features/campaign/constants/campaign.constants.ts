@@ -181,6 +181,8 @@ export const CAMPAIGN_RESULTS_UI = {
   SUBTITLE:
     'Calculés à la demande, à partir des actions rattachées à la campagne.',
 
+  /** Porte sur **toute** la campagne, pas sur la page : le dire évite de
+   *  croire que le nombre suivra la pagination. */
   TOTALS: 'Total de la campagne',
 
   COLUMNS: {
@@ -193,6 +195,15 @@ export const CAMPAIGN_RESULTS_UI = {
   /** Une fiche ciblée sans action reste dans la liste, à zéro : la faire
    *  disparaître cacherait justement celles qu'il reste à travailler. */
   NEVER: 'Aucune',
+  /**
+   * Hors périmètre, le contrat **retire** `lastActivityAt` de la charge utile.
+   * Afficher « Aucune » serait un mensonge : la fiche peut très bien avoir
+   * produit des actions, on n'a simplement pas le droit de les dater.
+   */
+  NOT_DISCLOSED: 'Non communiqué',
+
+  /** Même signalement que dans la cible, pour la même raison. */
+  RESTRICTED: 'Hors de votre périmètre',
 
   EMPTY: {
     TITLE: 'Rien à mesurer',
@@ -235,4 +246,16 @@ export const CAMPAIGN_DELETE_UI = {
     CANCEL: 'Annuler',
     CLOSE: 'Fermer',
   },
+} as const;
+
+/**
+ * Pagination de la cible et des résultats — L1 · US-01-11.
+ *
+ * Les deux routes rendent vingt lignes par page.
+ */
+export const CAMPAIGN_PAGER = {
+  POSITION: (page: number, pages: number, total: number) =>
+    `Page ${page} sur ${pages} · ${total} organisme${total > 1 ? 's' : ''}`,
+  PREVIOUS: 'Précédent',
+  NEXT: 'Suivant',
 } as const;

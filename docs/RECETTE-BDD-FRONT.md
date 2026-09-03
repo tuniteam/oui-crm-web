@@ -708,6 +708,9 @@ portant son ciblage et ses quatre mesures.
 | 21 | Détacher puis rejouer | détacher le périmètre rend la suppression possible, sans nettoyage automatique | couvert |
 | 22 | Refus non nommé | `meta.scopes` absent : l'écran le dit au lieu d'inventer un périmètre | à couvrir |
 | 23 | Sans `campaigns:delete` | pas de bouton Supprimer — le commercial ne l'a pas | à couvrir |
+| 24 | Résultats paginés | la page suivante est demandée au serveur, et les totaux **ne suivent pas** la page | couvert |
+| 25 | Cible paginée | même pagination sur la cible : un import de territoire dépasse une page | à couvrir |
+| 26 | Hors périmètre dans les résultats | fiche signalée, et dernière action **« non communiqué »** — le champ est absent, pas nul | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -729,9 +732,20 @@ portant son ciblage et ses quatre mesures.
   `totals` vaut par construction la somme des organismes *encore ciblés et
   vivants* : additionner les lignes affichées donnerait un autre nombre dès
   qu'une fiche est supprimée. On rend `totals` tel quel.
-- **`GET /campaigns/:id/results` n'est pas paginée** et, contrairement à
-  `GET /campaigns/:id/organizations`, **ne porte pas d'`access`** : il n'y a
-  donc pas de badge « hors périmètre » sur cet écran.
+- **`GET /campaigns/:id/results` est paginée et filtrée par le périmètre**
+  depuis la correction du contrat du 02/09/2026, demandée par le front. Une
+  cible alimentée par un import de territoire compte des centaines de fiches
+  — 423 communes pour un département — et tout ce qui dépasse la première page
+  serait inatteignable sans pagination.
+- **`totals` porte sur toute la campagne, pas sur la page.** Il ne bouge pas
+  quand on tourne les pages, et ne vaut donc **pas** la somme des lignes
+  visibles. Le libellé le dit, et un scénario vérifie qu'il ne suit pas la
+  pagination.
+- **Hors périmètre, `lastActivityAt` est absent de la charge utile**, et non
+  nul : le champ ne fait pas partie de la projection restreinte. `undefined` et
+  `null` ne disent pas la même chose — « non communiqué » pour la fiche qu'on
+  n'a pas le droit de dater, « aucune » pour celle qui n'a rien produit.
+  Confondre les deux ferait croire qu'une fiche travaillée est en sommeil.
 - **Un périmètre ne se nettoie pas tout seul.** La suppression refusée nomme
   les périmètres fautifs ; l'écran propose de détacher, il ne détache jamais
   d'office. Un périmètre est du contrôle d'accès : le modifier dans le dos de
@@ -840,7 +854,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 13:19. 87/87 OK._
+_Généré par `npm run bdd` — 2026-09-03 16:07. 89/89 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -884,6 +898,8 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-11 | 01-11.19 | Une fiche ciblée sans action reste listée, à zéro | OK | `screenshots/L1-01-11-19.png` |
 | US-01-11 | 01-11.20 | Une campagne citée par un périmètre nomme ce qui la bloque | OK | `screenshots/L1-01-11-20.png` |
 | US-01-11 | 01-11.21 | Détacher un périmètre remplace sa liste, sans nettoyage d’office | OK | `screenshots/L1-01-11-21.png` |
+| US-01-11 | 01-11.22 | Les résultats se paginent, et les totaux ne suivent pas la page | OK | `screenshots/L1-01-11-22.png` |
+| US-01-11 | 01-11.23 | Hors périmètre, la dernière action est « non communiqué », jamais « aucune » | OK | `screenshots/L1-01-11-23.png` |
 | US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/L1-01-13-3.png` |
 | US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/L1-01-13-4.png` |
 | US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/L1-01-13-5.png` |

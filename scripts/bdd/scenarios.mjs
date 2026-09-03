@@ -2972,6 +2972,7 @@ export const scenarios = [
             organizationId: 'o1',
             name: 'Commune de Joigny',
             salesStatus: 'IN_PROGRESS',
+            access: 'FULL',
             activities: 4,
             lastActivityAt: '2026-08-20T10:00:00.000Z',
           },
@@ -2979,10 +2980,12 @@ export const scenarios = [
             organizationId: 'o2',
             name: 'Commune de Sens',
             salesStatus: 'TO_CONTACT',
+            access: 'FULL',
             activities: 2,
             lastActivityAt: '2026-08-12T09:00:00.000Z',
           },
         ],
+        meta: { total: 2, page: 1, limit: 20, totalPages: 1 },
       });
 
       await page.goto(`/${projectId}/campaigns`);
@@ -3031,10 +3034,12 @@ export const scenarios = [
             organizationId: 'o9',
             name: 'Commune de Tonnerre',
             salesStatus: 'NOT_CONTACTED',
+            access: 'FULL',
             activities: 0,
             lastActivityAt: null,
           },
         ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
       });
 
       await page.goto(`/${projectId}/campaigns`);
@@ -3205,6 +3210,160 @@ export const scenarios = [
       expect(
         (await page.getByTestId('campaign-delete-scope-s1').count()) === 0,
         'le périmètre détaché figure encore parmi les bloquants',
+      );
+    },
+  },
+
+
+  {
+    id: '01-11.22',
+    us: 'US-01-11',
+    title: 'Les résultats se paginent, et les totaux ne suivent pas la page',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne dont la cible dépasse une page de résultats',
+      'When je passe à la page suivante',
+      'Then le serveur est interrogé pour cette page',
+      'Et les totaux affichés restent ceux de toute la campagne',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1', organizationsCount: 423 })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      /*
+       * Une cible alimentee par un import de territoire compte des centaines de
+       * fiches — 423 communes pour un departement. Sans pagination, tout ce qui
+       * depasse la premiere page est inatteignable.
+       */
+      const rowsFor = (n) =>
+        Array.from({ length: 20 }, (_, i) => ({
+          organizationId: `p${n}-o${i}`,
+          name: `Commune ${n}-${i}`,
+          salesStatus: 'TO_CONTACT',
+          access: 'FULL',
+          activities: 1,
+          lastActivityAt: '2026-08-20T10:00:00.000Z',
+        }));
+
+      await page.route(
+        (url) => url.pathname.endsWith('/campaigns/c1/results'),
+        (route) => {
+          const asked = Number(new URL(route.request().url()).searchParams.get('page') ?? 1);
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              // `totals` porte sur TOUTE la campagne : identique page a page.
+              totals: { activities: 512, opportunities: 0, quotes: 0, signed: 0 },
+              data: rowsFor(asked),
+              meta: { total: 423, page: asked, limit: 20, totalPages: 22 },
+            }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-results-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-results-open-c1').click();
+      await page.getByTestId('campaign-results-pager').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      const before = await page.getByTestId('campaign-results-totals').innerText();
+      expect(before.includes('512'), `le total de la campagne manque : ${before}`);
+
+      apiCalls(true);
+      await page.getByTestId('campaign-results-next').click();
+      await page.waitForTimeout(1500);
+
+      expect(
+        apiCalls().some((c) => c.includes('/campaigns/c1/results') && c.includes('page=2')),
+        `la page 2 n'a pas été demandée : ${apiCalls().join(', ')}`,
+      );
+      expect(
+        await page.getByTestId('campaign-results-row-p2-o0').isVisible(),
+        'les lignes de la page 2 ne sont pas affichées',
+      );
+
+      // Le total ne doit pas devenir celui de la page : c'est le piege.
+      const after = await page.getByTestId('campaign-results-totals').innerText();
+      expect(
+        after.includes('512'),
+        `les totaux ont suivi la pagination : ${after}`,
+      );
+    },
+  },
+
+  {
+    id: '01-11.23',
+    us: 'US-01-11',
+    title: 'Hors périmètre, la dernière action est « non communiqué », jamais « aucune »',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche ciblée hors de mon périmètre',
+      'When j’ouvre le détail des résultats',
+      'Then elle est signalée comme hors de mon périmètre',
+      'Et sa dernière action est dite non communiquée, pas absente',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1', organizationsCount: 2 })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      /*
+       * Le contrat RETIRE `lastActivityAt` de la charge utile quand `access`
+       * vaut `RESTRICTED` : le champ est absent, pas nul. Afficher « Aucune »
+       * serait faux — la fiche a trois actions, on n'a pas le droit de les
+       * dater.
+       */
+      await mock(page, '/campaigns/c1/results', 200, {
+        totals: { activities: 3, opportunities: 0, quotes: 0, signed: 0 },
+        data: [
+          {
+            organizationId: 'oR',
+            name: 'Commune hors secteur',
+            salesStatus: 'IN_PROGRESS',
+            access: 'RESTRICTED',
+            activities: 3,
+          },
+          {
+            organizationId: 'oZ',
+            name: 'Commune sans action',
+            salesStatus: 'NOT_CONTACTED',
+            access: 'FULL',
+            activities: 0,
+            lastActivityAt: null,
+          },
+        ],
+        meta: { total: 2, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-results-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-results-open-c1').click();
+      await page.getByTestId('campaign-results').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      const restricted = await page.getByTestId('campaign-results-row-oR').innerText();
+      expect(
+        restricted.includes('Hors de votre périmètre'),
+        `la fiche hors périmètre n'est pas signalée : ${restricted}`,
+      );
+      expect(
+        restricted.includes('Non communiqué'),
+        `le champ absent n'est pas dit non communiqué : ${restricted}`,
+      );
+      // Les deux cas ne doivent pas se confondre : celle-ci n'a vraiment rien.
+      expect(
+        !restricted.includes('Aucune'),
+        `un champ absent est présenté comme une absence d'action : ${restricted}`,
+      );
+
+      const empty = await page.getByTestId('campaign-results-row-oZ').innerText();
+      expect(
+        empty.includes('Aucune') && !empty.includes('Non communiqué'),
+        `la fiche sans action n'est plus distinguée : ${empty}`,
       );
     },
   },

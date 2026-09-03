@@ -66,9 +66,17 @@ export type CampaignListParams = {
   status?: CampaignStatus;
 };
 
+/** Meta de pagination, identique sur toutes les listes du contrat. */
+export type PaginationMeta = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type CampaignListResponse = {
   data: Campaign[];
-  meta: { total: number; page: number; limit: number; totalPages: number };
+  meta: PaginationMeta;
 };
 
 export type CreateCampaignPayload = {
@@ -114,29 +122,37 @@ export const CAMPAIGN_TARGET_MAX_IDS = 500;
 /**
  * Une ligne du detail par organisme cible.
  *
- * `GET /campaigns/:id/results` n'est **pas paginee** : elle rend toute la
- * cible. Elle ne porte pas non plus d'`access` — contrairement a
- * `GET /campaigns/:id/organizations` — donc pas de badge « hors perimetre »
- * ici.
+ * Paginee et filtree par le perimetre, exactement comme
+ * `GET /campaigns/:id/organizations` — correction du contrat du 02/09/2026,
+ * sur retour du front. Une cible alimentee par un import de territoire peut
+ * compter des centaines de fiches (423 communes pour un departement).
  */
 export type CampaignResultRow = {
   organizationId: string;
   name: string;
   salesStatus: SalesStatus;
+  /** Projection : `RESTRICTED` hors du perimetre de l'appelant. */
+  access: 'FULL' | 'RESTRICTED';
   /** Actions **de cette campagne** sur cette fiche, pas son historique. */
   activities: number;
-  /** Horodatage ISO complet, ou `null` si la fiche n'a rien produit. */
-  lastActivityAt: string | null;
+  /**
+   * Horodatage ISO complet, `null` si la fiche n'a rien produit — et
+   * **absent** quand `access` vaut `RESTRICTED` : le champ ne fait pas partie
+   * de la projection restreinte. `undefined` et `null` ne disent donc pas la
+   * meme chose, et l'ecran ne doit pas les confondre.
+   */
+  lastActivityAt?: string | null;
 };
 
 /**
- * `totals` porte les memes quatre compteurs que la carte, et vaut par
- * construction la somme des lignes : ne jamais les additionner soi-meme, une
- * fiche supprimee sortirait des lignes sans sortir du total.
+ * `totals` porte sur **toute la campagne**, jamais sur la page affichee : il ne
+ * bouge pas quand l'utilisateur tourne les pages, et ne vaut donc pas la somme
+ * des lignes visibles. Ne jamais les additionner soi-meme.
  */
 export type CampaignResultsResponse = {
   totals: CampaignResults;
   data: CampaignResultRow[];
+  meta: PaginationMeta;
 };
 
 /**

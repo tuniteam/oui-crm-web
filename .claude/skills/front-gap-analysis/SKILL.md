@@ -116,10 +116,17 @@ Distinguer toujours :
 7. **Mettre à jour la recette BDD** (section suivante), puis **l'exécuter** :
 
    ```bash
-   npm run bdd                  # tout
-   npm run bdd -- --us=08       # une US
+   npm run bdd -- --us=01-11    # l'US en cours — le lancement par défaut
    npm run bdd -- --id=01.9     # un scénario
+   npm run bdd                  # tout : SUR DEMANDE EXPLICITE SEULEMENT
    ```
+
+   **N'exécuter que les scénarios de l'US en cours de développement.** La suite
+   complète ne se lance que si elle est demandée : elle prend plusieurs
+   minutes, et pendant ce temps on ne peut ni éditer le code ni lancer un autre
+   run. Le rapport `docs/rapport-bdd.html` conserve de toute façon le dernier
+   résultat de chaque scénario, exécuté ou non — la couverture reste donc
+   lisible sans tout relancer.
 
    Les scénarios exécutables vivent dans `scripts/bdd/scenarios.mjs`, chacun
    portant le `id` de sa ligne dans la recette. Le lancement réinjecte le
