@@ -854,7 +854,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 16:07. 89/89 OK._
+_Généré par `npm run bdd` — 2026-09-03 16:57. 89/89 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -898,8 +898,8 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-11 | 01-11.19 | Une fiche ciblée sans action reste listée, à zéro | OK | `screenshots/L1-01-11-19.png` |
 | US-01-11 | 01-11.20 | Une campagne citée par un périmètre nomme ce qui la bloque | OK | `screenshots/L1-01-11-20.png` |
 | US-01-11 | 01-11.21 | Détacher un périmètre remplace sa liste, sans nettoyage d’office | OK | `screenshots/L1-01-11-21.png` |
-| US-01-11 | 01-11.22 | Les résultats se paginent, et les totaux ne suivent pas la page | OK | `screenshots/L1-01-11-22.png` |
-| US-01-11 | 01-11.23 | Hors périmètre, la dernière action est « non communiqué », jamais « aucune » | OK | `screenshots/L1-01-11-23.png` |
+| US-01-11 | 01-11.24 | Les résultats se paginent, et les totaux ne suivent pas la page | OK | `screenshots/L1-01-11-24.png` |
+| US-01-11 | 01-11.26 | Hors périmètre, la dernière action est « non communiqué », jamais « aucune » | OK | `screenshots/L1-01-11-26.png` |
 | US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/L1-01-13-3.png` |
 | US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/L1-01-13-4.png` |
 | US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/L1-01-13-5.png` |

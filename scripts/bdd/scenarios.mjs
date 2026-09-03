@@ -3216,7 +3216,7 @@ export const scenarios = [
 
 
   {
-    id: '01-11.22',
+    id: '01-11.24',
     us: 'US-01-11',
     title: 'Les résultats se paginent, et les totaux ne suivent pas la page',
     needsProject: true,
@@ -3296,7 +3296,7 @@ export const scenarios = [
   },
 
   {
-    id: '01-11.23',
+    id: '01-11.26',
     us: 'US-01-11',
     title: 'Hors périmètre, la dernière action est « non communiqué », jamais « aucune »',
     needsProject: true,
