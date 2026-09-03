@@ -16,6 +16,8 @@ import { useOrganization } from '../hooks/useOrganization';
 import type { OrganizationDetail } from '../types/organizationDetail';
 import { OrganizationRestrictedPane } from './OrganizationRestrictedPane';
 import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
+import { ACTIVITIES_UI } from '@/features/activity/constants/activity.constants';
+import { OrganizationActivitiesTab } from '@/features/activity/components/OrganizationActivitiesTab';
 import { OrganizationContactsTab } from './OrganizationContactsTab';
 import { OrganizationSummaryTab } from './OrganizationSummaryTab';
 
@@ -69,7 +71,11 @@ function usePanelData(organizationId: string | null, open: boolean): PanelHooks 
 }
 
 /** Onglets du panneau. */
-const PANEL_TABS = { SUMMARY: 'summary', CONTACTS: 'contacts' } as const;
+const PANEL_TABS = {
+  SUMMARY: 'summary',
+  CONTACTS: 'contacts',
+  ACTIVITIES: 'activities',
+} as const;
 
 /** Le temps de lire le message avant que le panneau ne se referme. */
 const NOT_FOUND_CLOSE_DELAY_MS = 2500;
@@ -78,6 +84,10 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
   const open = !!organizationId;
   const canReadContacts = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.CONTACTS.READ),
+  );
+  // Le formateur n'a rien sur les actions : l'onglet disparaît.
+  const canReadActivities = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.ACTIVITIES.READ),
   );
 
   return (
@@ -158,10 +168,10 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
         // valeurs initiales, plutot que de reinitialiser l'existant.
         return (
           <Tabs key={organization.id} defaultValue={PANEL_TABS.SUMMARY}>
-            {/* Deux onglets, pas les six de la V8 : les quatre autres
-                (Actions, Commercial, Client, Support) appartiennent a
-                l'US-01-08 et aux lots L2/L4. Mieux vaut deux onglets qui
-                fonctionnent que six dont quatre sont vides. */}
+            {/* Trois onglets, pas les six de la V8 : Actions a rejoint la
+                fiche avec l'US-01-08 ; Commercial, Client et Support
+                appartiennent aux lots L2/L4. Mieux vaut trois onglets qui
+                fonctionnent que six dont trois sont vides. */}
             <TabsList variant="line" className="mb-4 w-full justify-start">
               <TabsTrigger value={PANEL_TABS.SUMMARY}>
                 {ORGANIZATION_DETAIL_UI.TABS.SUMMARY}
@@ -172,6 +182,14 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                   data-testid="organization-tab-contacts"
                 >
                   {ORGANIZATION_DETAIL_UI.TABS.CONTACTS}
+                </TabsTrigger>
+              ) : null}
+              {canReadActivities ? (
+                <TabsTrigger
+                  value={PANEL_TABS.ACTIVITIES}
+                  data-testid="organization-tab-activities"
+                >
+                  {ACTIVITIES_UI.TAB}
                 </TabsTrigger>
               ) : null}
             </TabsList>
@@ -186,6 +204,15 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
             {canReadContacts ? (
               <TabsContent value={PANEL_TABS.CONTACTS}>
                 <OrganizationContactsTab organizationId={organization.id} />
+              </TabsContent>
+            ) : null}
+
+            {/* L'onglet ne s'affiche que sur une fiche en acces `FULL` : le
+                panneau restreint est rendu plus haut et n'arrive jamais ici,
+                ce qui satisfait la regle « planifier exige FULL ». */}
+            {canReadActivities ? (
+              <TabsContent value={PANEL_TABS.ACTIVITIES}>
+                <OrganizationActivitiesTab organizationId={organization.id} />
               </TabsContent>
             ) : null}
           </Tabs>

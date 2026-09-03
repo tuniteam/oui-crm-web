@@ -33,6 +33,57 @@ const err = (statusCode, code, extra = {}) => ({
   messages: { statusCode: String(statusCode), code, level: 'error', ...extra },
 });
 
+
+/** Action minimale : seuls l'id, le jour et le statut varient d'un scenario a l'autre. */
+const activityFixture = (over = {}) => ({
+  id: 'a1',
+  organization: { id: 'o1', name: 'Commune de Joigny' },
+  contact: null,
+  user: { id: 'u1', fullName: 'Wiem Bousaid', initials: null },
+  type: { key: 'CALL', label: 'Appel' },
+  date: '2026-10-15',
+  time: null,
+  durationMin: null,
+  location: null,
+  status: 'PLANNED',
+  report: null,
+  result: null,
+  campaign: null,
+  completedAt: null,
+  ...over,
+});
+
+/** `GET /activities` seul : la liste des organismes reste celle du serveur. */
+const mockActivities = (page, data) =>
+  page.route(
+    (url) => url.pathname.endsWith('/activities'),
+    (route) =>
+      route.request().method() === 'GET'
+        ? route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data,
+              meta: { total: data.length, page: 1, limit: 50, totalPages: 1 },
+            }),
+          })
+        : route.fallback(),
+  );
+
+/** Ouvre la premiere fiche du projet et son onglet Actions. */
+async function openActivitiesTab(page, projectId) {
+  await page.goto(`/${projectId}/organizations`);
+  await page
+    .locator('[data-testid^="organization-view-"]')
+    .first()
+    .waitFor({ timeout: 20000 });
+  await page.locator('[data-testid^="organization-view-"]').first().click();
+  await page.getByTestId('organization-tab-activities').waitFor({ timeout: 15000 });
+  await page.getByTestId('organization-tab-activities').click();
+  await page.getByTestId('organization-activities').waitFor({ timeout: 15000 });
+  await page.waitForTimeout(900);
+}
+
 /** Campagne minimale : seuls `id` et le compteur varient d'un scenario a l'autre. */
 const campaignFixture = (over = {}) => ({
   id: 'c1',
@@ -3364,6 +3415,419 @@ export const scenarios = [
       expect(
         empty.includes('Aucune') && !empty.includes('Non communiqué'),
         `la fiche sans action n'est plus distinguée : ${empty}`,
+      );
+    },
+  },
+
+
+  // ─────────────────────────────── US-01-08
+  {
+    id: '01-08.4',
+    us: 'US-01-08',
+    title: 'La frise annonce la prochaine action, en retard comprise',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche avec une action planifiée à une date passée',
+      'When j’ouvre son onglet Actions',
+      'Then le bandeau annonce cette action comme la prochaine',
+      'And il dit de combien de jours elle est en retard',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, [
+        activityFixture({
+          id: 'a1',
+          date: '2020-01-15',
+          time: '09:00',
+          type: { key: 'CALL', label: 'Appel' },
+        }),
+      ]);
+
+      await openActivitiesTab(page, projectId);
+
+      /*
+       * Une action planifiee a une date passee reste la « prochaine » : elle ne
+       * disparait pas parce que sa date est passee, c'est justement celle qu'il
+       * faut traiter.
+       */
+      const banner = await page.getByTestId('activity-next').innerText();
+      expect(
+        banner.includes('Prochaine action') && banner.includes('Appel'),
+        `le bandeau n'annonce pas la prochaine action : ${banner}`,
+      );
+      expect(
+        banner.includes('15/01/2020'),
+        `la date n'est pas rendue telle quelle : ${banner}`,
+      );
+      expect(
+        banner.includes('en retard de'),
+        `le retard n'est pas signalé : ${banner}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.11',
+    us: 'US-01-08',
+    title: 'L’heure et la date s’affichent telles quelles, sans conversion',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée le 15/10/2026 à 14:30',
+      'When je regarde la frise',
+      'Then elle affiche 14:30, quel que soit le fuseau du navigateur',
+      'And elle affiche le 15/10/2026, jamais la veille',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, [
+        activityFixture({
+          id: 'a1',
+          date: '2026-10-15',
+          time: '14:30',
+          durationMin: 90,
+          location: 'Mairie, salle 2',
+        }),
+      ]);
+
+      await openActivitiesTab(page, projectId);
+
+      /*
+       * Le piege le plus couteux de l'US : un `new Date()` sur date + heure
+       * suivi d'un `toLocaleTimeString` decalerait tous les rendez-vous d'un
+       * fuseau, silencieusement. La chaine se transporte, elle ne se
+       * reconstruit pas.
+       */
+      const row = await page.getByTestId('activity-row-a1').innerText();
+      expect(row.includes('14:30'), `l'heure a été convertie : ${row}`);
+      expect(
+        row.includes('15/10/2026'),
+        `la date a été décalée d'un fuseau : ${row}`,
+      );
+      expect(row.includes('1 h 30'), `la durée n'est pas lisible : ${row}`);
+    },
+  },
+
+  {
+    id: '01-08.9',
+    us: 'US-01-08',
+    title: 'Planifier : l’action naît planifiée, et l’écran le dit',
+    needsProject: true,
+    gherkin: [
+      'Given le formulaire d’enregistrement d’une action',
+      'Then aucun type n’est présélectionné',
+      'And l’écran annonce que l’action sera planifiée, non réalisée',
+      'When je choisis un type de rendez-vous',
+      'Then il annonce la bascule de la fiche en « RDV planifié »',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, []);
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/activities'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify(activityFixture({ id: 'new' })),
+          });
+        },
+      );
+
+      await openActivitiesTab(page, projectId);
+      await page.getByTestId('activity-add').click();
+      await page.getByTestId('activity-type').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      // Aucun type par defaut : un defaut invisible ferait enregistrer le
+      // mauvais type sans que personne s'en apercoive.
+      const trigger = await page.getByTestId('activity-type').innerText();
+      expect(
+        trigger.includes('Choisir un type'),
+        `un type semble présélectionné : ${trigger}`,
+      );
+
+      // La V8 met ici un selecteur « Realisee / Planifiee » : le contrat ne le
+      // permet pas, et l'ecran le dit plutot que de laisser chercher.
+      expect(
+        await page.getByTestId('activity-planned-hint').isVisible(),
+        'l’écran ne dit pas que l’action sera planifiée',
+      );
+
+      await page.getByTestId('activity-type').click();
+      await page.waitForTimeout(500);
+      await page.getByRole('option', { name: 'RDV physique' }).click();
+      await page.waitForTimeout(600);
+
+      // Automatisme du contrat, invisible sans cette phrase.
+      expect(
+        await page.getByTestId('activity-meeting-hint').isVisible(),
+        'la bascule en « RDV planifié » n’est pas annoncée',
+      );
+      // `defaultDurationMin` du referentiel, independant de `ics`.
+      expect(
+        (await page.getByTestId('activity-duration').inputValue()) === '90',
+        'la durée suggérée par le référentiel n’est pas reprise',
+      );
+
+      // L'heure est un deroulant de creneaux de quinze minutes, pas un champ
+      // libre : le selecteur natif afficherait les soixante minutes.
+      await page.getByTestId('activity-time').click();
+      await page.waitForTimeout(500);
+      await page.getByRole('option', { name: '14:30', exact: true }).click();
+      await page.waitForTimeout(500);
+      await page.getByTestId('activity-submit').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucune action envoyée');
+      expect(
+        sent?.type === 'MEETING' && sent?.time === '14:30',
+        `la charge utile est fausse : ${JSON.stringify(sent)}`,
+      );
+      // Ni statut ni compte rendu de realisation : ce n'est pas ce parcours.
+      expect(
+        !('status' in (sent ?? {})),
+        `un statut est envoyé : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.12',
+    us: 'US-01-08',
+    title: 'Réaliser sans compte rendu est refusé avant envoi',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée',
+      'When je la marque réalisée sans saisir de compte rendu',
+      'Then le formulaire refuse, sans appeler le serveur',
+      'And il dit que le compte rendu est obligatoire',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockActivities(page, [activityFixture({ id: 'a1' })]);
+
+      await openActivitiesTab(page, projectId);
+      await page.getByTestId('activity-do-a1').click();
+      await page.getByTestId('activity-complete-report').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(500);
+
+      apiCalls(true);
+      await page.getByTestId('activity-complete-submit').click();
+      await page.waitForTimeout(1200);
+
+      /*
+       * Le compte rendu est ce qui rend l'action reelle : le serveur le refuse,
+       * et l'ecran le dit avant l'envoi plutot que de traduire un 400.
+       */
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('Le compte rendu est obligatoire'),
+        `le refus n'est pas expliqué : ${body.slice(0, 300)}`,
+      );
+      expect(
+        !apiCalls().some((c) => c.includes('/complete')),
+        `le serveur a été appelé pour rien : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.14',
+    us: 'US-01-08',
+    title: 'Réaliser une action recharge la fiche et la liste des organismes',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée sur une fiche',
+      'When je la marque réalisée avec son compte rendu',
+      'Then la liste des organismes est rechargée',
+      'And son statut commercial n’est plus celui affiché avant',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockActivities(page, [activityFixture({ id: 'a1' })]);
+      await page.route(
+        (url) => url.pathname.endsWith('/activities/a1/complete'),
+        (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              activityFixture({ id: 'a1', status: 'DONE', report: 'Fait.' }),
+            ),
+          }),
+      );
+
+      await openActivitiesTab(page, projectId);
+      await page.getByTestId('activity-do-a1').click();
+      await page.getByTestId('activity-complete-report').waitFor({ timeout: 10000 });
+      await page.getByTestId('activity-complete-report').fill('DGS convaincue.');
+
+      apiCalls(true);
+      await page.getByTestId('activity-complete-submit').click();
+      await page.waitForTimeout(1800);
+
+      /*
+       * Realiser une action fait passer une fiche `NOT_CONTACTED` ou
+       * `TO_CONTACT` en `IN_PROGRESS`, et recalcule `lastActivityAt`. Ne
+       * rafraichir que la frise laisserait la fiche mentir.
+       */
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /organizations')),
+        `la liste des organismes n'a pas été rechargée : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.15',
+    us: 'US-01-08',
+    title: 'Une action close ne propose plus ni modification ni réalisation',
+    needsProject: true,
+    gherkin: [
+      'Given une action déjà réalisée et une action planifiée',
+      'When je regarde la frise',
+      'Then seule la planifiée propose de la modifier, réaliser ou annuler',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, [
+        activityFixture({ id: 'done', status: 'DONE', report: 'Fait.' }),
+        activityFixture({ id: 'plan' }),
+      ]);
+
+      await openActivitiesTab(page, projectId);
+
+      /*
+       * Une action close est de l'histoire : le serveur rend
+       * `409 ACTIVITY_ALREADY_CLOSED`. L'ecran n'offre donc pas ces gestes,
+       * plutot que de les proposer et de traduire un refus.
+       */
+      expect(
+        (await page.getByTestId('activity-do-plan').count()) === 1,
+        'l’action planifiée ne propose pas d’être réalisée',
+      );
+      expect(
+        (await page.getByTestId('activity-do-done').count()) === 0,
+        'une action réalisée propose encore d’être réalisée',
+      );
+      expect(
+        (await page.getByTestId('activity-edit-done').count()) === 0,
+        'une action réalisée propose encore d’être modifiée',
+      );
+      expect(
+        (await page.getByTestId('activity-cancel-done').count()) === 0,
+        'une action réalisée propose encore d’être annulée',
+      );
+    },
+  },
+
+  {
+    id: '01-08.17',
+    us: 'US-01-08',
+    title: 'Supprimer un rendez-vous avertit que le statut ne redescend pas',
+    needsProject: true,
+    gherkin: [
+      'Given une action de type rendez-vous',
+      'When je demande sa suppression',
+      'Then l’écran avertit que le statut commercial ne reviendra pas en arrière',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, [
+        activityFixture({ id: 'a1', type: { key: 'MEETING', label: 'RDV physique' } }),
+      ]);
+
+      await openActivitiesTab(page, projectId);
+      await page.getByTestId('activity-delete-a1').click();
+      await page.getByTestId('activity-confirm-delete').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(500);
+
+      /*
+       * Constate en direct contre l'API : supprimer ou annuler un rendez-vous
+       * ne fait pas redescendre le statut commercial de la fiche. Le taire
+       * laisserait croire a une annulation propre.
+       */
+      const body = await page.getByTestId('activity-confirm-delete').innerText();
+      expect(
+        body.includes('ne reviendra pas en arrière'),
+        `l'avertissement de statut manque : ${body}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.16',
+    us: 'US-01-08',
+    title: 'Une action close entre-temps est dite, et la frise rechargée',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée à l’écran, close ailleurs entre-temps',
+      'When je la modifie',
+      'Then l’écran dit qu’elle n’est plus modifiable',
+      'And il recharge la frise plutôt que de rester sur un état faux',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockActivities(page, [activityFixture({ id: 'a1' })]);
+      await page.route(
+        (url) => url.pathname.endsWith('/activities/a1'),
+        (route) =>
+          route.request().method() === 'PATCH'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(
+                  err(409, 'ACTIVITY_ALREADY_CLOSED', {
+                    text: 'Action déjà close',
+                  }),
+                ),
+              })
+            : route.fallback(),
+      );
+
+      await openActivitiesTab(page, projectId);
+      await page.getByTestId('activity-edit-a1').click();
+      await page.getByTestId('activity-type').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      apiCalls(true);
+      await page.getByTestId('activity-submit').click();
+      await page.waitForTimeout(1800);
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('n’est plus modifiable') ||
+          body.includes("n'est plus modifiable"),
+        `le refus n'est pas expliqué : ${body.slice(0, 300)}`,
+      );
+      // L'ecran a diverge de l'etat reel : on recharge plutot que d'insister.
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /activities')),
+        `la frise n'a pas été rechargée : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-08.2',
+    us: 'US-01-08',
+    title: 'Sans action, l’onglet explique ce qu’une action apporte',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche sans aucune action',
+      'When j’ouvre son onglet Actions',
+      'Then un message explique ce qu’une action apporte',
+      'And le bandeau dit qu’aucune action n’est planifiée',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockActivities(page, []);
+
+      await openActivitiesTab(page, projectId);
+
+      const empty = await page.getByTestId('activities-empty').innerText();
+      expect(
+        empty.includes('avancer la fiche'),
+        `le message n'explique pas l'intérêt : ${empty}`,
+      );
+      const body = await page.getByTestId('organization-activities').innerText();
+      expect(
+        body.includes('Aucune action planifiée'),
+        `l'absence de prochaine action n'est pas dite : ${body.slice(0, 200)}`,
       );
     },
   },
