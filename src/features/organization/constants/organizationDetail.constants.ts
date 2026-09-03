@@ -5,6 +5,9 @@
  * Identite, Environnement periscolaire, Suivi.
  */
 export const ORGANIZATION_DETAIL_UI = {
+  /** Fiche disparue depuis l'ouverture, ou identifiant périmé dans l'URL. */
+  NOT_FOUND: 'Fiche introuvable',
+
   TABS: {
     SUMMARY: 'Synthèse',
     CONTACTS: 'Contacts',

@@ -30,15 +30,16 @@ export const organizationService = {
     }
   },
 
+  /**
+   * Volontairement non enveloppé : l'appelant doit lire
+   * `ORGANIZATION_NOT_FOUND` pour dire « fiche introuvable » plutôt que
+   * d'afficher une erreur générique. Un `Error` nu perdrait le code.
+   */
   getOne: async (id: string): Promise<OrganizationDetail> => {
-    try {
-      const res = await api.get<OrganizationDetail>(
-        ORGANIZATION_ROUTES.ORGANIZATION_API(id),
-      );
-      return res.data;
-    } catch (err) {
-      throw new Error(getApiErrorMessage(err));
-    }
+    const res = await api.get<OrganizationDetail>(
+      ORGANIZATION_ROUTES.ORGANIZATION_API(id),
+    );
+    return res.data;
   },
 
   /**

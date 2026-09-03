@@ -1414,6 +1414,386 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-01-04
+  {
+    id: '01-04.2',
+    us: 'US-01-04',
+    title: 'Les contacts s’affichent, le principal en tête',
+    needsProject: true,
+    gherkin: [
+      "Given j'ouvre la fiche d'un organisme qui a des contacts",
+      "When j'ouvre l'onglet « Contacts »",
+      'Then le contact principal est la première ligne, et porte son badge',
+      'And chaque ligne montre fonction, e-mail et téléphone',
+      'And une coordonnée absente est dite, jamais laissée vide',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+      await page
+        .locator('tr', { hasText: 'Commune de Caen' })
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+
+      await page.getByTestId('organization-tab-contacts').click();
+      const pane = page.getByTestId('organization-contacts');
+      await pane.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      const rows = page.locator('[data-testid^="contact-row-"]');
+      expect((await rows.count()) > 0, 'aucun contact affiché');
+
+      // Le tri vient du serveur : le principal d'abord, puis nom et prenom.
+      const first = await rows.first().innerText();
+      expect(
+        first.includes('Contact principal'),
+        `la première ligne n'est pas le contact principal : ${first}`,
+      );
+
+      const body = await pane.innerText();
+      expect(
+        body.includes('DGS') && body.includes('@'),
+        'fonction ou e-mail manquants sur les lignes',
+      );
+      // Une coordonnee absente se dit : un blanc laisserait croire a un bug.
+      expect(
+        body.includes('téléphone inconnu') || body.includes('email inconnu'),
+        'une coordonnée absente est rendue par un blanc',
+      );
+    },
+  },
+
+  {
+    id: '01-04.7',
+    us: 'US-01-04',
+    title: 'Fiche hors périmètre : le refus est expliqué, pas subi',
+    needsProject: true,
+    gherkin: [
+      "Given une fiche hors de mon périmètre",
+      "When j'ouvre son onglet « Contacts »",
+      "Then l'écran explique que les coordonnées ne sont visibles que dans mon périmètre",
+      "And aucune erreur technique n'est affichée",
+    ],
+    async run({ page, expect, projectId }) {
+      // Le jeu de donnees n'expose pas de fiche restreinte au super-admin : on
+      // simule le refus que le serveur rend a un role restreint.
+      await page.route(
+        (url) => /\/organizations\/[^/]+\/contacts$/.test(url.pathname),
+        (route) =>
+          route.fulfill({
+            status: 403,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              err(403, 'ACCESS_DENIED', { text: 'Access denied' }),
+            ),
+          }),
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.getByTestId('organization-tab-contacts').click();
+
+      const notice = page.getByTestId('contacts-forbidden');
+      await notice.waitFor({ timeout: 10000 });
+      const text = await notice.innerText();
+      expect(
+        text.includes('périmètre'),
+        `le refus n'est pas expliqué : ${text}`,
+      );
+    },
+  },
+
+  {
+    id: '01-04.9',
+    us: 'US-01-04',
+    title: 'Prénom et nom sont exigés, et le serveur le confirme',
+    needsProject: true,
+    gherkin: [
+      "Given l'onglet « Contacts » d'un organisme",
+      'When je valide sans prénom ni nom',
+      'Then les deux champs sont signalés et aucune requête ne part',
+      'When je ne renseigne que le nom',
+      "Then le prénom reste signalé — l'API l'exige aussi",
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      /*
+       * Rien n'est intercepte ici, et c'est le point du scenario.
+       *
+       * Sa version precedente simulait le `POST` : elle affirmait que le nom
+       * seul suffisait, ce que le serveur refuse (`firstName should not be
+       * empty`). Un scenario qui simule la reponse ne valide que l'ecran
+       * contre la croyance de celui qui l'a ecrit. On verifie donc d'abord
+       * que le front bloque, puis — sans filet — que le serveur est bien du
+       * meme avis.
+       */
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.getByTestId('organization-tab-contacts').click();
+      await page.getByTestId('contact-add').click();
+      await page.getByTestId('contact-lastName').waitFor({ timeout: 8000 });
+
+      apiCalls(true);
+      await page.getByTestId('contact-submit').click();
+      await page.waitForTimeout(900);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST')),
+        `une création est partie sans prénom ni nom : ${apiCalls().join(', ')}`,
+      );
+      const body = await page.locator('body').innerText();
+      expect(
+        (body.match(/Champ requis/g) ?? []).length >= 2,
+        'les deux champs obligatoires ne sont pas signalés',
+      );
+
+      // Le nom seul ne suffit pas : `firstName` est `@IsNotEmpty` cote API.
+      await page.getByTestId('contact-lastName').fill('Aubry');
+      await page.getByTestId('contact-submit').click();
+      await page.waitForTimeout(900);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST')),
+        'une création est partie avec le nom seul, que le serveur refuse',
+      );
+      expect(
+        (await page.locator('body').innerText()).includes('Champ requis'),
+        'le prénom manquant n’est plus signalé',
+      );
+    },
+  },
+
+  {
+    id: '01-04.18',
+    us: 'US-01-04',
+    title: 'Les longueurs maximales sont celles des colonnes',
+    needsProject: true,
+    gherkin: [
+      "Given le formulaire d'un contact",
+      'When je dépasse la longueur admise sur la civilité ou le téléphone',
+      "Then la saisie est refusée avant envoi",
+      'And le serveur aurait refusé la même chose',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.getByTestId('organization-tab-contacts').click();
+      await page.getByTestId('contact-add').click();
+      await page.getByTestId('contact-lastName').waitFor({ timeout: 8000 });
+
+      await page.getByTestId('contact-firstName').fill('Marc');
+      await page.getByTestId('contact-lastName').fill('Aubry');
+      // 11 caracteres : CIVILITY_MAX_LENGTH vaut 10.
+      await page.getByTestId('contact-civility').fill('MonsieurABC');
+      // 21 caracteres : PHONE_MAX_LENGTH vaut 20.
+      await page.getByTestId('contact-phone').fill('012345678901234567890');
+
+      apiCalls(true);
+      await page.getByTestId('contact-submit').click();
+      await page.waitForTimeout(900);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST')),
+        'une saisie trop longue est partie au serveur, qui la refuse',
+      );
+      expect(
+        (await page.locator('body').innerText()).includes(
+          'Longueur maximale dépassée',
+        ),
+        'le dépassement de longueur n’est pas signalé',
+      );
+    },
+  },
+
+  {
+    id: '01-04.15',
+    us: 'US-01-04',
+    title: 'Suppression refusée : « Ne pas démarcher » est proposé',
+    needsProject: true,
+    gherkin: [
+      'Given un contact référencé par des actions',
+      'When je demande sa suppression et confirme',
+      "Then le serveur la refuse, et l'écran propose de l'exclure des campagnes",
+      'And le message ne présente pas le refus comme un échec',
+    ],
+    async run({ page, expect, projectId }) {
+      let optedOut = false;
+      await page.route(
+        (url) => /\/contacts\/[^/]+$/.test(url.pathname),
+        (route) => {
+          const method = route.request().method();
+          if (method === 'DELETE') {
+            return route.fulfill({
+              status: 409,
+              contentType: 'application/json',
+              body: JSON.stringify(err(409, 'CONTACT_HAS_ACTIVITIES')),
+            });
+          }
+          if (method === 'PATCH') {
+            optedOut = JSON.parse(route.request().postData() ?? '{}').optOut;
+            return route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({ id: 'c1', optOut: true }),
+            });
+          }
+          return route.fallback();
+        },
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+      await page
+        .locator('tr', { hasText: 'Commune de Caen' })
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.getByTestId('organization-tab-contacts').click();
+      await page.waitForTimeout(800);
+
+      await page.locator('[data-testid^="contact-delete-"]').first().click();
+      await page.getByTestId('contact-delete-confirm').click();
+
+      const blocked = page.getByTestId('contact-delete-blocked');
+      await blocked.waitFor({ timeout: 10000 });
+      const text = await blocked.innerText();
+      expect(
+        text.includes('historique'),
+        `le refus n'explique pas pourquoi : ${text}`,
+      );
+
+      // La sortie proposee par le contrat, et non un message sans suite.
+      await page.getByTestId('contact-optout').click();
+      await page.waitForTimeout(1200);
+      expect(optedOut === true, 'la bascule « ne pas démarcher » n’a pas été envoyée');
+    },
+  },
+
+  {
+    id: '01-03.12',
+    us: 'US-01-03',
+    title: 'Fiche introuvable : le panneau le dit et se referme',
+    needsProject: true,
+    gherkin: [
+      "Given une adresse portant l'identifiant d'une fiche qui n'existe plus",
+      "When j'ouvre l'écran",
+      'Then le panneau affiche « Fiche introuvable »',
+      'And il se referme de lui-même',
+    ],
+    async run({ page, expect, projectId }) {
+      // Identifiant valide en forme, inconnu du projet : c'est exactement ce
+      // que devient une URL gardee apres une suppression.
+      const ghost = 'cxxxxxxxxxxxxxxxxxxxxxxxx';
+      await mock(page, `/organizations/${ghost}`, 404, err(404, 'ORGANIZATION_NOT_FOUND'));
+
+      await page.goto(`/${projectId}/organizations?fiche=${ghost}`);
+
+      const notice = page.getByTestId('organization-not-found');
+      await notice.waitFor({ timeout: 15000 });
+      expect(
+        (await notice.innerText()).includes('introuvable'),
+        'le panneau ne dit pas que la fiche est introuvable',
+      );
+
+      // Il ne reste pas ouvert sur un message : il n'y a rien a y faire.
+      const closed = await page
+        .getByTestId('reusable-sheet')
+        .waitFor({ state: 'hidden', timeout: 15000 })
+        .then(() => true)
+        .catch(() => false);
+      expect(closed, 'le panneau est resté ouvert sur une fiche introuvable');
+    },
+  },
+
+  {
+    id: '01-04.19',
+    us: 'US-01-04',
+    title: 'Fiche disparue à l’écriture : message nommé, saisie conservée',
+    needsProject: true,
+    gherkin: [
+      "Given l'onglet « Contacts » d'une fiche supprimée entre-temps",
+      'When je crée un contact',
+      "Then un message dit que la fiche n'existe plus",
+      'And la fenêtre reste ouverte, la saisie intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) => /\/organizations\/[^/]+\/contacts$/.test(url.pathname),
+        (route) =>
+          route.request().method() === 'POST'
+            ? route.fulfill({
+                status: 404,
+                contentType: 'application/json',
+                body: JSON.stringify(err(404, 'ORGANIZATION_NOT_FOUND')),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/organizations`);
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .waitFor({ timeout: 15000 });
+      await page
+        .locator('[data-testid^="organization-view-"]')
+        .first()
+        .click();
+      await page.getByTestId('reusable-sheet').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.getByTestId('organization-tab-contacts').click();
+      await page.getByTestId('contact-add').click();
+      await page.getByTestId('contact-lastName').waitFor({ timeout: 8000 });
+
+      await page.getByTestId('contact-firstName').fill('Marc');
+      await page.getByTestId('contact-lastName').fill('Aubry');
+      await page.getByTestId('contact-submit').click();
+      await page.waitForTimeout(1500);
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('n’existe plus') || body.includes("n'existe plus"),
+        'le message ne dit pas que la fiche a disparu',
+      );
+
+      // Choix assume : on ne ferme pas. La saisie reste sous les yeux.
+      const kept = await page.getByTestId('contact-lastName').inputValue();
+      expect(kept === 'Aubry', `la saisie a été perdue : « ${kept} »`);
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

@@ -251,9 +251,16 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
     Then l'éditeur est affiché sous le sélecteur, en libellé
     And le pied porte les dates de création et de modification
 
-  @a-couvrir
+  @ok
   Scenario: Dates de la fiche
-    Then « Créée le … · modifiée le … » au pied, seulement si le serveur les envoie
+    Given une adresse portant l'identifiant d'une fiche qui n'existe plus
+    When j'ouvre l'écran
+    Then le panneau affiche « Fiche introuvable »
+    And il se referme de lui-même
+
+  @a-couvrir
+  Scenario: Fiche introuvable
+    Then « Fiche introuvable », puis le panneau se referme — jamais un squelette qui attend
 
   # ── US-01-13 · Supprimer un organisme
 

@@ -1,4 +1,9 @@
+import { useEffect } from 'react';
+import { Info } from 'lucide-react';
+import { PERMISSIONS } from '@/constants';
+import { useMeStore } from '@/contexts/useMeStore';
 import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +15,8 @@ import {
 import { useOrganization } from '../hooks/useOrganization';
 import type { OrganizationDetail } from '../types/organizationDetail';
 import { OrganizationRestrictedPane } from './OrganizationRestrictedPane';
+import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
+import { OrganizationContactsTab } from './OrganizationContactsTab';
 import { OrganizationSummaryTab } from './OrganizationSummaryTab';
 
 type Props = {
@@ -20,6 +27,8 @@ type Props = {
 type PanelHooks = {
   organization: OrganizationDetail | null;
   loading: boolean;
+  /** La fiche n'existe pas : le panneau se referme au lieu d'attendre. */
+  notFound: boolean;
   typeLabel: string | null;
   labelOf: ReturnType<typeof useReferenceLabels>['labelOf'];
 };
@@ -42,7 +51,7 @@ type PanelHooks = {
  * hooks s'y appliquent normalement, et le slot ne porte plus qu'un seul appel.
  */
 function usePanelData(organizationId: string | null, open: boolean): PanelHooks {
-  const { organization, loading } = useOrganization(
+  const { organization, loading, notFound } = useOrganization(
     organizationId ?? undefined,
     open,
   );
@@ -51,6 +60,7 @@ function usePanelData(organizationId: string | null, open: boolean): PanelHooks 
   return {
     organization,
     loading,
+    notFound,
     labelOf,
     typeLabel: organization
       ? labelOf('STRUCTURE_TYPE', organization.type)
@@ -58,8 +68,17 @@ function usePanelData(organizationId: string | null, open: boolean): PanelHooks 
   };
 }
 
+/** Onglets du panneau. */
+const PANEL_TABS = { SUMMARY: 'summary', CONTACTS: 'contacts' } as const;
+
+/** Le temps de lire le message avant que le panneau ne se referme. */
+const NOT_FOUND_CLOSE_DELAY_MS = 2500;
+
 export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
   const open = !!organizationId;
+  const canReadContacts = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.CONTACTS.READ),
+  );
 
   return (
     <ReusableSheet<PanelHooks>
@@ -108,7 +127,14 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
           </div>
         ) : null
       }
-      renderBody={({ organization, loading, typeLabel }) => {
+      renderBody={({ organization, loading, notFound, typeLabel }) => {
+        // Fiche disparue : on le dit et on referme, plutot que de laisser un
+        // squelette gris indefiniment — ou pire, un formulaire qu'aucun
+        // enregistrement ne pourrait aboutir.
+        if (notFound) {
+          return <PanelNotFound onClose={() => onOpenChange(false)} />;
+        }
+
         if (loading || !organization) {
           return (
             <div className="space-y-4">
@@ -131,14 +157,64 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
         // `key` : changer de fiche recree le formulaire avec les bonnes
         // valeurs initiales, plutot que de reinitialiser l'existant.
         return (
-          <OrganizationSummaryTab
-            key={organization.id}
-            organization={organization}
-            onClose={() => onOpenChange(false)}
-          />
+          <Tabs key={organization.id} defaultValue={PANEL_TABS.SUMMARY}>
+            {/* Deux onglets, pas les six de la V8 : les quatre autres
+                (Actions, Commercial, Client, Support) appartiennent a
+                l'US-01-08 et aux lots L2/L4. Mieux vaut deux onglets qui
+                fonctionnent que six dont quatre sont vides. */}
+            <TabsList variant="line" className="mb-4 w-full justify-start">
+              <TabsTrigger value={PANEL_TABS.SUMMARY}>
+                {ORGANIZATION_DETAIL_UI.TABS.SUMMARY}
+              </TabsTrigger>
+              {canReadContacts ? (
+                <TabsTrigger
+                  value={PANEL_TABS.CONTACTS}
+                  data-testid="organization-tab-contacts"
+                >
+                  {ORGANIZATION_DETAIL_UI.TABS.CONTACTS}
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
+
+            <TabsContent value={PANEL_TABS.SUMMARY}>
+              <OrganizationSummaryTab
+                organization={organization}
+                onClose={() => onOpenChange(false)}
+              />
+            </TabsContent>
+
+            {canReadContacts ? (
+              <TabsContent value={PANEL_TABS.CONTACTS}>
+                <OrganizationContactsTab organizationId={organization.id} />
+              </TabsContent>
+            ) : null}
+          </Tabs>
         );
       }}
     />
+  );
+}
+
+/**
+ * Fiche introuvable.
+ *
+ * Le panneau se referme de lui-meme : il n'y a rien a y faire, et le laisser
+ * ouvert sur un message inviterait a insister.
+ */
+function PanelNotFound({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, NOT_FOUND_CLOSE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <p
+      data-testid="organization-not-found"
+      className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
+    >
+      <Info className="size-4 shrink-0" />
+      {ORGANIZATION_DETAIL_UI.NOT_FOUND}
+    </p>
   );
 }
 
