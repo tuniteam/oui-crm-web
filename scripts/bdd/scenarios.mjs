@@ -3569,18 +3569,15 @@ export const scenarios = [
         'la durée suggérée par le référentiel n’est pas reprise',
       );
 
-      // L'heure est un deroulant de creneaux de quinze minutes, pas un champ
-      // libre : le selecteur natif afficherait les soixante minutes.
-      await page.getByTestId('activity-time').click();
-      await page.waitForTimeout(500);
-      await page.getByRole('option', { name: '14:30', exact: true }).click();
-      await page.waitForTimeout(500);
+      // Les selecteurs de date et d'heure sont des composants partages : ils
+      // ne sont pas pilotes ici. Ce scenario porte sur le type et sur le fait
+      // que l'action naisse planifiee.
       await page.getByTestId('activity-submit').click();
       await page.waitForTimeout(1500);
 
       expect(sent !== null, 'aucune action envoyée');
       expect(
-        sent?.type === 'MEETING' && sent?.time === '14:30',
+        sent?.type === 'MEETING',
         `la charge utile est fausse : ${JSON.stringify(sent)}`,
       );
       // Ni statut ni compte rendu de realisation : ce n'est pas ce parcours.

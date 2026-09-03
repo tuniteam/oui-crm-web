@@ -83,6 +83,7 @@ function SheetContent({
     <SheetPortal>
       {overlay && <SheetOverlay />}
       <SheetPrimitive.Content
+        data-slot="sheet-content"
         className={cn(sheetVariants({ side }), className)}
         {...props}
       >

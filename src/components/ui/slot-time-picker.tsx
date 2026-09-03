@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import { IconButton, type IconButtonProps } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -117,6 +118,8 @@ type Props = {
   maxTime?: string; // "HH:mm"
   /** Position d'ouverture du picker quand `value` est vide (ex. prévisionnel). */
   referenceTime?: string; // "HH:mm"
+  /** Pas des minutes proposees dans la colonne, en minutes (ex. 15). */
+  minutesStep?: number;
   tooltipLabel?: string;
   /** Taille alignée sur les inputs du thème : `sm` (défaut, compact) ou `md`. */
   size?: PickerSize;
@@ -150,9 +153,32 @@ export function SlotTimePicker({
   minTime,
   maxTime,
   referenceTime,
+  minutesStep,
   tooltipLabel = UI.TIME_PICKER.PICK_TIME,
   size = 'sm',
 }: Props) {
+  /*
+   * Ou poser le pop-up.
+   *
+   * MUI le monte par defaut sur le `<body>`. Or Radix, quand une fenetre
+   * modale est ouverte, pose `pointer-events: none` sur ce meme `<body>` : le
+   * pop-up s'affiche alors mais **aucun clic ne l'atteint**. On le monte donc
+   * dans le conteneur Radix le plus proche — fenetre ou panneau — et on
+   * retombe sur le `body` en page normale.
+   *
+   * La regle vit ici, dans le composant qui possede le portail, plutot que
+   * dans chaque ecran qui l'utilise : un formulaire n'a pas a connaitre ce
+   * detail pour choisir son conteneur.
+   */
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const popperContainer = useCallback(
+    () =>
+      (anchorRef.current?.closest(
+        '[data-slot="dialog-content"], [data-slot="sheet-content"]',
+      ) as HTMLElement | null) ?? document.body,
+    [],
+  );
+
   // Bouton d'ouverture wrappé dans le Tooltip du thème (charte oui-crm).
   const OpenPickerButton = (props: IconButtonProps) => (
     <Tooltip>
@@ -164,6 +190,9 @@ export function SlotTimePicker({
   );
 
   return (
+    // `display: contents` : l'ancre sert a retrouver le conteneur Radix, elle
+    // ne doit rien peser dans la mise en page.
+    <span ref={anchorRef} style={{ display: 'contents' }}>
     <ThemeProvider theme={muiTheme}>
       <LocalizationProvider
         dateAdapter={AdapterDateFns}
@@ -176,6 +205,15 @@ export function SlotTimePicker({
           disabled={disabled}
           ampm={false}
           views={['hours', 'minutes']}
+          // `minutesStep` ne pilote que l'horloge analogique ; l'horloge a
+          // colonnes du picker de bureau se regle par `timeSteps`, qui ne
+          // genere que les minutes voulues au lieu de les desactiver.
+          timeSteps={
+            minutesStep ? { hours: 1, minutes: minutesStep } : undefined
+          }
+          // Hors du creneau, les heures sont **retirees** de la colonne plutot
+          // que grisees : une valeur affichee mais inerte se clique quand meme.
+          skipDisabled
           format="HH:mm"
           minTime={toDate(minTime) ?? undefined}
           maxTime={toDate(maxTime) ?? undefined}
@@ -183,7 +221,7 @@ export function SlotTimePicker({
           slots={{ openPickerButton: OpenPickerButton }}
           slotProps={{
             textField: { size: 'small', sx: fieldSx(size) },
-            popper: { sx: POPPER_SX },
+            popper: { sx: POPPER_SX, container: popperContainer },
             openPickerButton: { 'aria-label': tooltipLabel },
             // Picker desktop : la sélection valide directement → pas d'OK/Annuler.
             actionBar: { actions: [] },
@@ -191,5 +229,6 @@ export function SlotTimePicker({
         />
       </LocalizationProvider>
     </ThemeProvider>
+    </span>
   );
 }

@@ -922,7 +922,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 18:15. 98/98 OK._
+_Généré par `npm run bdd` — 2026-09-03 19:18. 98/98 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |

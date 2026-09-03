@@ -23,7 +23,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { useContacts } from '@/features/organization/hooks/useContacts';
-import { ACTIVITY_WINDOW, TIME_SLOTS } from '../constants/activity.constants';
+import { FormDatePicker } from '@/components/ui/form-date-picker';
+import { SlotTimePicker } from '@/components/ui/slot-time-picker';
+import { ACTIVITY_WINDOW, TIME_SLOT } from '../constants/activity.constants';
 import {
   activityToValues,
   emptyActivityValues,
@@ -39,8 +41,6 @@ const { FIELDS } = UI;
 
 /** Valeur du `Select` pour « aucun interlocuteur » : `''` y est interdit. */
 const NO_CONTACT = '__none__';
-/** L'heure est facultative : `''` etant interdit comme valeur d'option. */
-const NO_TIME = '__none__';
 
 type Props = {
   open: boolean;
@@ -178,12 +178,14 @@ function Body({
                   {FIELDS.DATE}
                 </FormLabel>
                 <FormControl>
-                  {/* `type="date"` rend exactement `YYYY-MM-DD`. */}
-                  <Input
-                    type="date"
-                    {...field}
-                    data-testid="activity-date"
+                  {/* Le calendrier de la charte, pas celui du navigateur : la
+                      valeur reste le jour `YYYY-MM-DD` que le serveur
+                      attend. */}
+                  <FormDatePicker
+                    value={field.value}
+                    onChange={field.onChange}
                     disabled={disabled}
+                    data-testid="activity-date"
                   />
                 </FormControl>
                 <FormMessage />
@@ -197,37 +199,24 @@ function Body({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{FIELDS.TIME}</FormLabel>
-                {/* Un déroulant de créneaux, pas un `input type="time"` : le
-                    sélecteur natif affiche les soixante minutes quoi qu'on
-                    mette dans `step`. L'heure reste la chaîne `HH:MM` que le
-                    serveur attend, transportée telle quelle. */}
-                <Select
-                  value={field.value || NO_TIME}
-                  onValueChange={(v) => field.onChange(v === NO_TIME ? '' : v)}
-                  disabled={disabled}
-                >
-                  <FormControl>
-                    <SelectTrigger data-testid="activity-time">
-                      <SelectValue>
-                        {field.value || FIELDS.TIME_NONE}
-                      </SelectValue>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value={NO_TIME}>{FIELDS.TIME_NONE}</SelectItem>
-                    {/* Une action venue d'ailleurs peut porter une heure hors
-                        créneau : on l'ajoute plutôt que de l'effacer en
-                        silence à l'ouverture. */}
-                    {(TIME_SLOTS.includes(field.value)
-                      ? TIME_SLOTS
-                      : [field.value, ...TIME_SLOTS].filter(Boolean)
-                    ).map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  {/* Le sélecteur d'heure partagé, comme dans soft-m-web :
+                      colonnes heures/minutes en 24 h, bornées au créneau
+                      ouvrable et par quarts d'heure. L'heure reste la chaîne
+                      `HH:MM` que le serveur attend, jamais un instant. */}
+                  <div data-testid="activity-time">
+                    <SlotTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={disabled}
+                      minTime={TIME_SLOT.MIN}
+                      maxTime={TIME_SLOT.MAX}
+                      minutesStep={TIME_SLOT.STEP_MINUTES}
+                      referenceTime={TIME_SLOT.MIN}
+                      size="md"
+                    />
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

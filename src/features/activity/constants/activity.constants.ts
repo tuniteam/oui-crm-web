@@ -27,12 +27,12 @@ export const ACTIVITY_REFERENCE = {
 } as const;
 
 /**
- * Créneau ouvrable et pas de saisie.
+ * Créneau ouvrable et pas des minutes.
  *
  * Le contrat accepte n'importe quelle heure de `00:00` à `23:59` : la
- * restriction est un choix d'interface, pas une règle serveur. Elle évite les
- * rendez-vous saisis à 3 h du matin par une erreur de frappe, et raccourcit le
- * sélecteur natif à des créneaux utiles.
+ * restriction est un choix d'interface, pas une règle serveur. Elle borne les
+ * colonnes du sélecteur partagé et évite les rendez-vous saisis à 3 h du matin
+ * par une erreur de frappe.
  */
 export const TIME_SLOT = {
   MIN: '08:00',
@@ -40,27 +40,6 @@ export const TIME_SLOT = {
   STEP_MINUTES: 15,
 } as const;
 
-/**
- * Les créneaux, un par quart d'heure de 08:00 à 19:00.
- *
- * Un `<input type="time">` ne sait pas restreindre son menu : `step` et
- * `min`/`max` cadrent la validation, mais le sélecteur natif continue
- * d'afficher les soixante minutes. D'où une liste explicite.
- */
-export const TIME_SLOTS: string[] = (() => {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const toMinutes = (v: string) =>
-    Number(v.slice(0, 2)) * 60 + Number(v.slice(3));
-  const slots: string[] = [];
-  for (
-    let m = toMinutes(TIME_SLOT.MIN);
-    m <= toMinutes(TIME_SLOT.MAX);
-    m += TIME_SLOT.STEP_MINUTES
-  ) {
-    slots.push(`${pad(Math.floor(m / 60))}:${pad(m % 60)}`);
-  }
-  return slots;
-})();
 
 export const ACTIVITIES_UI = {
   TAB: 'Actions',
@@ -138,7 +117,6 @@ export const ACTIVITY_WINDOW = {
     TYPE_PLACEHOLDER: 'Choisir un type',
     DATE: 'Date',
     TIME: 'Heure',
-    TIME_NONE: 'Sans heure',
     DURATION: 'Durée (minutes)',
     LOCATION: 'Lieu',
     CONTACT: 'Interlocuteur',
