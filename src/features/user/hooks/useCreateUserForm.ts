@@ -18,6 +18,7 @@ export function useCreateUserForm() {
       email: '',
       initials: '',
       roleCode: '',
+      scopeId: '',
       isExternal: false,
       expiresAt: '',
     },
@@ -36,6 +37,9 @@ export function useCreateUserForm() {
       initials: v.initials.trim().toUpperCase(),
       roleCode: v.roleCode,
       isExternal: v.isExternal,
+      // Champ absent plutot que `null` : a la creation, le serveur applique son
+      // defaut sur un champ qu'il ne recoit pas.
+      ...(v.scopeId ? { scopeId: v.scopeId } : {}),
       // Le champ n'est envoye que s'il a un sens : le serveur refuse une date
       // sur un acces interne, et une chaine vide n'est pas une date valide.
       ...(v.isExternal && v.expiresAt ? { expiresAt: v.expiresAt } : {}),

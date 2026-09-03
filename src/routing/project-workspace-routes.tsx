@@ -83,18 +83,6 @@ export function ProjectWorkspaceRoutes() {
         />
       </Route>
 
-      <Route element={<RequirePermission permission={PERMISSIONS.SCOPES.READ} />}>
-        <Route
-          path="scopes"
-          element={
-            <Navigate
-              to={`../settings?${SETTINGS_UI.TAB_PARAM}=${SETTINGS_TABS.SCOPES}`}
-              replace
-            />
-          }
-        />
-      </Route>
-
       {SOON.map(({ path, title, permission }) => (
         <Route key={path} element={<RequirePermission permission={permission} />}>
           <Route path={path} element={<ComingSoon title={title} />} />

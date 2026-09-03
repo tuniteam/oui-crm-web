@@ -1,6 +1,4 @@
-import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
-import { useScopes } from '@/features/settings/hooks/useScopes';
 import {
   Form,
   FormControl,
@@ -23,10 +21,7 @@ import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
 import { CREATE_USER_WINDOW } from '../../constants/users.constants';
 import type { EditUserHooks } from '../../hooks/useEditUserForm';
 import { useRoles } from '../../hooks/useRoles';
-
-/** Un `<SelectItem>` Radix refuse la chaine vide comme valeur : jeton explicite
- *  pour « aucun perimetre », traduit en `null` a l'envoi. */
-const NO_SCOPE = '__none__';
+import { ScopeSelectField } from '../ScopeSelectField';
 import { EditUserBodySkeleton } from './skeleton/EditUserBodySkeleton';
 
 type Props = {
@@ -39,10 +34,6 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
   const { form, loadingUser, fetchingUser, update, user } = hooks;
 
   const { me } = useMeStore();
-  const canReadScopes = useMeStore((st) =>
-    st.hasPermission(PERMISSIONS.SCOPES.READ),
-  );
-  const scopes = useScopes(canReadScopes);
   const isCurrentUser = me?.email === user?.email;
 
   const isBusy = loadingUser || update.loading;
@@ -181,47 +172,12 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
           />
         </div>
 
-        {/* Perimetre : ce que cet utilisateur voit dans la base d'organismes.
-            Masque sans `scopes:read` — la liste serait refusee, et un
-            selecteur vide vaudrait moins que pas de selecteur du tout. */}
-        {canReadScopes ? (
-          <FormField
-            control={form.control}
-            name="scopeId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{LABELS.SCOPE}</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value || NO_SCOPE}
-                    onValueChange={(v) =>
-                      field.onChange(v === NO_SCOPE ? '' : v)
-                    }
-                    disabled={isBusy || scopes.loading || isCurrentUser}
-                  >
-                    <SelectTrigger data-testid="user-edit-scope-select">
-                      <SelectValue placeholder={PLACEHOLDERS.SCOPE} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Aucun perimetre = toute la base. Dit en clair plutot
-                          que laisse vide. */}
-                      <SelectItem value={NO_SCOPE}>
-                        {PLACEHOLDERS.SCOPE}
-                      </SelectItem>
-                      {scopes.scopes.map((sc) => (
-                        <SelectItem key={sc.id} value={sc.id}>
-                          {sc.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormDescription>{HINTS.SCOPE}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        ) : null}
+        <ScopeSelectField
+          control={form.control}
+          name="scopeId"
+          disabled={isBusy || isCurrentUser}
+          testId="user-edit-scope-select"
+        />
 
         {/* Sur son propre compte, le serveur refuse aussi le changement
             d'acces (CANNOT_UPDATE_OWN_ACCESS) : on desactive plutot que de

@@ -32,6 +32,10 @@ export const getCreateUserSchema = () =>
 
       roleCode: z.string().trim().min(1, ZOD_ERRORS.REQUIRED),
 
+      /** Facultatif : la chaine vide signifie « aucun perimetre », donc l'acces
+       *  a toute la base. Le champ n'est alors pas transmis. */
+      scopeId: z.string(),
+
       isExternal: z.boolean(),
 
       expiresAt: z

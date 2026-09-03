@@ -30,11 +30,11 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
     And jamais « 0 département »
 
   @ok
-  Scenario: Entrée de menu
+  Scenario: Un seul chemin
     Given le menu du projet
-    When je clique sur « Périmètres »
-    Then le panneau des Paramètres s’ouvre, comme pour les Référentiels
-    And l’URL porte le panneau
+    Then « Périmètres » n'y figure pas — ils vivent dans Paramètres
+    When j'ouvre Paramètres
+    Then « Périmètres » est un de ses panneaux, et il ouvre la liste
 
   @a-couvrir
   Scenario: Sans scopes:read
@@ -67,3 +67,10 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
     Then la liste des périmètres du projet est proposée
     And « Toute la base » est proposé pour n’en affecter aucun
     And la modification transmet scopeId au serveur
+
+  @ok
+  Scenario: Affecter dès la création
+    Given la fenêtre « Nouvel utilisateur »
+    When je choisis un périmètre et je crée le compte
+    Then scopeId part avec la création
+    And sans périmètre choisi, le champ n'est pas transmis du tout

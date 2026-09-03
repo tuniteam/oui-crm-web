@@ -1865,25 +1865,38 @@ export const scenarios = [
   {
     id: '07.4',
     us: 'US-00-07',
-    title: 'L’entrée de menu « Périmètres » ouvre le panneau',
+    title: 'Un seul chemin vers les périmètres',
     needsProject: true,
     gherkin: [
-      "Given le menu du projet",
-      'When je clique sur « Périmètres »',
-      'Then le panneau des Paramètres s’ouvre, comme pour les Référentiels',
-      'And l’URL porte le panneau',
+      'Given le menu du projet',
+      "Then « Périmètres » n'y figure pas — ils vivent dans Paramètres",
+      "When j'ouvre Paramètres",
+      'Then « Périmètres » est un de ses panneaux, et il ouvre la liste',
     ],
     async run({ page, expect, projectId }) {
       await page.goto(`/${projectId}/organizations`);
-      await page.locator('.sidebar').waitFor({ timeout: 15000 });
+      const rail = page.locator('.sidebar');
+      await rail.waitFor({ timeout: 15000 });
 
-      await page.getByRole('link', { name: 'Périmètres' }).first().click();
-      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
-
-      const url = page.url();
+      // Deux chemins vers le meme ecran font douter qu'ils menent au meme
+      // endroit : l'entree de menu a ete retiree au profit du panneau.
+      const entries = (await rail.innerText())
+        .split('\n')
+        .map((l) => l.trim());
       expect(
-        url.includes('settings') && url.includes('panneau=scopes'),
-        `l'entrée de menu ne redirige pas vers le panneau : ${url}`,
+        !entries.includes('Périmètres'),
+        `le menu du projet propose encore « Périmètres » : ${entries.join(' | ')}`,
+      );
+
+      await page.goto(`/${projectId}/settings`);
+      const nav = page.getByRole('navigation', { name: 'Paramètres' });
+      await nav.waitFor({ timeout: 15000 });
+      await nav.getByText('Périmètres').first().click();
+
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      expect(
+        page.url().includes('panneau=scopes'),
+        `le panneau ouvert n'est pas porté par l'URL : ${page.url()}`,
       );
     },
   },
@@ -1955,6 +1968,86 @@ export const scenarios = [
       expect(
         sent && 'scopeId' in sent,
         `le périmètre n'est pas transmis : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.12',
+    us: 'US-00-07',
+    title: 'Le périmètre se choisit dès la création d’un utilisateur',
+    needsProject: true,
+    gherkin: [
+      "Given la fenêtre « Nouvel utilisateur »",
+      'When je choisis un périmètre et je crée le compte',
+      'Then scopeId part avec la création',
+      "And sans périmètre choisi, le champ n'est pas transmis du tout",
+    ],
+    async run({ page, expect, projectId }) {
+      const posts = [];
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') && url.pathname.endsWith('/users'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          posts.push(JSON.parse(route.request().postData() ?? '{}'));
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 'unew', email: 'x@y.z' }),
+          });
+        },
+      );
+
+      const fill = async (suffix) => {
+        await page.getByTestId('user-create-btn').first().click();
+        // Le formulaire de creation n'expose pas d'identifiants de test sur
+        // ses champs : on vise par libelle plutot que d'en ajouter pour le
+        // seul confort du scenario.
+        const dialog = page.locator('[data-slot="dialog-content"]');
+        await dialog.getByPlaceholder('Prénom').waitFor({ timeout: 8000 });
+        await dialog.getByPlaceholder('Prénom').fill('Test');
+        await dialog.getByPlaceholder('Nom', { exact: true }).fill(`Perimetre${suffix}`);
+        await dialog.getByPlaceholder('email@exemple.com').fill(`test.scope${suffix}@example.test`);
+        await page.getByTestId('user-initials-input').fill('TP');
+        await page.getByTestId('user-role-select').click();
+        await page.waitForTimeout(400);
+        await page.locator('[role="option"]').first().click();
+        await page.waitForTimeout(300);
+      };
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-create-btn').first().waitFor({ timeout: 15000 });
+
+      // 1. Sans perimetre : le champ ne doit pas partir du tout — le serveur
+      //    applique son defaut sur un champ absent.
+      await fill('A');
+      await page.getByTestId('user-create-submit-btn').click();
+      await page.waitForTimeout(1500);
+      expect(posts.length === 1, `${posts.length} création(s) au lieu d'une`);
+      expect(
+        !('scopeId' in (posts[0] ?? {})),
+        `le périmètre vide a été transmis : ${JSON.stringify(posts[0])}`,
+      );
+
+      // 2. Avec un perimetre choisi.
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-create-btn').first().waitFor({ timeout: 15000 });
+      await fill('B');
+      const select = page.getByTestId('user-create-scope-select');
+      await select.click();
+      await page.waitForTimeout(400);
+      const options = await page.locator('[role="option"]').allInnerTexts();
+      const named = options.find((o) => o.trim() !== 'Toute la base');
+      await page.locator('[role="option"]', { hasText: named }).first().click();
+      await page.waitForTimeout(300);
+      await page.getByTestId('user-create-submit-btn').click();
+      await page.waitForTimeout(1500);
+
+      expect(posts.length === 2, `${posts.length} création(s) au lieu de deux`);
+      expect(
+        typeof posts[1]?.scopeId === 'string' && posts[1].scopeId.length > 0,
+        `le périmètre choisi n'est pas transmis : ${JSON.stringify(posts[1])}`,
       );
     },
   },

@@ -284,7 +284,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 | 1 | Liste des périmètres | nom, description, nombre d'utilisateurs, et les trois axes | couvert |
 | 2 | Départements résolus | rendus par l'API, jamais recalculés côté front | couvert |
 | 3 | Territoire entier | une liste résolue vide affiche « France entière », **jamais « 0 département »** | couvert |
-| 4 | Entrée de menu | « Périmètres » redirige sur le panneau, comme les Référentiels | couvert |
+| 4 | Un seul chemin | « Périmètres » ne figure **pas** dans le menu du projet : il vit dans Paramètres, et deux chemins vers le même écran feraient douter qu'ils mènent au même endroit | couvert |
 | 5 | Sans `scopes:read` | ni l'entrée de navigation, ni le panneau — un commercial ne l'a pas | à couvrir |
 | 6 | Aucun périmètre | message expliquant que sans périmètre chaque utilisateur voit toute la base | à couvrir |
 | 7 | Régions | proposées depuis `GET /geo/regions`, jamais codées en dur | à développer |
@@ -292,6 +292,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 | 9 | Modifier | les listes sont **remplacées en bloc**, pas fusionnées | à développer |
 | 10 | Supprimer un périmètre affecté | refusé, en indiquant l'usage | à développer |
 | 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur, « Toute la base » pour n'en affecter aucun ; masqué sans `scopes:read` | couvert |
+| 12 | Affecter dès la création | même sélecteur ; sans choix, `scopeId` **n'est pas transmis** — le serveur applique son défaut | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -758,7 +759,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 10:16. 66/66 OK._
+_Généré par `npm run bdd` — 2026-09-03 11:10. 67/67 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -813,8 +814,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
 | US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/07-1.png` |
 | US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/07-3.png` |
-| US-00-07 | 07.4 | L’entrée de menu « Périmètres » ouvre le panneau | OK | `screenshots/07-4.png` |
+| US-00-07 | 07.4 | Un seul chemin vers les périmètres | OK | `screenshots/07-4.png` |
 | US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/07-11.png` |
+| US-00-07 | 07.12 | Le périmètre se choisit dès la création d’un utilisateur | OK | `screenshots/07-12.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |

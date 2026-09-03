@@ -14,7 +14,6 @@ import {
   Receipt,
   RefreshCw,
   Settings,
-  ShieldCheck,
   Target,
   TrendingUp,
   UserCog,
@@ -65,6 +64,9 @@ export const buildProjectMenu = (
     {
       key: 'steering',
       heading: MENU_PROJECT.GROUPS.STEERING,
+      // Les perimetres n'ont pas d'entree ici : ils vivent dans Parametres,
+      // et deux chemins vers le meme ecran font douter qu'ils mènent au meme
+      // endroit.
       items: [
         { title: MENU_PROJECT.DASHBOARD, icon: LayoutDashboard, path: '/dashboard', permission: P.DASHBOARD.READ },
         { title: MENU_PROJECT.AGENDA, icon: CalendarClock, path: '/agenda', permission: P.ACTIVITIES.READ },
@@ -108,7 +110,6 @@ export const buildProjectMenu = (
         // Seul ecran de projet deja porte cote front.
         { title: MENU_PROJECT.USERS, icon: Users, path: '/users', permission: P.USERS.READ },
         { title: MENU_PROJECT.ROLES, icon: UserCog, path: '/roles', permission: P.ROLES.READ },
-        { title: MENU_PROJECT.SCOPES, icon: ShieldCheck, path: '/scopes', permission: P.SCOPES.READ },
         { title: MENU_PROJECT.SETTINGS, icon: Settings, path: '/settings', permission: P.SETTINGS.READ },
       ],
     },
