@@ -9,7 +9,7 @@ Feature: Administration des utilisateurs du projet (L0 · US-00-05)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-05 · Utilisateurs du projet
+  # ── L0 · US-00-05 · Utilisateurs du projet
 
   @a-couvrir
   Scenario: Liste sans projet actif

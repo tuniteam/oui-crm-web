@@ -9,7 +9,7 @@ Feature: Journal d’activité d’un projet (L0 · US-00-10)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-10 · Journal d'activité
+  # ── L0 · US-00-10 · Journal d'activité
 
   @a-couvrir
   Scenario: Affichage

@@ -25,7 +25,13 @@ export const PERMISSIONS = {
     UPDATE: 'contacts:update',
     DELETE: 'contacts:delete',
   },
-  CAMPAIGNS: { READ: 'campaigns:read' },
+  CAMPAIGNS: {
+    READ: 'campaigns:read',
+    CREATE: 'campaigns:create',
+    UPDATE: 'campaigns:update',
+    /** Le commercial ne l'a pas ; le formateur n'a rien du tout. */
+    DELETE: 'campaigns:delete',
+  },
   OPPORTUNITIES: { READ: 'opportunities:read' },
   QUOTES: { READ: 'quotes:read' },
   CONTRACTS: { READ: 'contracts:read' },

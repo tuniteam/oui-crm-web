@@ -75,13 +75,22 @@ export function parseRecipe(md) {
     }
     if (inGenerated) continue;
 
-    const heading = line.match(/^##\s+(US-(\d\d)-\d\d)\s*·\s*(.+?)\s*(?:—.*)?$/);
+    /*
+     * `## L1 · US-01-04 · Titre — statut`
+     *
+     * Le lot est ecrit en toutes lettres devant chaque US : les numeros se
+     * repetent d'un lot a l'autre, et « US-04 » ne dit pas de quel lot il
+     * s'agit. Le prefixe reste facultatif — a defaut, le lot se deduit du
+     * deuxieme segment, comme avant.
+     */
+    const heading = line.match(
+      /^##\s+(?:(L\d)\s*·\s*)?(US-(\d\d)-\d\d)\s*·\s*(.+?)\s*(?:—.*)?$/,
+    );
     if (heading) {
       current = {
-        us: heading[1],
-        /** Lot porteur : `US-01-04` appartient au lot L1. */
-        lot: `L${Number(heading[2])}`,
-        title: heading[3].trim(),
+        us: heading[2],
+        lot: heading[1] ?? `L${Number(heading[3])}`,
+        title: heading[4].trim(),
         scenarios: [],
       };
       sections.push(current);

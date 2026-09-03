@@ -9,7 +9,7 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-07 · Périmètres
+  # ── L0 · US-00-07 · Périmètres
 
   @ok
   Scenario: Liste des périmètres

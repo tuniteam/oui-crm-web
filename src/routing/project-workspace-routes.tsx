@@ -7,6 +7,7 @@ import {
   SETTINGS_UI,
 } from '@/features/settings/constants/constants';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
+import CampaignsScreen from '@/features/campaign/components/CampaignsScreen';
 import OrganizationsTable from '@/features/organization/components/OrganizationsTable';
 import UsersTable from '@/features/user/components/UsersTable';
 import { UserInformationsPage } from '@/pages/UserInformationsPage';
@@ -23,7 +24,6 @@ const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'dashboard', title: MENU_PROJECT.DASHBOARD, permission: PERMISSIONS.DASHBOARD.READ },
   { path: 'agenda', title: MENU_PROJECT.AGENDA, permission: PERMISSIONS.ACTIVITIES.READ },
   { path: 'stats', title: MENU_PROJECT.STATS, permission: PERMISSIONS.STATS.READ },
-  { path: 'campaigns', title: MENU_PROJECT.CAMPAIGNS, permission: PERMISSIONS.CAMPAIGNS.READ },
   { path: 'prospecting', title: MENU_PROJECT.PROSPECTING, permission: PERMISSIONS.ACTIVITIES.READ },
   { path: 'opportunities', title: MENU_PROJECT.OPPORTUNITIES, permission: PERMISSIONS.OPPORTUNITIES.READ },
   { path: 'quotes', title: MENU_PROJECT.QUOTES, permission: PERMISSIONS.QUOTES.READ },
@@ -49,6 +49,12 @@ export function ProjectWorkspaceRoutes() {
         }
       >
         <Route path="organizations" element={<OrganizationsTable />} />
+      </Route>
+
+      <Route
+        element={<RequirePermission permission={PERMISSIONS.CAMPAIGNS.READ} />}
+      >
+        <Route path="campaigns" element={<CampaignsScreen />} />
       </Route>
 
       <Route element={<RequirePermission permission={PERMISSIONS.USERS.READ} />}>

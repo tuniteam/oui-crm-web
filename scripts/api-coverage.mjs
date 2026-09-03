@@ -247,6 +247,12 @@ const STEPS_RAW = {
   'GET /settings/documents/:type/preview': ['Paramètres', 'Documents et numérotation', 'Aperçu d’un gabarit'],
   'POST /settings/signature-image': ['Paramètres', 'Documents et numérotation', 'Déposer un cachet'],
   'DELETE /settings/signature-image': ['Paramètres', 'Documents et numérotation', 'Supprimer le cachet'],
+  'GET /scopes': ['Ouvrir un projet', 'Administration', 'Paramètres', 'Périmètres'],
+  'POST /scopes': ['Paramètres', 'Périmètres', 'Nouveau périmètre', 'Nommer et cocher des régions', 'Créer le périmètre'],
+  'PATCH /scopes/:id': ['Paramètres', 'Périmètres', 'Modifier sur une carte', 'Enregistrer'],
+  'DELETE /scopes/:id': ['Paramètres', 'Périmètres', 'Supprimer sur une carte', 'Confirmer — refusé tant qu’un utilisateur le porte'],
+  'GET /geo/regions': { auto: true, steps: ['Chargée à l’ouverture de la fenêtre de périmètre ; table statique, gardée en cache'] },
+
   'GET /reference-items': ['Paramètres', 'Référentiels'],
   'POST /reference-items': ['Référentiels', 'Choisir une catégorie', 'Ajouter une valeur'],
   'PATCH /reference-items/:id': ['Référentiels', 'Renommer une valeur, la désactiver, ou la glisser pour changer son ordre'],
@@ -277,6 +283,12 @@ const STEPS = Object.fromEntries(
     return [`${method} ${normalise(path)}`, v];
   }),
 );
+
+/** `US-01-04` appartient au lot L1 : le deuxieme segment porte le lot. */
+const lotOf = (usId) => {
+  const m = /^US-(\d\d)-/.exec(usId);
+  return m ? `L${Number(m[1])}` : '';
+};
 
 // ── Rendu ──────────────────────────────────────────────────────────────────
 
@@ -329,7 +341,8 @@ const storyHtml = (us) => {
   const state = done === 0 ? 'no' : done === us.rows.length ? 'yes' : 'part';
   return `    <article class="us">
       <h3>
-        <span class="us-id">${esc(us.id)}</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">${esc(lotOf(us.id))} · ${esc(us.id)}</span>
         <span class="us-title">${esc(us.title)}</span>
         <span class="api-state">${esc(us.status)}</span>
         <span class="tag ${state}">${done} / ${us.rows.length} côté front</span>

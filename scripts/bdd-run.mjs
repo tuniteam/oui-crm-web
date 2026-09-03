@@ -122,7 +122,14 @@ for (const scenario of selected) {
     failures.push(e.message.split('\n')[0].slice(0, 200));
   }
 
-  const file = `${SHOTS}/${scenario.id.replace('.', '-')}.png`;
+  /*
+   * `L0-07-1.png` plutot que `07-1.png`.
+   *
+   * Les numeros d'US se repetent d'un lot a l'autre : sans le lot devant, une
+   * capture ne dit pas de quelle US elle vient, et `01-01-2.png` se lit mal.
+   */
+  const lot = `L${Number(scenario.us.slice(3, 5))}`;
+  const file = `${SHOTS}/${lot}-${scenario.id.replace('.', '-')}.png`;
   await page.screenshot({ path: file }).catch(() => {});
   await context.close();
 

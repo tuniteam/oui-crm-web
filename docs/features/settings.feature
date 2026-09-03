@@ -9,7 +9,7 @@ Feature: Réglages du projet, gabarits et cachet (L0 · US-00-08)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-08 · Paramètres du projet
+  # ── L0 · US-00-08 · Paramètres du projet
 
   @ok
   Scenario: Navigation

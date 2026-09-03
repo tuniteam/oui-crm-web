@@ -88,7 +88,8 @@ for (const domain of DOMAINS) {
 
   for (const us of present) {
     const section = byUs.get(us);
-    lines.push(`  # ── ${us} · ${section.title}`);
+    // Le lot devant l US : les numeros se repetent d un lot a l autre.
+    lines.push(`  # ── ${section.lot} · ${us} · ${section.title}`);
     lines.push('');
 
     for (const sc of section.scenarios) {
