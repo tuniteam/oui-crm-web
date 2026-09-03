@@ -420,7 +420,7 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 | 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
 | 10 | Filtre par commercial | le paramètre `salesRepId` existe, mais peupler le sélecteur demande `GET /users` et la permission `users:read`, qu'un commercial n'a pas | à développer |
 | 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | couvert |
-| 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
+| 12 | Sélection multiple | actions groupées (US-01-05) — `POST /organizations/bulk` est **livrée** côté API, l'écran reste à faire | à développer |
 | 13 | Action d'ouverture atteignable | colonne d'actions épinglée à droite et opaque, sans défilement | couvert |
 | 14 | Filtre par département | saisie libre de 2 à 3 caractères, `2A` et l'outre-mer compris | couvert |
 | 15 | Filtre par solution | valeurs du référentiel du projet, jamais une liste en dur | couvert |
@@ -622,7 +622,7 @@ base. La purge définitive relève du RGPD (US-06-01).
 ### Pièges relevés pendant le développement
 
 - **La maquette décrit une autre suppression.** La V8 n'offre qu'une
-  suppression groupée (US-01-05, non livrée côté API) et annonce que « les
+  suppression groupée (US-01-05, livrée côté API mais sans écran) et annonce que « les
   contacts et actions rattachés » partent avec la fiche. L'API, elle, fait une
   suppression **logique** et ne dit rien d'une cascade. Reprendre la
   formulation de la maquette aurait fait croire à un effacement définitif qui
