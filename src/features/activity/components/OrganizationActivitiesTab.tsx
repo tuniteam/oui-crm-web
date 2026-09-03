@@ -157,7 +157,7 @@ export function OrganizationActivitiesTab({
                 </Badge>
                 {a.result ? (
                   <Badge variant="secondary" appearance="outline">
-                    {a.result}
+                    {a.result.label}
                   </Badge>
                 ) : null}
               </div>

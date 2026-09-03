@@ -75,9 +75,11 @@ Feature: Actions et agenda (L1 · US-01-08)
     Then le formulaire refuse, sans appeler le serveur
     And il dit que le compte rendu est obligatoire
 
-  @a-couvrir
+  @ok
   Scenario: Réaliser
-    Then la ligne passe « Réalisée », son compte rendu s'affiche
+    Given une action réalisée portant un résultat
+    When j’ouvre l’onglet Actions
+    Then le résultat s’affiche par son libellé, et la frise ne casse pas
 
   @ok
   Scenario: Effet sur le statut commercial

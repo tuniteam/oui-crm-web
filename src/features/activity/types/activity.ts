@@ -20,14 +20,22 @@ export type ActivityUser = {
 };
 
 /** Cle et libelle du referentiel `ACTIVITY_TYPE`, resolus par le serveur. */
-export type ActivityType = { key: string; label: string };
+/**
+ * Valeur de referentiel resolue par l'API : la cle pour le code, le libelle
+ * pour l'ecran. `type` et `result` ont la meme forme — le handoff ne montre
+ * `result` qu'a `null`, sa forme a ete relevee sur l'API en marche.
+ */
+export type ActivityReference = { key: string; label: string };
+
+/** @deprecated Alias historique, garde pour ne pas casser les imports. */
+export type ActivityType = ActivityReference;
 
 export type Activity = {
   id: string;
   organization: ActivityRef;
   contact: { id: string; fullName: string } | null;
   user: ActivityUser;
-  type: ActivityType;
+  type: ActivityReference;
   /** Jour calendaire `YYYY-MM-DD`. */
   date: string;
   /**
@@ -40,7 +48,7 @@ export type Activity = {
   location: string | null;
   status: ActivityStatus;
   report: string | null;
-  result: string | null;
+  result: ActivityReference | null;
   campaign: ActivityRef | null;
   completedAt: string | null;
 };

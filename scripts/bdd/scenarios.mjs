@@ -2996,6 +2996,43 @@ export const scenarios = [
   },
 
   {
+    id: '01-08.13',
+    us: 'US-01-08',
+    title: 'Le résultat d’une action réalisée s’affiche par son libellé',
+    needsProject: true,
+    gherkin: [
+      'Given une action réalisée portant un résultat',
+      'When j’ouvre l’onglet Actions',
+      'Then le résultat s’affiche par son libellé, et la frise ne casse pas',
+    ],
+    async run({ page, expect, projectId }) {
+      /*
+       * `result` est une valeur de referentiel resolue — `{ key, label }`,
+       * comme `type` — et non une chaine. Le handoff ne la montre qu'a `null`,
+       * et la fixture faisait de meme : la suite restait verte pendant que
+       * l'ecran plantait des qu'un resultat etait choisi.
+       */
+      await mockActivities(page, [
+        activityFixture({
+          id: 'a1',
+          status: 'DONE',
+          report: 'DGS convaincue.',
+          result: { key: 'MEETING_BOOKED', label: 'RDV obtenu' },
+          completedAt: '2026-10-15T10:00:00.000Z',
+        }),
+      ]);
+
+      const crashes = [];
+      page.on('pageerror', (e) => crashes.push(e.message));
+
+      await openActivitiesTab(page, projectId);
+      await page.getByText('RDV obtenu').first().waitFor({ timeout: 10000 });
+
+      expect(crashes.length === 0, `la page a levé : ${crashes.join(' | ')}`);
+    },
+  },
+
+  {
     id: '01-11.18',
     us: 'US-01-11',
     title: 'Les résultats rendent les totaux du serveur et le détail par organisme',
