@@ -124,16 +124,45 @@ const files = walk('src');
 /** `/users/:userId/x` et `/users/:id/x` désignent la même route. */
 const normalise = (u) => u.replace(/:[A-Za-z0-9_]+/g, ':id').replace(/\/$/, '');
 
+/**
+ * On cherche les objets `XXX_ROUTES`, pas les fichiers nommes `*.routes.ts`.
+ *
+ * Le filtre precedent portait sur le nom du fichier : les contacts declarent
+ * `CONTACT_ROUTES` dans `contact.constants.ts`, et leurs quatre routes
+ * n'etaient donc pas comptees. On suit desormais le nom de la constante —
+ * `*_ROUTES` ou `*_API`, les deux conventions du projet.
+ * n'etaient donc pas comptees. La convention du projet est le nom de la
+ * constante, pas celui du fichier — c'est elle qu'on suit.
+ */
 const routeByName = new Map();
+const entryRe = /(\w+)\s*:\s*(?:\([^)]*\)\s*=>\s*)?[`']([^`']*)[`']/g;
+
 for (const file of files) {
-  if (!/routes?\.(ts|tsx)$/i.test(file) && !/routes\./i.test(file)) continue;
   const src = readFileSync(file, 'utf8');
-  const re = /(\w+)\s*:\s*(?:\([^)]*\)\s*=>\s*)?[`']([^`']*)[`']/g;
-  let m;
-  while ((m = re.exec(src))) {
-    const [, name, raw] = m;
-    if (!raw.startsWith('/')) continue;
-    routeByName.set(name, raw.replace(/\$\{[^}]*\}/g, ':id'));
+  const declRe = /[A-Za-z0-9_]*(?:ROUTES|API)\s*(?::[^=]*)?=\s*\{/g;
+  let decl;
+  while ((decl = declRe.exec(src))) {
+    // Bloc equilibre : une route peut contenir des accolades d'interpolation.
+    let depth = 0;
+    let end = decl.index + decl[0].length - 1;
+    for (let i = end; i < src.length; i += 1) {
+      if (src[i] === '{') depth += 1;
+      else if (src[i] === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          end = i;
+          break;
+        }
+      }
+    }
+    const block = src.slice(decl.index, end + 1);
+    entryRe.lastIndex = 0;
+    let m;
+    while ((m = entryRe.exec(block))) {
+      const [, name, raw] = m;
+      if (!raw.startsWith('/')) continue;
+      routeByName.set(name, raw.replace(/\$\{[^}]*\}/g, ':id'));
+    }
   }
 }
 
@@ -232,8 +261,10 @@ const STEPS_RAW = {
   'PATCH /projects/:id': { todo: true, steps: ['Route déclarée, sans écran : la modification de projet reste à développer'] },
   'POST /organizations': ['Organismes', 'Nouvel organisme', 'Saisie manuelle', 'Renseigner nom, type et département', 'Créer la fiche'],
   'DELETE /organizations/:id': ['Panneau d’un organisme', 'Bas de la fiche, « Supprimer la fiche »', 'Confirmer dans la fenêtre'],
-  'GET /organizations/:id/contacts': { todo: true, steps: ['Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer'] },
-  'POST /organizations/:id/contacts': { todo: true, steps: ['Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer'] },
+  'GET /organizations/:id/contacts': ['Panneau d’un organisme', 'Onglet « Contacts »'],
+  'POST /organizations/:id/contacts': ['Onglet « Contacts »', 'Ajouter un contact', 'Renseigner prénom et nom', 'Créer le contact'],
+  'PATCH /contacts/:id': ['Onglet « Contacts »', 'Modifier sur une ligne', 'Enregistrer'],
+  'DELETE /contacts/:id': ['Onglet « Contacts »', 'Supprimer sur une ligne', 'Confirmer — si des actions le référencent, « Ne pas démarcher » est proposé à la place'],
   'GET /organizations/search-registry': ['Organismes', 'Nouvel organisme', 'Recherche officielle', 'Saisir un nom ou un SIRET (3 caractères minimum)', 'Rechercher'],
 };
 
@@ -386,7 +417,8 @@ ${orphans
   : '';
 
 const page = `<title>Couverture API par le front</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<!-- Aucune ressource distante : la page doit s'ouvrir hors ligne, depuis
+     le disque. Les polices de repli du systeme sont declarees plus bas. -->
 <style>
   :root {
     --bg:#F6F9FB; --surface:#FFFFFF; --ink:#14232E; --muted:#5A7184; --line:#D9E4EC;
