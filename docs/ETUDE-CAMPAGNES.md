@@ -174,11 +174,12 @@ dissociation. Deux options :
 1. **Nommer et s'arrêter** : « Cette campagne est utilisée par les périmètres X
    et Y. Détachez-la avant de la supprimer. » Honnête, mais l'utilisateur n'a
    nulle part où aller.
-2. **Développer US-00-07 (périmètres) d'abord** : cinq scénarios déclarés,
-   quatre routes livrées, aucun écran. La dissociation devient alors possible et
-   la boucle se referme.
+2. **Développer US-00-07 (périmètres) d'abord** : cinq routes livrées, aucun
+   écran. La dissociation devient alors possible et la boucle se referme.
 
-C'est le seul arbitrage produit de cette étude.
+C'était le seul arbitrage produit de cette étude. **Il est tranché** : les
+périmètres passent avant — voir `ETUDE-PERIMETRES.md`. L'option 1 devient
+inutile.
 
 ---
 
