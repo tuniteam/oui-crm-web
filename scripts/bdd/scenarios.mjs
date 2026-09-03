@@ -1888,6 +1888,77 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '07.11',
+    us: 'US-00-07',
+    title: 'Le périmètre s’affecte depuis la fiche utilisateur',
+    needsProject: true,
+    gherkin: [
+      "Given la fiche d'un utilisateur du projet",
+      'When je modifie son périmètre',
+      'Then la liste des périmètres du projet est proposée',
+      'And « Toute la base » est proposé pour n’en affecter aucun',
+      'And la modification transmet scopeId au serveur',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1/users/') &&
+          !url.pathname.endsWith('/informations'),
+        (route) => {
+          if (route.request().method() !== 'PATCH') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 'u1', email: 'x@y.z' }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().waitFor({ timeout: 15000 });
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page.waitForURL((u) => u.pathname.includes('/informations'), { timeout: 15000 });
+      await page.waitForTimeout(1200);
+
+      await page.getByTestId('details-edit-btn').click();
+      const select = page.getByTestId('user-edit-scope-select');
+      await select.waitFor({ timeout: 10000 });
+
+      await select.click();
+      await page.waitForTimeout(500);
+      const options = await page.locator('[role="option"]').allInnerTexts();
+
+      // Sans perimetre, l'utilisateur voit toute la base : l'option doit le
+      // dire, plutot que d'etre une ligne vide.
+      expect(
+        options.some((o) => o.trim() === 'Toute la base'),
+        `l'option « aucun périmètre » manque : ${options.join(' | ')}`,
+      );
+      // Les perimetres viennent du projet, jamais d'une liste en dur.
+      expect(
+        options.some((o) => /Normandie|France entière|Grand Ouest/.test(o)),
+        `les périmètres du projet ne sont pas proposés : ${options.join(' | ')}`,
+      );
+
+      const target = options.find(
+        (o) => o.trim() !== 'Toute la base' && o.trim().length > 0,
+      );
+      await page.locator('[role="option"]', { hasText: target }).first().click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('user-edit-save-btn').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucune modification envoyée');
+      expect(
+        sent && 'scopeId' in sent,
+        `le périmètre n'est pas transmis : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

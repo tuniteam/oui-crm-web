@@ -291,7 +291,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 | 8 | Créer un périmètre | régions et départements sélectionnables | à développer |
 | 9 | Modifier | les listes sont **remplacées en bloc**, pas fusionnées | à développer |
 | 10 | Supprimer un périmètre affecté | refusé, en indiquant l'usage | à développer |
-| 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur — déblocage d'US-00-05 | à développer |
+| 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur, « Toute la base » pour n'en affecter aucun ; masqué sans `scopes:read` | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -758,7 +758,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 09:46. 65/65 OK._
+_Généré par `npm run bdd` — 2026-09-03 10:16. 66/66 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -814,6 +814,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/07-1.png` |
 | US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/07-3.png` |
 | US-00-07 | 07.4 | L’entrée de menu « Périmètres » ouvre le panneau | OK | `screenshots/07-4.png` |
+| US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/07-11.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |

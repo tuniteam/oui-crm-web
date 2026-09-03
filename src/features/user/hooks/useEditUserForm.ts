@@ -25,6 +25,7 @@ export function useEditUserForm(
       lastName: '',
       initials: '',
       roleCode: '',
+      scopeId: '',
       isExternal: false,
       expiresAt: '',
     },
@@ -40,6 +41,9 @@ export function useEditUserForm(
       lastName: u.lastName ?? '',
       initials: u.initials ?? '',
       roleCode: u.roleCode ?? '',
+      // Le serveur rend le perimetre en objet `{ id, name }` ; le formulaire
+      // travaille sur l'identifiant.
+      scopeId: u.scope?.id ?? '',
       isExternal: u.isExternal ?? false,
       // Le serveur rend un jour calendaire ; on ne garde que la partie date au
       // cas ou il renverrait un horodatage complet.
@@ -65,6 +69,10 @@ export function useEditUserForm(
         ? {}
         : {
             roleCode: v.roleCode,
+            scopeId: v.scopeId || null,
+            // `null` retire explicitement le perimetre : l'utilisateur
+            // retrouve alors l'acces a toute la base.
+
             // `null` retire explicitement la date : c'est ainsi qu'un acces
             // externe redevient permanent.
             expiresAt: v.isExternal && v.expiresAt ? v.expiresAt : null,

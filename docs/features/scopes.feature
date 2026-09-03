@@ -60,6 +60,10 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
   Scenario: Supprimer un périmètre affecté
     Then refusé, en indiquant l'usage
 
-  @a-couvrir
+  @ok
   Scenario: Affecter à un utilisateur
-    Then sélecteur sur la fiche utilisateur — déblocage d'US-00-05
+    Given la fiche d'un utilisateur du projet
+    When je modifie son périmètre
+    Then la liste des périmètres du projet est proposée
+    And « Toute la base » est proposé pour n’en affecter aucun
+    And la modification transmet scopeId au serveur
