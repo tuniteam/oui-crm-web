@@ -273,6 +273,12 @@ dépend que d'elle.
 
 ## 6. Questions ouvertes
 
+> **Les deux questions sont tranchées** (03/09/2026). Le bloc « Enchaîner » se
+> fera par un `next` optionnel sur `complete`, côté serveur ; et le statut non
+> rétabli est un défaut, signalé dans
+> [SIGNALEMENT-API-ACTIVITES.md](SIGNALEMENT-API-ACTIVITES.md). Les deux
+> touchent la même transaction et seront traités ensemble.
+
 **Le bloc « Enchaîner » de la maquette.** Il propose de planifier la prochaine
 action dans le formulaire de la précédente. Aucune route ne le fait en un
 appel, mais deux `POST` successifs le feraient. Faut-il le porter, ou l'omettre
