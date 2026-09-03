@@ -129,12 +129,16 @@ Distinguer toujours :
    npm run bdd                  # tout : SUR DEMANDE EXPLICITE SEULEMENT
    ```
 
-   **N'exécuter que les scénarios de l'US en cours de développement.** La suite
-   complète ne se lance que si elle est demandée : elle prend plusieurs
-   minutes, et pendant ce temps on ne peut ni éditer le code ni lancer un autre
-   run. Le rapport `docs/rapport-bdd.html` conserve de toute façon le dernier
-   résultat de chaque scénario, exécuté ou non — la couverture reste donc
-   lisible sans tout relancer.
+   **Ne jamais lancer ces commandes de sa propre initiative.** Écrire les
+   scénarios et mettre la recette à jour reste dû après chaque développement ;
+   leur **exécution** attend une demande explicite de l'utilisateur, quelle que
+   soit la portée — suite complète, US ou scénario isolé.
+
+   Chaque exécution prend plusieurs minutes pendant lesquelles on ne peut ni
+   éditer le code ni lancer autre chose. Le rapport `docs/rapport-bdd.html`
+   conserve de toute façon le dernier résultat de chaque scénario, exécuté ou
+   non : la couverture reste lisible sans rien relancer. Dire ce qui reste à
+   exécuter plutôt que de l'exécuter.
 
    Les scénarios exécutables vivent dans `scripts/bdd/scenarios.mjs`, chacun
    portant le `id` de sa ligne dans la recette. Le lancement réinjecte le

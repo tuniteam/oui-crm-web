@@ -4253,6 +4253,80 @@ export const scenarios = [
     },
   },
 
+
+  {
+    id: '01-09.13',
+    us: 'US-01-09',
+    title: 'Refermer la fiche recharge l’agenda',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée, ouverte depuis l’agenda',
+      'When je la marque réalisée puis referme la fiche',
+      'Then l’agenda est rechargé',
+      'And la grille ne montre plus l’état d’avant',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'a1', date: day, time: '11:00', organizationId: 'o1' }),
+      ]);
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'o1',
+            name: 'Commune de Joigny',
+            city: 'Joigny',
+            department: '89',
+            salesStatus: 'TO_CONTACT',
+            customerStatus: 'PROSPECT',
+            access: 'FULL',
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mockActivities(page, [activityFixture({ id: 'a1', date: day, time: '11:00' })]);
+      await page.route(
+        (url) => url.pathname.endsWith('/activities/a1/complete'),
+        (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              activityFixture({ id: 'a1', status: 'DONE', report: 'Fait.' }),
+            ),
+          }),
+      );
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-event-a1').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-event-a1').click();
+      await page.getByTestId('activity-do-a1').waitFor({ timeout: 15000 });
+      await page.getByTestId('activity-do-a1').click();
+      await page.getByTestId('activity-complete-report').waitFor({ timeout: 10000 });
+      await page.getByTestId('activity-complete-report').fill('DGS convaincue.');
+
+      await page.getByTestId('activity-complete-submit').click();
+      await page.waitForTimeout(1500);
+
+      /*
+       * La fiche s'ouvre **par-dessus** l'agenda : realiser une action puis
+       * refermer le panneau laisserait sinon la grille afficher l'etat d'avant
+       * sous les yeux de l'utilisateur. Le rechargement se fait a la
+       * fermeture, quand l'utilisateur revient a la grille.
+       */
+      apiCalls(true);
+      // Le panneau ne se ferme ni par Echap ni par un clic exterieur : la
+      // croix est le geste prevu.
+      await page.locator('[data-slot="sheet-close"]').first().click();
+      await page.waitForTimeout(2000);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /agenda')),
+        `l'agenda n'a pas été rechargé à la fermeture : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

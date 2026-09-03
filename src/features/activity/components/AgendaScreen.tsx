@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { FILTER_ALL, PERMISSIONS } from '@/constants';
@@ -71,6 +72,7 @@ export default function AgendaScreen() {
    * rafraichissement, le retour arriere la referme au lieu de changer de
    * module, et un lien profond rouvre la meme action au meme endroit.
    */
+  const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const openedId = params.get(ORGANIZATIONS_UI.PANEL_PARAM);
   const [cursor, setCursor] = useState(todayDay);
@@ -123,8 +125,18 @@ export default function AgendaScreen() {
     );
   };
 
-  /** Refermer efface les trois parametres, et rend l'agenda intact. */
-  const closePanel = () =>
+  /**
+   * Refermer efface les trois parametres, rend l'agenda intact — et **le
+   * recharge**.
+   *
+   * La fiche s'ouvre par-dessus la grille : on y planifie, on y realise, on y
+   * annule. Sans ce rechargement, l'utilisateur retrouve sous les yeux l'etat
+   * d'avant ses propres ecritures. Le faire ici plutot qu'a chaque ecriture
+   * evite aussi de recharger l'agenda a chaque frappe dans le panneau.
+   */
+  const closePanel = () => {
+    queryClient.invalidateQueries({ queryKey: ['agenda'], exact: false });
+    return
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
@@ -135,6 +147,7 @@ export default function AgendaScreen() {
       },
       { replace: true },
     );
+  };
 
   return (
     <div className="space-y-4" data-testid="agenda-screen">

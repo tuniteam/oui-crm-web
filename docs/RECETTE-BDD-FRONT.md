@@ -861,6 +861,7 @@ déplace, on clique pour ouvrir la fiche.
 | 10 | Portée `PROJECT` | le filtre s'affiche et le collaborateur choisi part au serveur | à couvrir |
 | 11 | Cellule qui déborde | au-delà de trois actions, un « +N » qui bascule vers la liste | à couvrir |
 | 12 | Export ICS | **hors périmètre** — voir les pièges | à développer |
+| 13 | Écrire depuis l'agenda | réaliser une action y recharge l'agenda : la fiche s'ouvre **par-dessus** | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -887,6 +888,10 @@ déplace, on clique pour ouvrir la fiche.
   phrase plutôt que d'offrir des cases à cocher inertes — à la différence des
   quatre barres des campagnes, où un zéro est une information vraie, un filtre
   qui ne peut rien filtrer est un piège à clic.
+- **Toute écriture d'action doit invalider l'agenda.** La fiche s'ouvre
+  par-dessus la grille : réaliser une action depuis ce panneau, puis le
+  refermer, laissait l'agenda afficher l'état d'avant sous les yeux de
+  l'utilisateur. Quatre caches à invalider, donc, et non trois.
 - **La destination dépend de `kind`.** Écrite comme une correspondance dès
   maintenant, avec une seule entrée : un devis qui expire devra ouvrir le
   devis, pas la fiche de l'organisme. Ajouter une source sera une ligne.
@@ -992,7 +997,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 21:06. 106/106 OK._
+_Généré par `npm run bdd` — 2026-09-03 21:17. 107/107 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -1040,6 +1045,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-09 | 01-09.5 | Un mois chargé se pagine, il ne se tronque pas | OK | `screenshots/L1-01-09-5.png` |
 | US-01-09 | 01-09.6 | Ouvrir un événement ouvre la fiche sans quitter l’agenda | OK | `screenshots/L1-01-09-6.png` |
 | US-01-09 | 01-09.7 | La vue liste rend la même période, groupée par jour | OK | `screenshots/L1-01-09-7.png` |
+| US-01-09 | 01-09.13 | Refermer la fiche recharge l’agenda | OK | `screenshots/L1-01-09-13.png` |
 | US-01-11 | 01-11.1 | Les campagnes s’affichent en cartes, avec leurs mesures | OK | `screenshots/L1-01-11-1.png` |
 | US-01-11 | 01-11.2 | Sans campagne, l’écran explique à quoi elles servent | OK | `screenshots/L1-01-11-2.png` |
 | US-01-11 | 01-11.6 | Créer : le nom suffit, la période est facultative | OK | `screenshots/L1-01-11-6.png` |

@@ -27,19 +27,24 @@ export function useActivityMutations() {
   const queryClient = useQueryClient();
 
   /**
-   * Toute ecriture d'action touche trois choses.
+   * Toute ecriture d'action touche quatre choses.
    *
    * Les actions elles-memes ; la **fiche organisme**, dont le statut
    * commercial bascule (`MEETING_SCHEDULED` a la planification d'un
    * rendez-vous, `IN_PROGRESS` a la realisation) et dont `lastActivityAt` et
-   * `nextActivityAt` sont recalcules ; et la **liste des organismes**, qui
-   * affiche ces memes marques. Ne rafraichir que la frise laisserait la fiche
-   * mentir.
+   * `nextActivityAt` sont recalcules ; la **liste des organismes**, qui
+   * affiche ces memes marques ; et l'**agenda**, ou l'action apparait,
+   * disparait ou change de statut.
+   *
+   * L'agenda compte d'autant plus que la fiche s'y ouvre **par-dessus** :
+   * realiser une action depuis ce panneau, puis le refermer, laisserait
+   * sinon la grille afficher l'etat d'avant sous les yeux de l'utilisateur.
    */
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['activities'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['organizations'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['organization'], exact: false });
+    queryClient.invalidateQueries({ queryKey: ['agenda'], exact: false });
     // Le compteur d'actions d'une campagne se calcule a la demande.
     queryClient.invalidateQueries({ queryKey: ['campaigns'], exact: false });
   }, [queryClient]);

@@ -195,3 +195,10 @@ Feature: Actions et agenda (L1 · US-01-08, US-01-09)
   @a-couvrir
   Scenario: Export ICS
     Then hors périmètre — voir les pièges
+
+  @ok
+  Scenario: Écrire depuis l'agenda
+    Given une action planifiée, ouverte depuis l’agenda
+    When je la marque réalisée puis referme la fiche
+    Then l’agenda est rechargé
+    And la grille ne montre plus l’état d’avant
