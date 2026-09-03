@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import {
   Building2,
   FileText,
+  Globe2,
   ListChecks,
   SlidersHorizontal,
   type LucideIcon,
@@ -22,6 +23,7 @@ import { BusinessRulesPane } from './panes/BusinessRulesPane';
 import { CompanyPane } from './panes/CompanyPane';
 import { DocumentsPane } from './panes/DocumentsPane';
 import { ReferenceItemsPane } from './panes/ReferenceItemsPane';
+import { ScopesPane } from './panes/ScopesPane';
 
 type NavItem = {
   key: SettingsTab;
@@ -72,6 +74,13 @@ const NAV: NavItem[] = [
     description: D.REFERENCES,
     icon: ListChecks,
     permission: PERMISSIONS.REFERENCES.READ,
+  },
+  {
+    key: T.SCOPES,
+    label: I.SCOPES,
+    description: D.SCOPES,
+    icon: Globe2,
+    permission: PERMISSIONS.SCOPES.READ,
   },
 ];
 
@@ -130,6 +139,12 @@ export function SettingsScreen() {
 
     // Les referentiels ont leur propre permission : tous les roles lisent,
     // seul l'admin de projet ecrit.
+    // Les perimetres ont leur propre permission : `scopes:read` pour lire,
+    // que le commercial n'a pas.
+    if (tab === T.SCOPES) {
+      return <ScopesPane />;
+    }
+
     if (tab === T.REFERENCES) {
       return (
         <ReferenceItemsPane

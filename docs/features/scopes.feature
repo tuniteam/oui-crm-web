@@ -11,13 +11,42 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
 
   # ── US-00-07 · Périmètres
 
-  @a-couvrir
+  @ok
   Scenario: Liste des périmètres
-    Then nom, régions, départements, portefeuille
+    Given je suis administrateur du projet
+    When j'ouvre le panneau « Périmètres » des Paramètres
+    Then chaque périmètre montre son nom, son nombre d’utilisateurs et ses trois axes
+    And les départements résolus sont ceux rendus par l’API
+
+  @a-couvrir
+  Scenario: Départements résolus
+    Then rendus par l'API, jamais recalculés côté front
+
+  @ok
+  Scenario: Territoire entier
+    Given un périmètre dont les départements résolus sont vides
+    When je consulte le panneau
+    Then il affiche « France entière »
+    And jamais « 0 département »
+
+  @ok
+  Scenario: Entrée de menu
+    Given le menu du projet
+    When je clique sur « Périmètres »
+    Then le panneau des Paramètres s’ouvre, comme pour les Référentiels
+    And l’URL porte le panneau
+
+  @a-couvrir
+  Scenario: Sans scopes:read
+    Then ni l'entrée de navigation, ni le panneau — un commercial ne l'a pas
+
+  @a-couvrir
+  Scenario: Aucun périmètre
+    Then message expliquant que sans périmètre chaque utilisateur voit toute la base
 
   @a-couvrir
   Scenario: Régions
-    Then proposées depuis l'API, jamais codées en dur
+    Then proposées depuis GET /geo/regions, jamais codées en dur
 
   @a-couvrir
   Scenario: Créer un périmètre
@@ -30,3 +59,7 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
   @a-couvrir
   Scenario: Supprimer un périmètre affecté
     Then refusé, en indiquant l'usage
+
+  @a-couvrir
+  Scenario: Affecter à un utilisateur
+    Then sélecteur sur la fiche utilisateur — déblocage d'US-00-05

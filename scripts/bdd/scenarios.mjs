@@ -1794,6 +1794,100 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-00-07
+  {
+    id: '07.1',
+    us: 'US-00-07',
+    title: 'Les périmètres se lisent, avec leurs trois axes',
+    needsProject: true,
+    gherkin: [
+      "Given je suis administrateur du projet",
+      "When j'ouvre le panneau « Périmètres » des Paramètres",
+      'Then chaque périmètre montre son nom, son nombre d’utilisateurs et ses trois axes',
+      'And les départements résolus sont ceux rendus par l’API',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      apiCalls(true);
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(1000);
+
+      const cards = page.locator('[data-testid^="scope-card-"]');
+      expect((await cards.count()) > 0, 'aucun périmètre affiché');
+
+      const body = await page.getByTestId('scopes-pane').innerText();
+      expect(
+        /\d+ utilisateurs?/.test(body),
+        'le nombre d’utilisateurs n’est pas affiché',
+      );
+      // Nature : l'un des trois libelles du contrat.
+      expect(
+        /Prospects et clients|Prospects uniquement|Clients uniquement/.test(body),
+        'la nature des fiches n’est pas affichée',
+      );
+      // Les departements viennent du serveur, jamais d'un calcul local.
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /scopes')),
+        `la liste n'a pas été demandée à l'API : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '07.3',
+    us: 'US-00-07',
+    title: 'Un périmètre sans restriction dit « France entière »',
+    needsProject: true,
+    gherkin: [
+      'Given un périmètre dont les départements résolus sont vides',
+      'When je consulte le panneau',
+      'Then il affiche « France entière »',
+      'And jamais « 0 département »',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(1000);
+
+      const body = await page.getByTestId('scopes-pane').innerText();
+      expect(
+        body.includes('France entière'),
+        'aucun périmètre national n’est rendu comme tel',
+      );
+      // Le contresens a eviter : vide veut dire « tout », pas « rien ».
+      expect(
+        !body.includes('0 département'),
+        'un périmètre national est présenté comme couvrant zéro département',
+      );
+    },
+  },
+
+  {
+    id: '07.4',
+    us: 'US-00-07',
+    title: 'L’entrée de menu « Périmètres » ouvre le panneau',
+    needsProject: true,
+    gherkin: [
+      "Given le menu du projet",
+      'When je clique sur « Périmètres »',
+      'Then le panneau des Paramètres s’ouvre, comme pour les Référentiels',
+      'And l’URL porte le panneau',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      await page.locator('.sidebar').waitFor({ timeout: 15000 });
+
+      await page.getByRole('link', { name: 'Périmètres' }).first().click();
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+
+      const url = page.url();
+      expect(
+        url.includes('settings') && url.includes('panneau=scopes'),
+        `l'entrée de menu ne redirige pas vers le panneau : ${url}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
@@ -1806,9 +1900,15 @@ export const scenarios = [
         .getByText("Identité de l'entreprise")
         .waitFor({ timeout: 8000 });
 
+      /*
+       * Cinq panneaux depuis US-00-07 : les perimetres ont rejoint la
+       * navigation, et leur entree de menu y redirige — meme traitement que
+       * les referentiels. Le scenario compte, plutot que de nommer, pour que
+       * l'ajout d'un panneau qui n'ouvre rien le fasse tomber.
+       */
       const nav = page.getByRole('navigation', { name: 'Paramètres' });
       const entries = await nav.getByRole('button').count();
-      expect(entries === 4, `${entries} entrée(s) au lieu de 4`);
+      expect(entries === 5, `${entries} entrée(s) au lieu de 5`);
 
       // Les écrans qui vivent ailleurs ne doivent pas être dupliqués ici :
       // une entrée qui n'ouvre rien fait douter de toutes les autres.

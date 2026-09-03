@@ -13,7 +13,7 @@ Feature: Réglages du projet, gabarits et cachet (L0 · US-00-08)
 
   @ok
   Scenario: Navigation
-    Then uniquement les panneaux réels — Société, Règles commerciales, Documents, Référentiels ; « Société » ouvert par défaut
+    Then uniquement les panneaux réels — Société, Règles commerciales, Documents, Référentiels, Périmètres ; « Société » ouvert par défaut
 
   @a-couvrir
   Scenario: Panneau interdit

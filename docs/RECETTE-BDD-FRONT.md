@@ -274,15 +274,44 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-00-07 · Périmètres — ❌ à développer
+## US-00-07 · Périmètres — 🟡 lecture livrée
 
-| # | Scénario | Attendu |
-|---|---|---|
-| 1 | Liste des périmètres | nom, régions, départements, portefeuille |
-| 2 | Régions | proposées depuis l'API, jamais codées en dur |
-| 3 | Créer un périmètre | régions et départements sélectionnables |
-| 4 | Modifier | les listes sont remplacées en bloc, pas fusionnées |
-| 5 | Supprimer un périmètre affecté | refusé, en indiquant l'usage |
+Panneau de Paramètres, comme les Référentiels. Un périmètre est du **contrôle
+d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Liste des périmètres | nom, description, nombre d'utilisateurs, et les trois axes | couvert |
+| 2 | Départements résolus | rendus par l'API, jamais recalculés côté front | couvert |
+| 3 | Territoire entier | une liste résolue vide affiche « France entière », **jamais « 0 département »** | couvert |
+| 4 | Entrée de menu | « Périmètres » redirige sur le panneau, comme les Référentiels | couvert |
+| 5 | Sans `scopes:read` | ni l'entrée de navigation, ni le panneau — un commercial ne l'a pas | à couvrir |
+| 6 | Aucun périmètre | message expliquant que sans périmètre chaque utilisateur voit toute la base | à couvrir |
+| 7 | Régions | proposées depuis `GET /geo/regions`, jamais codées en dur | à développer |
+| 8 | Créer un périmètre | régions et départements sélectionnables | à développer |
+| 9 | Modifier | les listes sont **remplacées en bloc**, pas fusionnées | à développer |
+| 10 | Supprimer un périmètre affecté | refusé, en indiquant l'usage | à développer |
+| 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur — déblocage d'US-00-05 | à développer |
+
+### Pièges relevés pendant le développement
+
+- **Une liste de départements résolus vide signifie tout le territoire**, pas
+  aucun département. Afficher « 0 département » sur un périmètre national serait
+  un contresens exact. La valeur vient du serveur, qui déplie les régions,
+  dédoublonne et trie — elle ne se recalcule pas côté front, comme la strate d'un
+  organisme.
+- **Les trois axes se combinent par intersection**, pas par addition. Cocher
+  « portefeuille personnel » en plus d'une géographie *restreint* l'accès. Le
+  sous-titre du panneau le dit, sans quoi un administrateur croirait élargir.
+- **`usersCount` et le garde-fou de suppression ne comptent pas la même
+  population** — vérifié dans la source de l'API : le compteur ne retient que
+  les affectations actives, le garde-fou les compte toutes. Un périmètre affiché
+  à « 0 utilisateur » peut donc voir sa suppression refusée. L'écran ne
+  promettra pas qu'une suppression aboutira. Écart signalé dans
+  `docs/ETUDE-PERIMETRES.md`.
+- **`409 SCOPE_IN_USE` ne porte pas de `meta`**, contrairement aux campagnes où
+  `meta.scopes` nomme les gêneurs. L'écran ne pourra pas guider la
+  dissociation.
 
 ---
 
@@ -292,7 +321,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 1 | Navigation | **uniquement les panneaux réels** — Société, Règles commerciales, Documents, Référentiels ; « Société » ouvert par défaut |
+| 1 | Navigation | **uniquement les panneaux réels** — Société, Règles commerciales, Documents, Référentiels, Périmètres ; « Société » ouvert par défaut |
 | 2 | Panneau interdit | l'entrée disparaît de la navigation |
 | 3 | Chargement paresseux | `/settings` n'est appelé que si un panneau en dépend |
 | 4 | Panneau dans l'URL | `?panneau=references` ouvre les Référentiels ; le rafraîchissement le conserve |
@@ -729,7 +758,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 23:45. 62/62 OK._
+_Généré par `npm run bdd` — 2026-09-03 09:46. 65/65 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -782,6 +811,9 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |
 | US-00-05 | 05.14 | Le retrait n'est jamais présenté comme une suppression | OK | `screenshots/05-14.png` |
 | US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
+| US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/07-1.png` |
+| US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/07-3.png` |
+| US-00-07 | 07.4 | L’entrée de menu « Périmètres » ouvre le panneau | OK | `screenshots/07-4.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |
