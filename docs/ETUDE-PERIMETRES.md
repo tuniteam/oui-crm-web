@@ -96,15 +96,30 @@ geste, cocher une région pour cocher ses départements.
 
 ### La suppression est refusée si le périmètre sert
 
-`409 SCOPE_IN_USE`. Le contrat ne documente pas de `meta` détaillant les
-utilisateurs concernés — contrairement aux campagnes, où `meta.scopes` nomme les
-gêneurs. **`usersCount` est donc la seule information exploitable**, et elle est
-déjà dans la liste : l'écran peut prévenir avant même la tentative.
+`409 SCOPE_IN_USE`, **sans `messages.meta`** — vérifié dans la source :
+`apiError.conflict('SCOPE_IN_USE')` est appelé sans argument, contrairement aux
+campagnes où `meta.scopes` nomme les gêneurs. L'écran ne peut donc pas guider la
+dissociation ; il peut seulement prévenir à partir de `usersCount`.
 
-> **À confirmer avec l'équipe API** : `409 SCOPE_IN_USE` porte-t-il un
-> `messages.meta` nommant les utilisateurs ou les campagnes ? Si oui, l'écran
-> peut guider la dissociation comme pour les campagnes. Sinon, il se contente de
-> dire combien d'utilisateurs sont affectés.
+> **Écart à signaler à l'équipe API.** `usersCount` et le garde-fou de
+> suppression ne comptent pas la même population :
+>
+> | | Filtre |
+> |---|---|
+> | `usersCount`, rendu par `GET` et `PATCH` | `status: ACTIVE` |
+> | garde-fou de `DELETE` | **aucun filtre de statut** |
+>
+> Conséquence concrète : un périmètre affecté uniquement à des utilisateurs
+> suspendus affiche **« 0 utilisateur »**, l'écran conclut que la suppression est
+> sûre, et le serveur la refuse par un `409` que rien n'explique.
+>
+> Deux issues, au choix de l'équipe API : aligner le garde-fou sur les
+> affectations actives, ou aligner `usersCount` sur toutes les affectations. La
+> seconde est plus sûre — une affectation suspendue peut être réactivée — mais
+> elle change le sens du compteur affiché.
+>
+> **En attendant**, l'écran ne peut pas promettre qu'une suppression aboutira. Il
+> proposera l'action et traduira le refus, sans prétendre l'anticiper.
 
 ### `campaignIds` est arrivé au L1
 
@@ -191,14 +206,18 @@ Routes : `DELETE /scopes/:id`, plus `scopeId` dans `PATCH /users/:id`.
 pas de contrat retors — et elle débloque trois chantiers. La couper serait plus
 coûteux que la faire.
 
-**Avant de commencer**, deux questions à poser à l'équipe API :
+**Une question tranchée par la lecture de la source** : `409 SCOPE_IN_USE` ne
+porte pas de `meta`. L'écran ne guidera donc pas la dissociation.
 
-1. `409 SCOPE_IN_USE` porte-t-il un `messages.meta` nommant ce qui bloque ?
+**Deux points restent à poser à l'équipe API**, dont aucun n'empêche de
+démarrer :
+
+1. `usersCount` et le garde-fou de suppression comptent des populations
+   différentes (voir §3). Laquelle fait foi ?
 2. Le nombre de fiches couvertes par un périmètre est-il obtenable, ou faut-il
    s'en tenir à `usersCount` ?
 
-Aucune des deux n'empêche de démarrer : la tranche A ne dépend ni de l'une ni de
-l'autre.
+La tranche A ne dépend ni de l'un ni de l'autre.
 
 **Ensuite seulement, les campagnes.** Avec les périmètres en place, la
 suppression d'une campagne bloquée par un périmètre devient guidable, et
