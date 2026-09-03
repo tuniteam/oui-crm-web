@@ -2,7 +2,7 @@
 # Source : docs/RECETTE-BDD-FRONT.md. Découpage aligné sur oui-crm-api/docs/features/.
 
 @activities
-Feature: Actions et agenda (L1 · US-01-08)
+Feature: Actions et agenda (L1 · US-01-08, US-01-09)
   Vue Gherkin de la recette front : ce que voit l’utilisateur, là où la
   recette de l’API décrit le contrat HTTP.
 
@@ -126,3 +126,72 @@ Feature: Actions et agenda (L1 · US-01-08)
   @a-couvrir
   Scenario: Modifier une action
     Then re-planification, champs effaçables par null
+
+  # ── L1 · US-01-09 · Agenda
+
+  @ok
+  Scenario: La grille du mois
+    Given un mois avec des actions planifiées
+    When j’ouvre l’agenda
+    Then le serveur est interrogé avec les bornes du mois affiché
+    And chaque action figure dans la case de son jour
+
+  @ok
+  Scenario: Retard signalé
+    Given une action que le serveur déclare en retard
+    And une action à la même date qu’il ne déclare pas en retard
+    When je regarde l’agenda
+    Then seule la première est signalée
+
+  @ok
+  Scenario: Le bandeau ne montre que ce qui reste à faire
+    Given une action du jour déjà réalisée
+    And une action du jour encore planifiée
+    When j’ouvre l’agenda
+    Then seule la planifiée figure dans le bandeau d’alerte
+
+  @ok
+  Scenario: Changer de mois
+    Given l’agenda du mois courant
+    When je passe au mois suivant
+    Then le serveur est interrogé avec les bornes de ce mois
+
+  @ok
+  Scenario: Mois chargé
+    Given un mois dont les actions dépassent une page
+    When j’ouvre l’agenda
+    Then toutes les pages sont demandées
+    And les actions de la seconde page figurent dans la grille
+
+  @ok
+  Scenario: Ouvrir un événement
+    Given une action à l’agenda
+    When je clique dessus
+    Then la fiche de son organisme s’ouvre sur l’onglet Actions, sur l’agenda
+    And l’action visée est mise en avant
+
+  @ok
+  Scenario: Vue liste
+    Given un mois avec des actions à deux dates
+    When je bascule en vue liste
+    Then les actions sont groupées par jour
+
+  @a-couvrir
+  Scenario: Sans rien de planifié
+    Then message expliquant d'où viennent les actions
+
+  @a-couvrir
+  Scenario: Portée OWN
+    Then le filtre collaborateur n'existe pas : le serveur ignorerait userId
+
+  @a-couvrir
+  Scenario: Portée PROJECT
+    Then le filtre s'affiche et le collaborateur choisi part au serveur
+
+  @a-couvrir
+  Scenario: Cellule qui déborde
+    Then au-delà de trois actions, un « +N » qui bascule vers la liste
+
+  @a-couvrir
+  Scenario: Export ICS
+    Then hors périmètre — voir les pièges

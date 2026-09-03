@@ -39,6 +39,10 @@ export const ORGANIZATIONS_UI = {
    * etre propose a l'ouverture : il n'y avait aucune adresse a viser.
    */
   PANEL_PARAM: 'fiche',
+  /** Onglet ouvert du panneau : un lien depuis l'agenda vise les actions. */
+  TAB_PARAM: 'onglet',
+  /** Ligne a mettre en avant dans l'onglet, s'il en gere une. */
+  ANCHOR_PARAM: 'action',
 
   TITLE: 'Organismes',
   SUBTITLE:

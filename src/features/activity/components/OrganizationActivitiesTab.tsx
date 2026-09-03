@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CalendarClock, CirclePlus } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -32,8 +32,11 @@ type Confirm = { activity: Activity; kind: 'cancel' | 'delete' };
  */
 export function OrganizationActivitiesTab({
   organizationId,
+  highlightId = null,
 }: {
   organizationId: string;
+  /** Action visee par un lien — depuis l'agenda, par exemple. */
+  highlightId?: string | null;
 }) {
   const [editing, setEditing] = useState<Activity | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
@@ -64,6 +67,18 @@ export function OrganizationActivitiesTab({
     .filter((a) => a.status === 'PLANNED')
     .sort((a, b) => a.date.localeCompare(b.date))[0];
 
+  /*
+   * Defilement instantane, pas `smooth` : une animation ferait courir la
+   * verification apres la position, et l'ancre n'est utile qu'a l'ouverture.
+   */
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!highlightId || loading) return;
+    listRef.current
+      ?.querySelector(`[data-testid="activity-row-${highlightId}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [highlightId, loading]);
+
   const openWindow = (activity: Activity | null) => {
     setEditing(activity);
     setWindowOpen(true);
@@ -93,7 +108,7 @@ export function OrganizationActivitiesTab({
   }
 
   return (
-    <div className="space-y-4" data-testid="organization-activities">
+    <div ref={listRef} className="space-y-4" data-testid="organization-activities">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {next ? (
           <p
@@ -144,7 +159,11 @@ export function OrganizationActivitiesTab({
             <li
               key={a.id}
               data-testid={`activity-row-${a.id}`}
-              className="rounded-lg border border-border p-3"
+              className={`rounded-lg border p-3 ${
+                a.id === highlightId
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border'
+              }`}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <b className="text-sm">{a.type.label}</b>

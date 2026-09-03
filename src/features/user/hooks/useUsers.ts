@@ -5,10 +5,11 @@ import type { UserListParams, UserListResponse } from '../types/userList';
 import { userService } from '../services/user.service';
 import { ERRORS } from '../constants/userList.constants';
 
-export const useUsers = (params: UserListParams) => {
+export const useUsers = (params: UserListParams, enabled = true) => {
   const query = useQuery<UserListResponse>({
     queryKey: ['users', 'list', params],
     queryFn: () => userService.getAll(params),
+    enabled,
   });
 
   if (query.isError) {

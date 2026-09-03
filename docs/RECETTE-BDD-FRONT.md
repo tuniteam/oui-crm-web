@@ -40,7 +40,8 @@ et dans les fichiers `.feature` : les numéros se répètent d'un lot à l'autre
 | **L1** | **US-01-04** | **Organismes — contacts** | ✅ livré |
 | **L1** | **US-01-13** | **Organismes — suppression** | ✅ livré |
 | **L1** | **US-01-05** | **Actions groupées** | ❌ à développer — `POST /organizations/bulk` est livrée côté API |
-| **L1** | **US-01-08** | **Actions commerciales** | 🟡 onglet Actions livré ; agenda et export ICS à faire (US-01-09) |
+| **L1** | **US-01-08** | **Actions commerciales** | 🟡 onglet Actions livré ; modification et gardes à couvrir |
+| **L1** | **US-01-09** | **Agenda** | 🟡 agenda livré ; export ICS hors périmètre pour le moment |
 | **L1** | **US-01-11** | **Campagnes** | ✅ livrée — liste, création, statuts, cible, résultats, suppression |
 
 ---
@@ -776,7 +777,7 @@ portant son ciblage et ses quatre mesures.
 
 Onglet Actions de la fiche organisme — une **frise chronologique**, comme la
 V8 : ce qui s'est dit, pas un tableau de champs. L'agenda et l'export ICS
-relèvent de l'US-01-09 et restent à faire.
+relèvent de l'US-01-09 : l'agenda est livré, l'export ICS reste hors périmètre.
 
 | # | Scénario | Attendu | État |
 |---|---|---|---|
@@ -837,6 +838,63 @@ relèvent de l'US-01-09 et restent à faire.
   l'annonce plutôt que de laisser croire à une annulation propre.
 - **Le scope `OWN` est appliqué en SQL.** Refiltrer côté front masquerait des
   lignes aux rôles qui ont le droit de tout voir.
+
+---
+
+## L1 · US-01-09 · Agenda — 🟡 agenda livré, export ICS hors périmètre
+
+Entrée **PILOTAGE › Agenda**. Un bandeau d'alerte en tête, puis la grille du
+mois ou la même période en liste. Écran **en lecture seule** : rien ne s'y
+déplace, on clique pour ouvrir la fiche.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | La grille du mois | six semaines pleines, une requête par période avec `from` et `to` | couvert |
+| 2 | Retard signalé | `isLate` **du serveur**, jamais recalculé | couvert |
+| 3 | Le bandeau ne montre que ce qui reste à faire | une action du jour déjà réalisée n'y figure pas | couvert |
+| 4 | Changer de mois | nouvelles bornes envoyées au serveur | couvert |
+| 5 | Mois chargé | **toutes les pages** sont chargées, jamais de grille tronquée en silence | couvert |
+| 6 | Ouvrir un événement | la fiche s'ouvre sur son onglet Actions, l'action visée en avant | couvert |
+| 7 | Vue liste | même période, groupée par jour | couvert |
+| 8 | Sans rien de planifié | message expliquant d'où viennent les actions | à couvrir |
+| 9 | Portée `OWN` | le filtre collaborateur **n'existe pas** : le serveur ignorerait `userId` | à couvrir |
+| 10 | Portée `PROJECT` | le filtre s'affiche et le collaborateur choisi part au serveur | à couvrir |
+| 11 | Cellule qui déborde | au-delà de trois actions, un « +N » qui bascule vers la liste | à couvrir |
+| 12 | Export ICS | **hors périmètre** — voir les pièges | à développer |
+
+### Pièges relevés pendant le développement
+
+- **`from` et `to` sont obligatoires.** Une requête par période affichée, ce que
+  le contrat prévoit en donnant à `limit` le maximum (100) par défaut.
+- **Un mois chargé se pagine.** Se contenter de la première page peindrait une
+  grille à laquelle il manque des rendez-vous, **sans que rien ne le dise**.
+  Toutes les pages de la période sont chargées avant de rendre : deux requêtes
+  valent mieux qu'un rendez-vous invisible.
+- **`isLate` vient du serveur.** C'est le seul signal d'alerte de l'écran, et
+  un calcul local divergerait d'un fuseau. Même règle que `time` et que les
+  jours : rien ne se reconstruit en `Date` pour être affiché.
+- **Le bandeau ne montre que ce qui reste à faire.** Première version fautive,
+  vue à l'écran : elle annonçait sous une alerte rouge une action du jour
+  **déjà réalisée**. Une action en retard est par construction planifiée ; du
+  jour, il faut écarter les `DONE`.
+- **Le filtre collaborateur disparaît en portée `OWN`.** `userId` y est ignoré
+  par le serveur : un sélecteur dont la seule valeur possible est soi-même est
+  un piège, et le griser laisserait une question sans réponse à l'écran. La
+  portée se lit dans `/profile/me`, permission par permission —
+  `getPermissionScope('activities:read')`.
+- **Trois des quatre sources ne répondent pas encore.** Formations, échéances
+  de contrat et fins de devis arrivent aux lots L2 à L4. On le dit en une
+  phrase plutôt que d'offrir des cases à cocher inertes — à la différence des
+  quatre barres des campagnes, où un zéro est une information vraie, un filtre
+  qui ne peut rien filtrer est un piège à clic.
+- **La destination dépend de `kind`.** Écrite comme une correspondance dès
+  maintenant, avec une seule entrée : un devis qui expire devra ouvrir le
+  devis, pas la fiche de l'organisme. Ajouter une source sera une ligne.
+- **L'agenda ne dit pas si un événement est exportable.** `AgendaItemDto` porte
+  le *libellé* du type, pas sa clé, et l'export est réservé aux types portant
+  `metadata.ics: true`. Rapprocher par libellé casserait dès qu'un projet
+  renomme ses valeurs. L'export reste donc hors périmètre en attendant que le
+  contrat expose `type: { key, label }`.
 
 ---
 
@@ -934,7 +992,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 19:58. 99/99 OK._
+_Généré par `npm run bdd` — 2026-09-03 21:06. 106/106 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -975,6 +1033,13 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-08 | 01-08.15 | Une action close ne propose plus ni modification ni réalisation | OK | `screenshots/L1-01-08-15.png` |
 | US-01-08 | 01-08.16 | Une action close entre-temps est dite, et la frise rechargée | OK | `screenshots/L1-01-08-16.png` |
 | US-01-08 | 01-08.17 | Supprimer un rendez-vous avertit que le statut ne redescend pas | OK | `screenshots/L1-01-08-17.png` |
+| US-01-09 | 01-09.1 | La grille rend le mois, en une requête bornée | OK | `screenshots/L1-01-09-1.png` |
+| US-01-09 | 01-09.2 | Le retard vient du serveur, jamais d’un calcul local | OK | `screenshots/L1-01-09-2.png` |
+| US-01-09 | 01-09.3 | Le bandeau ne montre que ce qui reste à faire | OK | `screenshots/L1-01-09-3.png` |
+| US-01-09 | 01-09.4 | Changer de mois redemande la bonne période | OK | `screenshots/L1-01-09-4.png` |
+| US-01-09 | 01-09.5 | Un mois chargé se pagine, il ne se tronque pas | OK | `screenshots/L1-01-09-5.png` |
+| US-01-09 | 01-09.6 | Ouvrir un événement ouvre la fiche sans quitter l’agenda | OK | `screenshots/L1-01-09-6.png` |
+| US-01-09 | 01-09.7 | La vue liste rend la même période, groupée par jour | OK | `screenshots/L1-01-09-7.png` |
 | US-01-11 | 01-11.1 | Les campagnes s’affichent en cartes, avec leurs mesures | OK | `screenshots/L1-01-11-1.png` |
 | US-01-11 | 01-11.2 | Sans campagne, l’écran explique à quoi elles servent | OK | `screenshots/L1-01-11-2.png` |
 | US-01-11 | 01-11.6 | Créer : le nom suffit, la période est facultative | OK | `screenshots/L1-01-11-6.png` |
