@@ -1,7 +1,12 @@
 # Étude — Couvrir les campagnes côté front (US-01-11)
 
-**Date :** 2026-09-03 · **Sources :** `../oui-crm-api/docs/HANDOFF-L1.md` §US-01-11
-et §US-01-05, `docs/OuiCRM_V8.html` (`RENDER.campagnes`, `openCampaignModal`).
+**Date :** 2026-09-03
+**Règles :** `../oui-crm-api/docs/HANDOFF-L1.md` §US-01-11 et §US-01-05.
+**Écran :** `docs/OuiCRM_V8.html` (`RENDER.campagnes`, `openCampaignModal`).
+
+> La maquette donne des dispositions, des libellés et des parcours — **jamais
+> des règles**. Tout ce qu'elle calcule, elle le fait dans le navigateur sur des
+> données factices. Les règles citées ici viennent du contrat.
 
 Neuf routes livrées côté API, **zéro couverte** par le front. Ce document dit ce
 qu'il faut construire, dans quel ordre, et ce qui bloque.
@@ -10,8 +15,11 @@ qu'il faut construire, dans quel ordre, et ce qui bloque.
 
 ## 1. Ce qu'est une campagne
 
-> « Un ciblage nommé, daté et mesuré. La campagne fige une liste d'organismes et
-> suit ce qu'elle produit. » — V8
+> « A frozen target list, worked and measured. The results are computed on
+> demand, never stored. » — recette de l'API, `campaigns.feature`
+
+La maquette dit la même chose en français — « un ciblage nommé, daté et mesuré »
+— mais c'est la définition du back qui fait foi.
 
 Trois idées portent tout le reste, et aucune ne se devine depuis la maquette :
 
@@ -110,8 +118,10 @@ serveur rend, on ne recalcule pas.
 
 Deux écarts à assumer, dans la lignée de ce qui a été fait sur les organismes :
 
-- **« Planifier les relances »** appartient aux actions commerciales (US-01-08),
-  non développée. Le bouton n'a pas sa place tant que l'écran cible n'existe pas.
+- **« Planifier les relances »** : le bouton n'a pas de route de campagne
+  derrière lui. Planifier une action relève de `/activities` (US-01-08, livrée
+  côté API, sans écran). Le bouton n'a donc pas sa place tant que cet écran
+  n'existe pas.
 - **Le ciblage de la fenêtre de création** propose six filtres pour construire
   la liste. Or `criteria` est documentaire et la cible se remplit par une route
   dédiée : la fenêtre doit donc saisir des critères **descriptifs**, et l'ajout

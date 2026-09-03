@@ -1,9 +1,14 @@
 # Étude — Couvrir les périmètres côté front (US-00-07)
 
-**Date :** 2026-09-03 · **Sources :** `../oui-crm-api/docs/HANDOFF-L0.md`
-§US-00-07 et §US-00-05, `../oui-crm-api/docs/HANDOFF-L1.md` §US-01-11,
-`docs/OuiCRM_V8.html` (`SETPANE.perimetres`, `openPerimetreModal`), et la forme
-réelle des réponses vérifiée contre l'API.
+**Date :** 2026-09-03
+**Règles :** `../oui-crm-api/docs/HANDOFF-L0.md` §US-00-07 et §US-00-05,
+`../oui-crm-api/docs/HANDOFF-L1.md` §US-01-11, et la forme réelle des réponses
+vérifiée contre l'API en direct.
+**Écran :** `docs/OuiCRM_V8.html` (`SETPANE.perimetres`, `openPerimetreModal`).
+
+> La maquette donne des dispositions, des libellés et des parcours — **jamais
+> des règles**. Tout ce qu'elle calcule, elle le fait dans le navigateur sur des
+> données factices. Les règles citées ici viennent du contrat.
 
 Cinq routes livrées, **zéro couverte**. C'est le socle qui débloque trois autres
 chantiers.
@@ -79,10 +84,15 @@ doit donc toujours poster l'état complet des deux listes.
 
 ### Cocher une région coche ses départements, chacun restant décochable
 
-C'est le geste central de l'écran, et la V8 le dit dans son sous-titre. Une
-région entièrement cochée peut être envoyée comme `regions: ['Normandie']` ; la
-même région amputée d'un département doit partir en `departments` explicites.
-Cette conversion est à faire côté front, à l'enregistrement.
+Le contrat sépare `regions[]` et `departments[]`, et le serveur déplie les
+régions lui-même : `{ regions: ['Corse'], departments: ['06'] }` rend
+`resolvedDepartments: ['06', '2A', '2B']` — vérifié dans la recette de l'API.
+
+Il n'existe donc **aucun moyen d'exprimer « la Normandie sauf l'Orne » par une
+région** : une région amputée doit partir en départements explicites. La
+conversion est à faire côté front, à l'enregistrement. C'est une conséquence du
+contrat, pas un choix d'interface — la maquette ne fait qu'en proposer le
+geste, cocher une région pour cocher ses départements.
 
 ### La suppression est refusée si le périmètre sert
 
