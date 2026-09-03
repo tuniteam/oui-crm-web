@@ -79,18 +79,67 @@ Feature: Campagnes (L1 · US-01-11)
   Scenario: Sans campaigns:create
     Then pas de bouton de création
 
-  @a-couvrir
+  @ok
   Scenario: La cible
-    Then panneau « Voir les N organismes », ajout et retrait
+    Given une campagne avec des organismes ciblés
+    When j’ouvre sa cible
+    Then les organismes ciblés sont listés
+    And l’écran dit que la liste ne se recalcule pas depuis les critères
+    And il annonce l’effet du ciblage sur le statut commercial
 
-  @a-couvrir
+  @ok
   Scenario: Ajout à la cible
-    Then added / alreadyIn / skipped rendus tous les trois
+    Given la cible d’une campagne
+    When j’ajoute des organismes dont certains sont déjà ciblés ou hors périmètre
+    Then le compte rendu annonce les ajoutés, les déjà présents et les ignorés
 
-  @a-couvrir
+  @ok
   Scenario: Effet sur le statut commercial
-    Then une fiche NOT_CONTACTED ciblée passe TO_CONTACT : la liste des organismes doit être invalidée
+    Given une fiche encore « Non contacté »
+    When elle entre dans la cible d’une campagne
+    Then la liste des organismes est rechargée
+    And son statut commercial n’est plus celui affiché avant
 
   @a-couvrir
+  Scenario: Retirer de la cible
+    Then la fiche sort de la cible, la fiche elle-même n'est pas touchée
+
+  @a-couvrir
+  Scenario: Limite de 500
+    Then l'ajout ne peut pas dépasser 500 identifiants par appel
+
+  @ok
+  Scenario: Résultats détaillés
+    Given une campagne dont deux organismes ont produit des actions
+    When j’ouvre le détail de ses résultats
+    Then les totaux affichés sont ceux du serveur
+    And chaque organisme ciblé porte son propre compteur
+
+  @ok
+  Scenario: Une fiche ciblée sans action
+    Given une fiche ciblée qui n’a produit aucune action
+    When j’ouvre le détail des résultats
+    Then elle figure dans la liste avec zéro action
+    And sa dernière action est dite « aucune »
+
+  @ok
   Scenario: Supprimer
-    Then refusée si un périmètre cite la campagne, avec les périmètres nommés
+    Given une campagne citée par deux périmètres
+    When je demande sa suppression
+    Then l’écran nomme les périmètres qui l’empêchent
+    And il propose de détacher plutôt que de le faire d’office
+
+  @ok
+  Scenario: Détacher puis rejouer
+    Given une suppression refusée par un périmètre nommé
+    When je détache la campagne de ce périmètre
+    Then le périmètre est réécrit avec ses autres campagnes seulement
+    And le périmètre disparaît des bloquants
+
+  @a-couvrir
+  Scenario: Refus non nommé
+    Then meta.scopes absent : l'écran le dit au lieu d'inventer un périmètre
+
+  @a-couvrir
+  Scenario: Sans campaigns:delete
+    Then pas de bouton Supprimer — le commercial ne l'a pas

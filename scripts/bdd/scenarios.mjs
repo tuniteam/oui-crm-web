@@ -33,6 +33,21 @@ const err = (statusCode, code, extra = {}) => ({
   messages: { statusCode: String(statusCode), code, level: 'error', ...extra },
 });
 
+/** Campagne minimale : seuls `id` et le compteur varient d'un scenario a l'autre. */
+const campaignFixture = (over = {}) => ({
+  id: 'c1',
+  name: 'Rentree 89',
+  description: null,
+  status: 'ACTIVE',
+  owner: null,
+  startDate: null,
+  endDate: null,
+  criteria: null,
+  organizationsCount: 0,
+  results: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+  ...over,
+});
+
 export const scenarios = [
   // ─────────────────────────────── US-00-01
   {
@@ -2710,6 +2725,486 @@ export const scenarios = [
       expect(
         text.includes('cibler') && text.includes('mesurer'),
         `le message n'explique pas l'intérêt : ${text}`,
+      );
+    },
+  },
+
+  {
+    id: '01-11.13',
+    us: 'US-01-11',
+    title: 'La cible s’ouvre, et annonce qu’elle est figée',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne avec des organismes ciblés',
+      'When j’ouvre sa cible',
+      'Then les organismes ciblés sont listés',
+      'And l’écran dit que la liste ne se recalcule pas depuis les critères',
+      'And il annonce l’effet du ciblage sur le statut commercial',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [
+          {
+            id: 'c1',
+            name: 'Rentrée 89',
+            description: null,
+            status: 'ACTIVE',
+            owner: null,
+            startDate: null,
+            endDate: null,
+            criteria: { department: '89' },
+            organizationsCount: 2,
+            results: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mock(page, '/campaigns/c1/organizations', 200, {
+        data: [
+          { id: 'o1', name: 'Commune de Joigny', city: 'Joigny', department: '89', access: 'FULL' },
+          { id: 'o2', name: 'Commune hors secteur', city: null, department: '99', access: 'RESTRICTED' },
+        ],
+        meta: { total: 2, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-target-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-target-open-c1').click();
+
+      const panel = page.getByTestId('campaign-target');
+      await panel.waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      const body = await page.getByTestId('reusable-sheet').innerText();
+      // La cible est figee : le dire, sinon on croit que les criteres la
+      // mettent a jour.
+      expect(
+        body.includes('figée') && body.includes('ne se recalcule pas'),
+        `l'écran ne dit pas que la cible est figée : ${body.slice(0, 200)}`,
+      );
+      // Effet de bord du contrat, invisible depuis cet ecran.
+      expect(
+        body.includes('À contacter'),
+        'l’effet du ciblage sur le statut commercial n’est pas annoncé',
+      );
+
+      expect(
+        await page.getByTestId('campaign-target-row-o1').isVisible(),
+        'les organismes ciblés ne sont pas listés',
+      );
+      // Une fiche hors perimetre reste listee, signalee.
+      expect(
+        body.includes('Hors de votre périmètre'),
+        'une fiche hors périmètre n’est pas signalée',
+      );
+    },
+  },
+
+  {
+    id: '01-11.14',
+    us: 'US-01-11',
+    title: 'Un ajout rend ses trois nombres, jamais un simple « enregistré »',
+    needsProject: true,
+    gherkin: [
+      'Given la cible d’une campagne',
+      'When j’ajoute des organismes dont certains sont déjà ciblés ou hors périmètre',
+      'Then le compte rendu annonce les ajoutés, les déjà présents et les ignorés',
+    ],
+    async run({ page, expect, projectId }) {
+      const campaign = {
+        id: 'c1',
+        name: 'Rentrée 89',
+        description: null,
+        status: 'ACTIVE',
+        owner: null,
+        startDate: null,
+        endDate: null,
+        criteria: null,
+        organizationsCount: 0,
+        results: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+      };
+      await mock(page, '/campaigns', 200, {
+        data: [campaign],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mock(page, '/campaigns/c1/organizations', 200, {
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/campaigns/c1/organizations'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          // Selection partielle : le serveur n'echoue pas, il rend le detail.
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ added: 3, alreadyIn: 2, skipped: 1 }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-target-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-target-open-c1').click();
+      await page.getByTestId('campaign-target-add').waitFor({ timeout: 10000 });
+      await page.getByTestId('campaign-target-add').click();
+
+      await page.getByTestId('campaign-picker-search').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.locator('[data-testid^="campaign-picker-"]:not([data-testid$="search"]):not([data-testid$="confirm"])').first().click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('campaign-picker-confirm').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucun ajout envoyé');
+      expect(
+        Array.isArray(sent?.ids) && sent.ids.length > 0,
+        `les identifiants ne sont pas transmis : ${JSON.stringify(sent)}`,
+      );
+
+      // Les trois nombres, jamais un « enregistre » qui masquerait les fiches
+      // qui n'ont pas suivi.
+      const body = await page.locator('body').innerText();
+      expect(body.includes('3 ajoutés'), `« 3 ajoutés » absent : ${body.slice(0, 300)}`);
+      expect(body.includes('2 déjà présents'), 'les fiches déjà ciblées ne sont pas dites');
+      expect(body.includes('1 ignoré'), 'les fiches ignorées ne sont pas dites');
+    },
+  },
+
+  {
+    id: '01-11.15',
+    us: 'US-01-11',
+    title: 'Ajouter à la cible rafraîchit aussi la liste des organismes',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche encore « Non contacté »',
+      'When elle entre dans la cible d’une campagne',
+      'Then la liste des organismes est rechargée',
+      'And son statut commercial n’est plus celui affiché avant',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const campaign = {
+        id: 'c1',
+        name: 'Rentrée 89',
+        description: null,
+        status: 'ACTIVE',
+        owner: null,
+        startDate: null,
+        endDate: null,
+        criteria: null,
+        organizationsCount: 0,
+        results: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+      };
+      await mock(page, '/campaigns', 200, {
+        data: [campaign],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mock(page, '/campaigns/c1/organizations', 200, {
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+      await page.route(
+        (url) => url.pathname.endsWith('/campaigns/c1/organizations'),
+        (route) =>
+          route.request().method() === 'POST'
+            ? route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ added: 1, alreadyIn: 0, skipped: 0 }),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-target-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-target-open-c1').click();
+      await page.getByTestId('campaign-target-add').waitFor({ timeout: 10000 });
+      await page.getByTestId('campaign-target-add').click();
+      await page.getByTestId('campaign-picker-search').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1200);
+      await page.locator('[data-testid^="campaign-picker-"]:not([data-testid$="search"]):not([data-testid$="confirm"])').first().click();
+
+      apiCalls(true);
+      await page.getByTestId('campaign-picker-confirm').click();
+      await page.waitForTimeout(1800);
+
+      /*
+       * Cibler une fiche `NOT_CONTACTED` la fait passer `TO_CONTACT` cote
+       * serveur. Ne rafraichir que la cible laisserait la liste des organismes
+       * afficher un statut perime — d'ou l'invalidation.
+       */
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /organizations')),
+        `la liste des organismes n'a pas été rechargée : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-11.18',
+    us: 'US-01-11',
+    title: 'Les résultats rendent les totaux du serveur et le détail par organisme',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne dont deux organismes ont produit des actions',
+      'When j’ouvre le détail de ses résultats',
+      'Then les totaux affichés sont ceux du serveur',
+      'And chaque organisme ciblé porte son propre compteur',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1', organizationsCount: 2 })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      /*
+       * `totals` n'est PAS la somme des lignes visibles : une fiche supprimee
+       * sort des lignes sans sortir du total. Le scenario le grave — 7 en
+       * total, 4 + 2 en lignes.
+       */
+      await mock(page, '/campaigns/c1/results', 200, {
+        totals: { activities: 7, opportunities: 0, quotes: 0, signed: 0 },
+        data: [
+          {
+            organizationId: 'o1',
+            name: 'Commune de Joigny',
+            salesStatus: 'IN_PROGRESS',
+            activities: 4,
+            lastActivityAt: '2026-08-20T10:00:00.000Z',
+          },
+          {
+            organizationId: 'o2',
+            name: 'Commune de Sens',
+            salesStatus: 'TO_CONTACT',
+            activities: 2,
+            lastActivityAt: '2026-08-12T09:00:00.000Z',
+          },
+        ],
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-results-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-results-open-c1').click();
+      await page.getByTestId('campaign-results').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      const totals = await page.getByTestId('campaign-results-totals').innerText();
+      expect(
+        totals.includes('7'),
+        `le total du serveur n'est pas affiché : ${totals}`,
+      );
+      // Recalculer depuis les lignes donnerait 6 : c'est l'erreur a interdire.
+      expect(
+        !totals.includes('6'),
+        `les totaux semblent recalculés depuis les lignes : ${totals}`,
+      );
+
+      const row = await page.getByTestId('campaign-results-row-o1').innerText();
+      expect(row.includes('Commune de Joigny'), 'la ligne ne nomme pas l’organisme');
+      expect(row.includes('4'), `le compteur de la ligne manque : ${row}`);
+    },
+  },
+
+  {
+    id: '01-11.19',
+    us: 'US-01-11',
+    title: 'Une fiche ciblée sans action reste listée, à zéro',
+    needsProject: true,
+    gherkin: [
+      'Given une fiche ciblée qui n’a produit aucune action',
+      'When j’ouvre le détail des résultats',
+      'Then elle figure dans la liste avec zéro action',
+      'And sa dernière action est dite « aucune »',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1', organizationsCount: 1 })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mock(page, '/campaigns/c1/results', 200, {
+        totals: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+        data: [
+          {
+            organizationId: 'o9',
+            name: 'Commune de Tonnerre',
+            salesStatus: 'NOT_CONTACTED',
+            activities: 0,
+            lastActivityAt: null,
+          },
+        ],
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-results-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-results-open-c1').click();
+      await page.getByTestId('campaign-results').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      /*
+       * Masquer les fiches a zero cacherait justement celles qu'il reste a
+       * travailler : c'est l'inverse de ce que la campagne sert a voir.
+       */
+      const row = page.getByTestId('campaign-results-row-o9');
+      expect(await row.isVisible(), 'la fiche sans action a disparu de la liste');
+      const text = await row.innerText();
+      expect(text.includes('0'), `le zéro n'est pas affiché : ${text}`);
+      expect(
+        text.includes('Aucune'),
+        `l'absence de dernière action n'est pas dite : ${text}`,
+      );
+    },
+  },
+
+  {
+    id: '01-11.20',
+    us: 'US-01-11',
+    title: 'Une campagne citée par un périmètre nomme ce qui la bloque',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne citée par deux périmètres',
+      'When je demande sa suppression',
+      'Then l’écran nomme les périmètres qui l’empêchent',
+      'And il propose de détacher plutôt que de le faire d’office',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1' })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await page.route(
+        (url) => url.pathname.endsWith('/campaigns/c1'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(
+                  err(409, 'CAMPAIGN_IN_USE_BY_SCOPE', {
+                    text: 'Campagne citée par un périmètre',
+                    meta: {
+                      scopes: [
+                        { id: 's1', name: 'Bourgogne prospection' },
+                        { id: 's2', name: 'Grand Est' },
+                      ],
+                    },
+                  }),
+                ),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-delete-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-delete-open-c1').click();
+      await page.getByTestId('campaign-delete-confirm').waitFor({ timeout: 10000 });
+      await page.getByTestId('campaign-delete-confirm').click();
+      await page.waitForTimeout(1500);
+
+      /*
+       * Les perimetres fautifs arrivent dans `messages.meta.scopes` — jamais
+       * dans le texte. Les nommer est ce qui rend le refus actionnable.
+       */
+      const body = await page.getByTestId('campaign-delete').innerText();
+      expect(
+        body.includes('Bourgogne prospection') && body.includes('Grand Est'),
+        `les périmètres bloquants ne sont pas nommés : ${body.slice(0, 300)}`,
+      );
+      expect(
+        await page.getByTestId('campaign-delete-detach-s1').isVisible(),
+        'aucun moyen de détacher n’est proposé',
+      );
+    },
+  },
+
+  {
+    id: '01-11.21',
+    us: 'US-01-11',
+    title: 'Détacher un périmètre remplace sa liste, sans nettoyage d’office',
+    needsProject: true,
+    gherkin: [
+      'Given une suppression refusée par un périmètre nommé',
+      'When je détache la campagne de ce périmètre',
+      'Then le périmètre est réécrit avec ses autres campagnes seulement',
+      'And le périmètre disparaît des bloquants',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [campaignFixture({ id: 'c1' })],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await page.route(
+        (url) => url.pathname.endsWith('/campaigns/c1'),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(
+                  err(409, 'CAMPAIGN_IN_USE_BY_SCOPE', {
+                    text: 'Campagne citée par un périmètre',
+                    meta: { scopes: [{ id: 's1', name: 'Bourgogne prospection' }] },
+                  }),
+                ),
+              })
+            : route.fallback(),
+      );
+      await mock(page, '/scopes', 200, {
+        data: [
+          {
+            id: 's1',
+            name: 'Bourgogne prospection',
+            description: null,
+            regions: [],
+            departments: ['89'],
+            portfolioOnly: false,
+            nature: 'ALL',
+            campaignIds: ['c1', 'c2'],
+            usersCount: 1,
+            resolvedDepartments: ['89'],
+          },
+        ],
+      });
+
+      let patched = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/scopes/s1'),
+        (route) => {
+          if (route.request().method() !== 'PATCH') return route.fallback();
+          patched = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 's1', name: 'Bourgogne prospection' }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-delete-open-c1').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-delete-open-c1').click();
+      await page.getByTestId('campaign-delete-confirm').waitFor({ timeout: 10000 });
+      await page.getByTestId('campaign-delete-confirm').click();
+      await page.getByTestId('campaign-delete-detach-s1').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+      await page.getByTestId('campaign-delete-detach-s1').click();
+      await page.waitForTimeout(1500);
+
+      /*
+       * `PATCH /scopes/:id` remplace la liste en bloc : envoyer `['c2']` et non
+       * `['c1']`, sinon on efface les autres campagnes du perimetre en croyant
+       * en retirer une.
+       */
+      expect(patched !== null, 'aucune dissociation envoyée');
+      expect(
+        JSON.stringify(patched?.campaignIds) === JSON.stringify(['c2']),
+        `la liste réécrite est fausse : ${JSON.stringify(patched)}`,
+      );
+      expect(
+        (await page.getByTestId('campaign-delete-scope-s1').count()) === 0,
+        'le périmètre détaché figure encore parmi les bloquants',
       );
     },
   },

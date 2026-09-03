@@ -41,7 +41,7 @@ et dans les fichiers `.feature` : les numéros se répètent d'un lot à l'autre
 | **L1** | **US-01-13** | **Organismes — suppression** | ✅ livré |
 | **L1** | **US-01-05** | **Actions groupées** | ❌ à développer — `POST /organizations/bulk` est livrée côté API |
 | **L1** | **US-01-08** | **Actions commerciales** | ❌ à développer |
-| **L1** | **US-01-11** | **Campagnes** | 🟡 lecture et création livrées ; la cible reste à faire |
+| **L1** | **US-01-11** | **Campagnes** | ✅ livrée — liste, création, statuts, cible, résultats, suppression |
 
 ---
 
@@ -678,7 +678,7 @@ base. La purge définitive relève du RGPD (US-06-01).
 
 ---
 
-## L1 · US-01-11 · Campagnes — 🟡 lecture et création livrées
+## L1 · US-01-11 · Campagnes — ✅ livrée
 
 Écran `RENDER.campagnes` de la maquette : des cartes, deux par ligne, chacune
 portant son ciblage et ses quatre mesures.
@@ -697,10 +697,17 @@ portant son ciblage et ses quatre mesures.
 | 10 | Transition refusée | `409 INVALID_STATUS_TRANSITION` : la liste est rechargée, l'écran ayant divergé | à couvrir |
 | 11 | Modifier | champs effaçables par `null` ; le nom jamais | à couvrir |
 | 12 | Sans `campaigns:create` | pas de bouton de création | à couvrir |
-| 13 | La cible | panneau « Voir les N organismes », ajout et retrait | à développer |
-| 14 | Ajout à la cible | `added` / `alreadyIn` / `skipped` rendus **tous les trois** | à développer |
-| 15 | Effet sur le statut commercial | une fiche `NOT_CONTACTED` ciblée passe `TO_CONTACT` : la liste des organismes doit être invalidée | à développer |
-| 16 | Supprimer | refusée si un périmètre cite la campagne, avec les périmètres nommés | à développer |
+| 13 | La cible | panneau « Voir les N organismes », qui annonce qu'elle est figée | couvert |
+| 14 | Ajout à la cible | `added` / `alreadyIn` / `skipped` rendus **tous les trois** | couvert |
+| 15 | Effet sur le statut commercial | une fiche `NOT_CONTACTED` ciblée passe `TO_CONTACT` : la liste des organismes est invalidée | couvert |
+| 16 | Retirer de la cible | la fiche sort de la cible, la fiche elle-même n'est pas touchée | à couvrir |
+| 17 | Limite de 500 | l'ajout ne peut pas dépasser 500 identifiants par appel | à couvrir |
+| 18 | Résultats détaillés | totaux **du serveur** + une ligne par organisme ciblé, avec son compteur d'actions | couvert |
+| 19 | Une fiche ciblée sans action | reste listée à zéro, plutôt que d'être masquée | couvert |
+| 20 | Supprimer | refusée si un périmètre cite la campagne, avec les périmètres **nommés** | couvert |
+| 21 | Détacher puis rejouer | détacher le périmètre rend la suppression possible, sans nettoyage automatique | couvert |
+| 22 | Refus non nommé | `meta.scopes` absent : l'écran le dit au lieu d'inventer un périmètre | à couvrir |
+| 23 | Sans `campaigns:delete` | pas de bouton Supprimer — le commercial ne l'a pas | à couvrir |
 
 ### Pièges relevés pendant le développement
 
@@ -718,6 +725,21 @@ portant son ciblage et ses quatre mesures.
   CLOSED`, et une campagne close se rouvre. Tout autre mouvement, **le statut
   identique compris**, rend `409`. Offrir les trois statuts et traduire le
   refus aurait fait cliquer pour rien.
+- **Les totaux des résultats viennent du serveur, pas de la somme des lignes.**
+  `totals` vaut par construction la somme des organismes *encore ciblés et
+  vivants* : additionner les lignes affichées donnerait un autre nombre dès
+  qu'une fiche est supprimée. On rend `totals` tel quel.
+- **`GET /campaigns/:id/results` n'est pas paginée** et, contrairement à
+  `GET /campaigns/:id/organizations`, **ne porte pas d'`access`** : il n'y a
+  donc pas de badge « hors périmètre » sur cet écran.
+- **Un périmètre ne se nettoie pas tout seul.** La suppression refusée nomme
+  les périmètres fautifs ; l'écran propose de détacher, il ne détache jamais
+  d'office. Un périmètre est du contrôle d'accès : le modifier dans le dos de
+  son administrateur changerait ce que des utilisateurs voient.
+- **`PATCH /scopes/:id` remplace la liste en bloc.** Détacher demande donc les
+  `campaignIds` actuels du périmètre — que `meta.scopes` ne donne pas, il ne
+  porte que `{ id, name }`. D'où le chargement des périmètres au moment du
+  refus, et pas avant.
 - **« Planifier les relances » de la maquette n'a pas de route.** Planifier
   relève de `/activities` (L1 · US-01-08), livrée côté API mais sans écran. Le
   bouton est absent tant que cet écran n'existe pas.
@@ -818,7 +840,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 12:21. 80/80 OK._
+_Généré par `npm run bdd` — 2026-09-03 13:19. 87/87 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -855,6 +877,13 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-11 | 01-11.7 | Une période inversée est refusée avant envoi | OK | `screenshots/L1-01-11-7.png` |
 | US-01-11 | 01-11.8 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/L1-01-11-8.png` |
 | US-01-11 | 01-11.9 | Seules les transitions de statut légales sont proposées | OK | `screenshots/L1-01-11-9.png` |
+| US-01-11 | 01-11.13 | La cible s’ouvre, et annonce qu’elle est figée | OK | `screenshots/L1-01-11-13.png` |
+| US-01-11 | 01-11.14 | Un ajout rend ses trois nombres, jamais un simple « enregistré » | OK | `screenshots/L1-01-11-14.png` |
+| US-01-11 | 01-11.15 | Ajouter à la cible rafraîchit aussi la liste des organismes | OK | `screenshots/L1-01-11-15.png` |
+| US-01-11 | 01-11.18 | Les résultats rendent les totaux du serveur et le détail par organisme | OK | `screenshots/L1-01-11-18.png` |
+| US-01-11 | 01-11.19 | Une fiche ciblée sans action reste listée, à zéro | OK | `screenshots/L1-01-11-19.png` |
+| US-01-11 | 01-11.20 | Une campagne citée par un périmètre nomme ce qui la bloque | OK | `screenshots/L1-01-11-20.png` |
+| US-01-11 | 01-11.21 | Détacher un périmètre remplace sa liste, sans nettoyage d’office | OK | `screenshots/L1-01-11-21.png` |
 | US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/L1-01-13-3.png` |
 | US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/L1-01-13-4.png` |
 | US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/L1-01-13-5.png` |

@@ -26,6 +26,9 @@ import {
   type Campaign,
   type CampaignStatus,
 } from '../types/campaign';
+import { CampaignDeleteDialog } from './CampaignDeleteDialog';
+import { CampaignResultsPanel } from './CampaignResultsPanel';
+import { CampaignTargetPanel } from './CampaignTargetPanel';
 import { CampaignWindow } from './CampaignWindow';
 
 const UI = CAMPAIGNS_UI;
@@ -46,12 +49,19 @@ export default function CampaignsScreen() {
   const [status, setStatus] = useState<string>(FILTER_ALL);
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
+  const [targeting, setTargeting] = useState<Campaign | null>(null);
+  const [showingResults, setShowingResults] = useState<Campaign | null>(null);
+  const [deleting, setDeleting] = useState<Campaign | null>(null);
 
   const canCreate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.CAMPAIGNS.CREATE),
   );
   const canUpdate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.CAMPAIGNS.UPDATE),
+  );
+  // Le commercial ne l'a pas ; le formateur n'a rien du tout.
+  const canDelete = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.CAMPAIGNS.DELETE),
   );
 
   const { campaigns, loading } = useCampaigns({
@@ -128,6 +138,9 @@ export default function CampaignsScreen() {
                   : undefined
               }
               busy={mutations.changingStatus}
+              onTarget={() => setTargeting(campaign)}
+              onResults={() => setShowingResults(campaign)}
+              onDelete={canDelete ? () => setDeleting(campaign) : undefined}
             />
           ))}
         </ul>
@@ -138,6 +151,21 @@ export default function CampaignsScreen() {
         onOpenChange={setWindowOpen}
         campaign={editing}
       />
+
+      <CampaignTargetPanel
+        campaign={targeting}
+        onOpenChange={(open) => !open && setTargeting(null)}
+      />
+
+      <CampaignResultsPanel
+        campaign={showingResults}
+        onOpenChange={(open) => !open && setShowingResults(null)}
+      />
+
+      <CampaignDeleteDialog
+        campaign={deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      />
     </div>
   );
 }
@@ -146,11 +174,17 @@ function CampaignCard({
   campaign,
   onEdit,
   onStatus,
+  onTarget,
+  onResults,
+  onDelete,
   busy,
 }: {
   campaign: Campaign;
   onEdit?: () => void;
   onStatus?: (next: CampaignStatus) => void;
+  onTarget: () => void;
+  onResults: () => void;
+  onDelete?: () => void;
   busy: boolean;
 }) {
   const target = campaign.organizationsCount;
@@ -230,9 +264,15 @@ function CampaignCard({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <span className="text-sm text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="px-0 text-primary"
+          data-testid={`campaign-target-open-${campaign.id}`}
+          onClick={onTarget}
+        >
           {CARD.ORGANIZATIONS(target)}
-        </span>
+        </Button>
 
         <div className="ms-auto flex items-center gap-2">
           {/* Seules les transitions légales sont proposées : le serveur refuse
@@ -251,6 +291,14 @@ function CampaignCard({
                 </Button>
               ))
             : null}
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid={`campaign-results-open-${campaign.id}`}
+            onClick={onResults}
+          >
+            {UI.ACTIONS.RESULTS}
+          </Button>
           {onEdit ? (
             <Button
               variant="outline"
@@ -259,6 +307,16 @@ function CampaignCard({
               onClick={onEdit}
             >
               {UI.ACTIONS.EDIT}
+            </Button>
+          ) : null}
+          {onDelete ? (
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid={`campaign-delete-open-${campaign.id}`}
+              onClick={onDelete}
+            >
+              {UI.ACTIONS.DELETE}
             </Button>
           ) : null}
         </div>

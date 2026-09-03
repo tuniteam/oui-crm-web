@@ -1,8 +1,11 @@
 import api from '@/config/axiosInstance';
 import { getApiErrorMessage } from '@/shared/utils/api-error';
 import { CAMPAIGN_ROUTES } from '../constants/campaign.constants';
+import type { OrganizationListResponse } from '@/features/organization/types/organizationList';
 import type {
   Campaign,
+  CampaignResultsResponse,
+  CampaignTargetReport,
   CampaignListParams,
   CampaignListResponse,
   CampaignStatus,
@@ -45,6 +48,54 @@ export const campaignService = {
       payload,
     );
     return res.data;
+  },
+
+  /** La cible figee, paginee, triee par ajout decroissant. */
+  getTarget: async (
+    id: string,
+    params: { page?: number; limit?: number },
+  ): Promise<OrganizationListResponse> => {
+    try {
+      const res = await api.get<OrganizationListResponse>(
+        CAMPAIGN_ROUTES.CAMPAIGN_ORGANIZATIONS_API(id),
+        { params },
+      );
+      return res.data;
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err));
+    }
+  },
+
+  addToTarget: async (
+    id: string,
+    ids: string[],
+  ): Promise<CampaignTargetReport> => {
+    const res = await api.post<CampaignTargetReport>(
+      CAMPAIGN_ROUTES.CAMPAIGN_ORGANIZATIONS_API(id),
+      { ids },
+    );
+    return res.data;
+  },
+
+  removeFromTarget: async (id: string, orgId: string): Promise<void> => {
+    await api.delete(CAMPAIGN_ROUTES.CAMPAIGN_ORGANIZATION_API(id, orgId));
+  },
+
+  /** Detail par organisme cible. Non paginee : le serveur rend toute la cible. */
+  getResults: async (id: string): Promise<CampaignResultsResponse> => {
+    try {
+      const res = await api.get<CampaignResultsResponse>(
+        CAMPAIGN_ROUTES.CAMPAIGN_RESULTS_API(id),
+      );
+      return res.data;
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err));
+    }
+  },
+
+  /** Non enveloppee : l'appelant lit `CAMPAIGN_IN_USE_BY_SCOPE` et son `meta`. */
+  remove: async (id: string): Promise<void> => {
+    await api.delete(CAMPAIGN_ROUTES.CAMPAIGN_API(id));
   },
 
   setStatus: async (id: string, status: CampaignStatus): Promise<Campaign> => {

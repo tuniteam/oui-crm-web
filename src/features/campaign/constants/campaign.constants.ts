@@ -68,6 +68,7 @@ export const CAMPAIGNS_UI = {
   ACTIONS: {
     EDIT: 'Modifier',
     DELETE: 'Supprimer',
+    RESULTS: 'Voir le détail',
   },
 
   ERRORS: {
@@ -79,6 +80,7 @@ export const CAMPAIGNS_UI = {
     CREATED: 'Campagne créée',
     UPDATED: 'Campagne modifiée',
     STATUS_CHANGED: 'Statut mis à jour',
+    DELETED: 'Campagne supprimée',
   },
 } as const;
 
@@ -115,9 +117,122 @@ export const CAMPAIGN_WINDOW = {
   },
 } as const;
 
+export const CAMPAIGN_TARGET_UI = {
+  TITLE: 'Organismes ciblés',
+  /** La cible est figée : elle ne suit pas les critères, elle se remplit. */
+  SUBTITLE:
+    'Liste figée : elle ne se recalcule pas depuis les critères. Ajoutez ou retirez des organismes ici.',
+
+  ADD: 'Ajouter des organismes',
+  REMOVE: 'Retirer',
+  CLOSE: 'Fermer',
+
+  /**
+   * Les trois nombres, toujours. Un « enregistré » masquerait les fiches qui
+   * n'ont pas suivi — déjà présentes, ou hors du périmètre de l'appelant.
+   */
+  REPORT: (added: number, alreadyIn: number, skipped: number) => {
+    const parts = [`${added} ajouté${added > 1 ? 's' : ''}`];
+    if (alreadyIn > 0) parts.push(`${alreadyIn} déjà présent${alreadyIn > 1 ? 's' : ''}`);
+    if (skipped > 0) parts.push(`${skipped} ignoré${skipped > 1 ? 's' : ''}`);
+    return parts.join(', ');
+  },
+
+  REMOVED: 'Organisme retiré de la cible',
+
+  /** Une fiche hors périmètre reste dans la cible, en projection restreinte :
+   *  on la signale plutôt que de la masquer. */
+  RESTRICTED: 'Hors de votre périmètre',
+
+  EMPTY: {
+    TITLE: 'Cible vide',
+    DESCRIPTION:
+      'Ajoutez des organismes pour que la campagne ait quelque chose à mesurer.',
+  },
+
+  /** Cibler une fiche non contactée la fait passer « À contacter ». */
+  SIDE_EFFECT:
+    'Une fiche encore « Non contacté » passera « À contacter » en entrant dans la cible.',
+
+  PICKER: {
+    TITLE: 'Ajouter des organismes',
+    SEARCH: 'Nom, ville ou SIRET…',
+    SELECTED: (n: number) => `${n} sélectionné${n > 1 ? 's' : ''}`,
+    CONFIRM: 'Ajouter à la cible',
+    CANCEL: 'Annuler',
+    LIMIT: 'Cinq cents organismes au maximum par ajout.',
+  },
+} as const;
+
 /** Codes d'erreur routés par l'écran. */
 export const CAMPAIGN_ERRORS = {
   NAME_EXISTS: 'CAMPAIGN_NAME_EXISTS',
   INVALID_TRANSITION: 'INVALID_STATUS_TRANSITION',
   IN_USE_BY_SCOPE: 'CAMPAIGN_IN_USE_BY_SCOPE',
+} as const;
+
+/**
+ * Le detail des resultats — L1 · US-01-11, tranche C.
+ *
+ * Les totaux sont ceux du serveur, jamais la somme des lignes affichees.
+ */
+export const CAMPAIGN_RESULTS_UI = {
+  TITLE: 'Résultats',
+  SUBTITLE:
+    'Calculés à la demande, à partir des actions rattachées à la campagne.',
+
+  TOTALS: 'Total de la campagne',
+
+  COLUMNS: {
+    ORGANIZATION: 'Organisme',
+    SALES_STATUS: 'Statut commercial',
+    ACTIVITIES: 'Actions',
+    LAST_ACTIVITY: 'Dernière action',
+  },
+
+  /** Une fiche ciblée sans action reste dans la liste, à zéro : la faire
+   *  disparaître cacherait justement celles qu'il reste à travailler. */
+  NEVER: 'Aucune',
+
+  EMPTY: {
+    TITLE: 'Rien à mesurer',
+    DESCRIPTION:
+      'La cible est vide : ajoutez des organismes pour que la campagne produise des résultats.',
+  },
+
+  ERRORS: {
+    FETCH: 'Impossible de charger les résultats',
+  },
+
+  CLOSE: 'Fermer',
+} as const;
+
+/**
+ * La suppression, et son refus — L1 · US-01-11, tranche C.
+ *
+ * `409 CAMPAIGN_IN_USE_BY_SCOPE` nomme les perimetres fautifs. On les affiche
+ * et on **guide** la dissociation ; on ne modifie jamais un perimetre sans que
+ * son administrateur l'ait demande, c'est du controle d'acces.
+ */
+export const CAMPAIGN_DELETE_UI = {
+  TITLE: 'Supprimer la campagne',
+  CONFIRM: (name: string) =>
+    `« ${name} » sera supprimée. Les organismes ciblés ne sont pas touchés.`,
+
+  BLOCKED_TITLE: 'Suppression impossible',
+  BLOCKED: (n: number) =>
+    n > 1
+      ? `${n} périmètres citent cette campagne. Détachez-la de chacun, puis relancez la suppression.`
+      : 'Un périmètre cite cette campagne. Détachez-la, puis relancez la suppression.',
+  /** Le serveur a refusé sans nommer : on le dit plutôt que d'inventer. */
+  BLOCKED_UNNAMED:
+    'Un périmètre cite cette campagne, sans que le serveur ait dit lequel. Vérifiez les périmètres du projet.',
+  DETACH: 'Détacher',
+  DETACHED: 'Campagne détachée du périmètre',
+
+  ACTIONS: {
+    DELETE: 'Supprimer',
+    CANCEL: 'Annuler',
+    CLOSE: 'Fermer',
+  },
 } as const;

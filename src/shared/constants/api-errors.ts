@@ -76,6 +76,13 @@ export const API_ERROR = {
   CONTACT_PRIMARY_CONFLICT: 'Un autre contact est déjà le contact principal.',
   CONTACT_HAS_ACTIVITIES:
     "Ce contact est référencé par une action : l'historique garde ses acteurs.",
+  CAMPAIGN_NOT_FOUND: 'Campagne introuvable.',
+  CAMPAIGN_NAME_EXISTS:
+    'Ce nom est déjà utilisé par une autre campagne du projet.',
+  /* Le message reste générique : les périmètres fautifs arrivent dans
+     `messages.meta.scopes`, et l'écran les nomme lui-même. */
+  CAMPAIGN_IN_USE_BY_SCOPE:
+    'Cette campagne est citée par un périmètre : détachez-la avant de la supprimer.',
 
   /*
    * Registre officiel : ce ne sont PAS des erreurs a afficher en rouge. Le
@@ -177,6 +184,9 @@ export const API_ERROR_CODE = {
   CONTACT_NOT_FOUND: 'CONTACT_NOT_FOUND',
   CONTACT_PRIMARY_CONFLICT: 'CONTACT_PRIMARY_CONFLICT',
   CONTACT_HAS_ACTIVITIES: 'CONTACT_HAS_ACTIVITIES',
+  CAMPAIGN_NOT_FOUND: 'CAMPAIGN_NOT_FOUND',
+  CAMPAIGN_NAME_EXISTS: 'CAMPAIGN_NAME_EXISTS',
+  CAMPAIGN_IN_USE_BY_SCOPE: 'CAMPAIGN_IN_USE_BY_SCOPE',
   REGISTRY_UNAVAILABLE: 'REGISTRY_UNAVAILABLE',
   REGISTRY_TIMEOUT: 'REGISTRY_TIMEOUT',
 } as const satisfies Record<string, ApiErrorCode>;

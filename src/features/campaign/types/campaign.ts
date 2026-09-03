@@ -6,6 +6,8 @@
  * criteres ne change pas la liste.
  */
 
+import type { SalesStatus } from '@/features/organization/types/organizationList';
+
 export const CAMPAIGN_STATUSES = ['DRAFT', 'ACTIVE', 'CLOSED'] as const;
 export type CampaignStatus = (typeof CAMPAIGN_STATUSES)[number];
 
@@ -91,3 +93,57 @@ export type UpdateCampaignPayload = {
   startDate?: string | null;
   endDate?: string | null;
 };
+
+/**
+ * Compte rendu d'un ajout a la cible.
+ *
+ * L'appel **n'echoue jamais globalement** sur une selection partielle : les
+ * trois nombres sont a rendre tous les trois. `alreadyIn` n'est pas une erreur
+ * — l'ajout est idempotent — et `skipped` regroupe les fiches inconnues,
+ * supprimees, ou hors du perimetre geographique de l'appelant.
+ */
+export type CampaignTargetReport = {
+  added: number;
+  alreadyIn: number;
+  skipped: number;
+};
+
+/** Limite dure du contrat : 500 identifiants par appel. */
+export const CAMPAIGN_TARGET_MAX_IDS = 500;
+
+/**
+ * Une ligne du detail par organisme cible.
+ *
+ * `GET /campaigns/:id/results` n'est **pas paginee** : elle rend toute la
+ * cible. Elle ne porte pas non plus d'`access` — contrairement a
+ * `GET /campaigns/:id/organizations` — donc pas de badge « hors perimetre »
+ * ici.
+ */
+export type CampaignResultRow = {
+  organizationId: string;
+  name: string;
+  salesStatus: SalesStatus;
+  /** Actions **de cette campagne** sur cette fiche, pas son historique. */
+  activities: number;
+  /** Horodatage ISO complet, ou `null` si la fiche n'a rien produit. */
+  lastActivityAt: string | null;
+};
+
+/**
+ * `totals` porte les memes quatre compteurs que la carte, et vaut par
+ * construction la somme des lignes : ne jamais les additionner soi-meme, une
+ * fiche supprimee sortirait des lignes sans sortir du total.
+ */
+export type CampaignResultsResponse = {
+  totals: CampaignResults;
+  data: CampaignResultRow[];
+};
+
+/**
+ * Un perimetre qui bloque la suppression d'une campagne.
+ *
+ * `409 CAMPAIGN_IN_USE_BY_SCOPE` les nomme dans `messages.meta.scopes`. Le
+ * front **guide** la dissociation, il ne la fait pas dans le dos de
+ * l'administrateur : un perimetre est du controle d'acces.
+ */
+export type BlockingScope = { id: string; name: string };
