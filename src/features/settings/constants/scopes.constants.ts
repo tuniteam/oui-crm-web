@@ -47,5 +47,51 @@ export const SCOPES_UI = {
 
   ERRORS: {
     FETCH: 'Impossible de charger les périmètres',
+    NAME_TAKEN: 'Ce nom est déjà utilisé par un autre périmètre.',
+  },
+
+  TOASTS: {
+    CREATED: 'Périmètre créé',
+    UPDATED: 'Périmètre modifié',
+  },
+} as const;
+
+/** Codes d'erreur routés par le formulaire. */
+export const SCOPE_ERRORS = {
+  NAME_EXISTS: 'SCOPE_NAME_EXISTS',
+  IN_USE: 'SCOPE_IN_USE',
+} as const;
+
+export const SCOPE_WINDOW = {
+  CREATE_TITLE: 'Nouveau périmètre',
+  EDIT_TITLE: 'Modifier le périmètre',
+  /** Le geste central de l'écran, annoncé avant les cases. */
+  DESCRIPTION:
+    'Cocher une région coche ses départements ; chacun reste décochable.',
+
+  FIELDS: {
+    NAME: 'Nom',
+    NAME_PLACEHOLDER: 'Normandie et Hauts-de-France',
+    DESCRIPTION: 'Description',
+    NATURE: 'Nature des fiches',
+    PORTFOLIO_ONLY: 'Limiter au portefeuille personnel',
+    PORTFOLIO_HINT:
+      'Uniquement les fiches dont l’utilisateur est commercial, consultant ou formateur affecté.',
+    GEOGRAPHY: 'Régions et départements',
+  },
+
+  /** Compteur d'aide à la saisie : il se calcule à partir des cases cochées,
+   *  et n'a rien à voir avec `resolvedDepartments`, rendu par le serveur. */
+  COUNT: (n: number) =>
+    n === 0
+      ? 'Aucun département coché : le périmètre couvre tout le territoire.'
+      : `${n} département${n > 1 ? 's' : ''} coché${n > 1 ? 's' : ''}.`,
+
+  ACTIONS: {
+    SAVE: 'Enregistrer',
+    CREATE: 'Créer le périmètre',
+    CANCEL: 'Annuler',
+    SELECT_ALL: 'Tout cocher',
+    CLEAR: 'Tout décocher',
   },
 } as const;

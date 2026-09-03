@@ -34,7 +34,9 @@ export const PERMISSIONS = {
   TRAININGS: { READ: 'trainings:read' },
   TICKETS: { READ: 'tickets:read' },
   ROLES: { READ: 'roles:read' },
-  SCOPES: { READ: 'scopes:read' },
+  /** Le contrat n'a pas de permission de creation distincte : `update` couvre
+   *  la creation, la modification et la suppression. */
+  SCOPES: { READ: 'scopes:read', UPDATE: 'scopes:update' },
   REFERENCES: { READ: 'references:read', UPDATE: 'references:update' },
   SETTINGS: { READ: 'settings:read', UPDATE: 'settings:update' },
   PRICING: { READ: 'pricing:read', UPDATE: 'pricing:update' },

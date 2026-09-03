@@ -44,16 +44,35 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
   Scenario: Aucun périmètre
     Then message expliquant que sans périmètre chaque utilisateur voit toute la base
 
-  @a-couvrir
+  @ok
   Scenario: Régions
-    Then proposées depuis GET /geo/regions, jamais codées en dur
+    Given la fenêtre « Nouveau périmètre »
+    Then les 14 régions administratives sont proposées
+    And chacune annonce combien de ses départements sont cochés
+    And la liste est demandée à GET /geo/regions
+
+  @ok
+  Scenario: Région entière
+    Given la fenêtre « Nouveau périmètre »
+    When je coche une région entière et je crée
+    Then elle est transmise dans regions, et departments reste vide
+
+  @ok
+  Scenario: Région amputée
+    Given la fenêtre « Nouveau périmètre »
+    When je coche une région puis décoche un de ses départements
+    Then la case de région passe en état indéterminé
+    And les départements restants partent explicitement, sans nom de région
+
+  @ok
+  Scenario: Nom déjà pris
+    Given un périmètre portant déjà ce nom
+    When je crée un périmètre du même nom
+    Then le message apparaît sous le champ « Nom »
+    And la fenêtre reste ouverte, la saisie intacte
 
   @a-couvrir
-  Scenario: Créer un périmètre
-    Then régions et départements sélectionnables
-
-  @a-couvrir
-  Scenario: Modifier
+  Scenario: Modifier un périmètre
     Then les listes sont remplacées en bloc, pas fusionnées
 
   @a-couvrir

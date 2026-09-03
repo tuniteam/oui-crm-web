@@ -2052,6 +2052,199 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '07.7',
+    us: 'US-00-07',
+    title: 'Les régions viennent du serveur, jamais du code',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      'Then les 14 régions administratives sont proposées',
+      'And chacune annonce combien de ses départements sont cochés',
+      'And la liste est demandée à GET /geo/regions',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      apiCalls(true);
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /geo/regions')),
+        `la table des régions n'a pas été demandée : ${apiCalls().join(', ')}`,
+      );
+
+      const rows = page.locator('[data-testid^="region-check-"]');
+      const count = await rows.count();
+      expect(count === 14, `${count} région(s) au lieu de 14`);
+
+      // Le compteur par region : combien de ses departements sont coches.
+      const body = await page.getByTestId('region-tree').innerText();
+      expect(/0\/5/.test(body), 'les compteurs par région ne sont pas affichés');
+    },
+  },
+
+  {
+    id: '07.8',
+    us: 'US-00-07',
+    title: 'Une région entière part sous son nom',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      'When je coche une région entière et je crée',
+      'Then elle est transmise dans regions, et departments reste vide',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 's1', name: sent.name }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('TEST Normandie entière');
+      await page.getByTestId('region-check-Normandie').click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune création envoyée');
+      expect(
+        JSON.stringify(sent?.regions) === JSON.stringify(['Normandie']),
+        `la région entière n'est pas transmise sous son nom : ${JSON.stringify(sent)}`,
+      );
+      // Les deux listes partent toujours : le PATCH les remplace en bloc.
+      expect(
+        Array.isArray(sent?.departments) && sent.departments.length === 0,
+        `departments devrait être vide : ${JSON.stringify(sent?.departments)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.9',
+    us: 'US-00-07',
+    title: 'Une région amputée part en départements explicites',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      "When je coche une région puis décoche un de ses départements",
+      'Then la case de région passe en état indéterminé',
+      'And les départements restants partent explicitement, sans nom de région',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 's1', name: sent.name }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('TEST Normandie sauf Orne');
+      await page.getByTestId('region-check-Normandie').click();
+      await page.waitForTimeout(300);
+      // Le libelle ouvre la region ; la case a cocher est un bouton distinct.
+      await page.getByTestId('region-Normandie').getByText('Normandie').click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('dept-check-61').click();
+      await page.waitForTimeout(400);
+
+      const state = await page
+        .getByTestId('region-check-Normandie')
+        .getAttribute('data-state');
+      expect(
+        state === 'indeterminate',
+        `la case de région devrait être indéterminée, elle est « ${state} »`,
+      );
+
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune création envoyée');
+      // Le contrat ne permet pas d'exprimer « la Normandie sauf l'Orne » par
+      // un nom de region : elle doit partir en departements.
+      expect(
+        Array.isArray(sent?.regions) && sent.regions.length === 0,
+        `la région amputée est encore transmise sous son nom : ${JSON.stringify(sent)}`,
+      );
+      expect(
+        JSON.stringify(sent?.departments) ===
+          JSON.stringify(['14', '27', '50', '76']),
+        `départements attendus 14/27/50/76 : ${JSON.stringify(sent?.departments)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.13',
+    us: 'US-00-07',
+    title: 'Un nom déjà pris se corrige dans le champ',
+    needsProject: true,
+    gherkin: [
+      'Given un périmètre portant déjà ce nom',
+      'When je crée un périmètre du même nom',
+      'Then le message apparaît sous le champ « Nom »',
+      'And la fenêtre reste ouverte, la saisie intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) =>
+          route.request().method() === 'POST'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(err(409, 'SCOPE_NAME_EXISTS')),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('scope-name').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('Normandie');
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('déjà utilisé'),
+        'le conflit de nom n’est pas signalé',
+      );
+      // La correction se fait dans le champ : la saisie ne doit pas partir.
+      const kept = await page.getByTestId('scope-name').inputValue();
+      expect(kept === 'Normandie', `la saisie a été perdue : « ${kept} »`);
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
