@@ -21,6 +21,7 @@ import { UPDATE_USER_WINDOW } from '../../constants/editUser.constants';
 import { CREATE_USER_WINDOW } from '../../constants/users.constants';
 import type { EditUserHooks } from '../../hooks/useEditUserForm';
 import { useRoles } from '../../hooks/useRoles';
+import { ScopeSelectField } from '../ScopeSelectField';
 import { EditUserBodySkeleton } from './skeleton/EditUserBodySkeleton';
 
 type Props = {
@@ -170,6 +171,13 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
             )}
           />
         </div>
+
+        <ScopeSelectField
+          control={form.control}
+          name="scopeId"
+          disabled={isBusy || isCurrentUser}
+          testId="user-edit-scope-select"
+        />
 
         {/* Sur son propre compte, le serveur refuse aussi le changement
             d'acces (CANNOT_UPDATE_OWN_ACCESS) : on desactive plutot que de

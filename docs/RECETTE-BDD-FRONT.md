@@ -274,15 +274,47 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-00-07 · Périmètres — ❌ à développer
+## US-00-07 · Périmètres — 🟡 lecture et écriture livrées
 
-| # | Scénario | Attendu |
-|---|---|---|
-| 1 | Liste des périmètres | nom, régions, départements, portefeuille |
-| 2 | Régions | proposées depuis l'API, jamais codées en dur |
-| 3 | Créer un périmètre | régions et départements sélectionnables |
-| 4 | Modifier | les listes sont remplacées en bloc, pas fusionnées |
-| 5 | Supprimer un périmètre affecté | refusé, en indiquant l'usage |
+Panneau de Paramètres, comme les Référentiels. Un périmètre est du **contrôle
+d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Liste des périmètres | nom, description, nombre d'utilisateurs, et les trois axes | couvert |
+| 2 | Départements résolus | rendus par l'API, jamais recalculés côté front | couvert |
+| 3 | Territoire entier | une liste résolue vide affiche « France entière », **jamais « 0 département »** | couvert |
+| 4 | Un seul chemin | « Périmètres » ne figure **pas** dans le menu du projet : il vit dans Paramètres, et deux chemins vers le même écran feraient douter qu'ils mènent au même endroit | couvert |
+| 5 | Sans `scopes:read` | ni l'entrée de navigation, ni le panneau — un commercial ne l'a pas | à couvrir |
+| 6 | Aucun périmètre | message expliquant que sans périmètre chaque utilisateur voit toute la base | à couvrir |
+| 7 | Régions | les 14, proposées depuis `GET /geo/regions`, jamais codées en dur | couvert |
+| 8 | Région entière | part sous son nom dans `regions`, `departments` vide | couvert |
+| 9 | Région amputée | case en état indéterminé, et les départements restants partent explicitement — le contrat ne permet pas « la Normandie sauf l'Orne » sous un nom de région | couvert |
+| 13 | Nom déjà pris | `409 SCOPE_NAME_EXISTS` : message **sous le champ**, fenêtre maintenue | couvert |
+| 14 | Modifier un périmètre | les listes sont **remplacées en bloc**, pas fusionnées | à couvrir |
+| 10 | Supprimer un périmètre affecté | refusé, en indiquant l'usage | à développer |
+| 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur, « Toute la base » pour n'en affecter aucun ; masqué sans `scopes:read` | couvert |
+| 12 | Affecter dès la création | même sélecteur ; sans choix, `scopeId` **n'est pas transmis** — le serveur applique son défaut | couvert |
+
+### Pièges relevés pendant le développement
+
+- **Une liste de départements résolus vide signifie tout le territoire**, pas
+  aucun département. Afficher « 0 département » sur un périmètre national serait
+  un contresens exact. La valeur vient du serveur, qui déplie les régions,
+  dédoublonne et trie — elle ne se recalcule pas côté front, comme la strate d'un
+  organisme.
+- **Les trois axes se combinent par intersection**, pas par addition. Cocher
+  « portefeuille personnel » en plus d'une géographie *restreint* l'accès. Le
+  sous-titre du panneau le dit, sans quoi un administrateur croirait élargir.
+- **`usersCount` et le garde-fou de suppression ne comptent pas la même
+  population** — vérifié dans la source de l'API : le compteur ne retient que
+  les affectations actives, le garde-fou les compte toutes. Un périmètre affiché
+  à « 0 utilisateur » peut donc voir sa suppression refusée. L'écran ne
+  promettra pas qu'une suppression aboutira. Écart signalé dans
+  `docs/ETUDE-PERIMETRES.md`.
+- **`409 SCOPE_IN_USE` ne porte pas de `meta`**, contrairement aux campagnes où
+  `meta.scopes` nomme les gêneurs. L'écran ne pourra pas guider la
+  dissociation.
 
 ---
 
@@ -292,7 +324,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 | # | Scénario | Attendu |
 |---|---|---|
-| 1 | Navigation | **uniquement les panneaux réels** — Société, Règles commerciales, Documents, Référentiels ; « Société » ouvert par défaut |
+| 1 | Navigation | **uniquement les panneaux réels** — Société, Règles commerciales, Documents, Référentiels, Périmètres ; « Société » ouvert par défaut |
 | 2 | Panneau interdit | l'entrée disparaît de la navigation |
 | 3 | Chargement paresseux | `/settings` n'est appelé que si un panneau en dépend |
 | 4 | Panneau dans l'URL | `?panneau=references` ouvre les Référentiels ; le rafraîchissement le conserve |
@@ -420,7 +452,7 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 | 9 | Filtre par strate | **impossible** : l'API n'expose pas ce filtre | hors périmètre API |
 | 10 | Filtre par commercial | le paramètre `salesRepId` existe, mais peupler le sélecteur demande `GET /users` et la permission `users:read`, qu'un commercial n'a pas | à développer |
 | 11 | Ouvrir une fiche | panneau latéral, onglet Synthèse (US-01-03) | couvert |
-| 12 | Sélection multiple | actions groupées (US-01-05), non livrée côté API | à développer |
+| 12 | Sélection multiple | actions groupées (US-01-05) — `POST /organizations/bulk` est **livrée** côté API, l'écran reste à faire | à développer |
 | 13 | Action d'ouverture atteignable | colonne d'actions épinglée à droite et opaque, sans défilement | couvert |
 | 14 | Filtre par département | saisie libre de 2 à 3 caractères, `2A` et l'outre-mer compris | couvert |
 | 15 | Filtre par solution | valeurs du référentiel du projet, jamais une liste en dur | couvert |
@@ -622,7 +654,7 @@ base. La purge définitive relève du RGPD (US-06-01).
 ### Pièges relevés pendant le développement
 
 - **La maquette décrit une autre suppression.** La V8 n'offre qu'une
-  suppression groupée (US-01-05, non livrée côté API) et annonce que « les
+  suppression groupée (US-01-05, livrée côté API mais sans écran) et annonce que « les
   contacts et actions rattachés » partent avec la fiche. L'API, elle, fait une
   suppression **logique** et ne dit rien d'une cascade. Reprendre la
   formulation de la maquette aurait fait croire à un effacement définitif qui
@@ -729,7 +761,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-02 23:45. 62/62 OK._
+_Généré par `npm run bdd` — 2026-09-03 11:28. 71/71 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -782,6 +814,15 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |
 | US-00-05 | 05.14 | Le retrait n'est jamais présenté comme une suppression | OK | `screenshots/05-14.png` |
 | US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
+| US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/07-1.png` |
+| US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/07-3.png` |
+| US-00-07 | 07.4 | Un seul chemin vers les périmètres | OK | `screenshots/07-4.png` |
+| US-00-07 | 07.7 | Les régions viennent du serveur, jamais du code | OK | `screenshots/07-7.png` |
+| US-00-07 | 07.8 | Une région entière part sous son nom | OK | `screenshots/07-8.png` |
+| US-00-07 | 07.9 | Une région amputée part en départements explicites | OK | `screenshots/07-9.png` |
+| US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/07-11.png` |
+| US-00-07 | 07.12 | Le périmètre se choisit dès la création d’un utilisateur | OK | `screenshots/07-12.png` |
+| US-00-07 | 07.13 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/07-13.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |

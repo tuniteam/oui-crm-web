@@ -35,7 +35,6 @@ const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'support', title: MENU_PROJECT.SUPPORT, permission: PERMISSIONS.TICKETS.READ },
   { path: 'renewals', title: MENU_PROJECT.RENEWALS, permission: PERMISSIONS.CONTRACTS.READ },
   { path: 'roles', title: MENU_PROJECT.ROLES, permission: PERMISSIONS.ROLES.READ },
-  { path: 'scopes', title: MENU_PROJECT.SCOPES, permission: PERMISSIONS.SCOPES.READ },
 ];
 
 export function ProjectWorkspaceRoutes() {

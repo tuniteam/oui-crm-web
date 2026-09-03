@@ -29,7 +29,12 @@ export function CreateUserFooter({ hooks, onClose, onCreated }: Props) {
         {COMMON.ACTIONS.CANCEL}
       </Button>
 
-      <Button type="button" onClick={handleCreate} disabled={isBusy}>
+      <Button
+        type="button"
+        data-testid="user-create-submit-btn"
+        onClick={handleCreate}
+        disabled={isBusy}
+      >
         {create.loading ? (
           <span className="flex items-center gap-2">
             <LoaderCircleIcon className="h-4 w-4 animate-spin" aria-hidden="true" />

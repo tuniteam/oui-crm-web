@@ -6,13 +6,15 @@ export const SETTINGS_TABS = {
   BUSINESS_RULES: 'business-rules',
   DOCUMENTS: 'documents',
   REFERENCES: 'references',
+  SCOPES: 'scopes',
 } as const;
 
 export type SettingsTab = (typeof SETTINGS_TABS)[keyof typeof SETTINGS_TABS];
 
 export const SETTINGS_UI = {
   TITLE: 'Paramètres',
-  SUBTITLE: 'Réglages du projet : société, règles commerciales, documents et référentiels.',
+  SUBTITLE:
+    'Réglages du projet : société, règles commerciales, documents, référentiels et périmètres.',
   /** Nom du paramètre d'URL qui porte le panneau ouvert. */
   TAB_PARAM: 'panneau',
 
@@ -22,6 +24,7 @@ export const SETTINGS_UI = {
     BUSINESS_RULES: 'TVA, objectifs, validité, remises, probabilités',
     DOCUMENTS: 'Gabarits, cachet et formats de numérotation',
     REFERENCES: 'Valeurs des listes déroulantes de l’application',
+    SCOPES: 'Ce que chaque utilisateur voit dans la base d’organismes',
   },
 
   ITEMS: {
@@ -29,6 +32,7 @@ export const SETTINGS_UI = {
     BUSINESS_RULES: 'Règles commerciales',
     DOCUMENTS: 'Documents et numérotation',
     REFERENCES: 'Référentiels',
+    SCOPES: 'Périmètres',
   },
 } as const;
 

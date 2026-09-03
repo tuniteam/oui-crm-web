@@ -66,7 +66,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
 
   @a-couvrir
   Scenario: Sélection multiple
-    Then actions groupées (US-01-05), non livrée côté API
+    Then actions groupées (US-01-05) — POST /organizations/bulk est livrée côté API, l'écran reste à faire
 
   @ok
   Scenario: Action d'ouverture atteignable

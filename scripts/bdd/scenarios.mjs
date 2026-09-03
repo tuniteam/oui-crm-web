@@ -1794,6 +1794,457 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-00-07
+  {
+    id: '07.1',
+    us: 'US-00-07',
+    title: 'Les périmètres se lisent, avec leurs trois axes',
+    needsProject: true,
+    gherkin: [
+      "Given je suis administrateur du projet",
+      "When j'ouvre le panneau « Périmètres » des Paramètres",
+      'Then chaque périmètre montre son nom, son nombre d’utilisateurs et ses trois axes',
+      'And les départements résolus sont ceux rendus par l’API',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      apiCalls(true);
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(1000);
+
+      const cards = page.locator('[data-testid^="scope-card-"]');
+      expect((await cards.count()) > 0, 'aucun périmètre affiché');
+
+      const body = await page.getByTestId('scopes-pane').innerText();
+      expect(
+        /\d+ utilisateurs?/.test(body),
+        'le nombre d’utilisateurs n’est pas affiché',
+      );
+      // Nature : l'un des trois libelles du contrat.
+      expect(
+        /Prospects et clients|Prospects uniquement|Clients uniquement/.test(body),
+        'la nature des fiches n’est pas affichée',
+      );
+      // Les departements viennent du serveur, jamais d'un calcul local.
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /scopes')),
+        `la liste n'a pas été demandée à l'API : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '07.3',
+    us: 'US-00-07',
+    title: 'Un périmètre sans restriction dit « France entière »',
+    needsProject: true,
+    gherkin: [
+      'Given un périmètre dont les départements résolus sont vides',
+      'When je consulte le panneau',
+      'Then il affiche « France entière »',
+      'And jamais « 0 département »',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(1000);
+
+      const body = await page.getByTestId('scopes-pane').innerText();
+      expect(
+        body.includes('France entière'),
+        'aucun périmètre national n’est rendu comme tel',
+      );
+      // Le contresens a eviter : vide veut dire « tout », pas « rien ».
+      expect(
+        !body.includes('0 département'),
+        'un périmètre national est présenté comme couvrant zéro département',
+      );
+    },
+  },
+
+  {
+    id: '07.4',
+    us: 'US-00-07',
+    title: 'Un seul chemin vers les périmètres',
+    needsProject: true,
+    gherkin: [
+      'Given le menu du projet',
+      "Then « Périmètres » n'y figure pas — ils vivent dans Paramètres",
+      "When j'ouvre Paramètres",
+      'Then « Périmètres » est un de ses panneaux, et il ouvre la liste',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.goto(`/${projectId}/organizations`);
+      const rail = page.locator('.sidebar');
+      await rail.waitFor({ timeout: 15000 });
+
+      // Deux chemins vers le meme ecran font douter qu'ils menent au meme
+      // endroit : l'entree de menu a ete retiree au profit du panneau.
+      const entries = (await rail.innerText())
+        .split('\n')
+        .map((l) => l.trim());
+      expect(
+        !entries.includes('Périmètres'),
+        `le menu du projet propose encore « Périmètres » : ${entries.join(' | ')}`,
+      );
+
+      await page.goto(`/${projectId}/settings`);
+      const nav = page.getByRole('navigation', { name: 'Paramètres' });
+      await nav.waitFor({ timeout: 15000 });
+      await nav.getByText('Périmètres').first().click();
+
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      expect(
+        page.url().includes('panneau=scopes'),
+        `le panneau ouvert n'est pas porté par l'URL : ${page.url()}`,
+      );
+    },
+  },
+
+  {
+    id: '07.11',
+    us: 'US-00-07',
+    title: 'Le périmètre s’affecte depuis la fiche utilisateur',
+    needsProject: true,
+    gherkin: [
+      "Given la fiche d'un utilisateur du projet",
+      'When je modifie son périmètre',
+      'Then la liste des périmètres du projet est proposée',
+      'And « Toute la base » est proposé pour n’en affecter aucun',
+      'And la modification transmet scopeId au serveur',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1/users/') &&
+          !url.pathname.endsWith('/informations'),
+        (route) => {
+          if (route.request().method() !== 'PATCH') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 'u1', email: 'x@y.z' }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/users`);
+      await page.locator('[data-testid^="user-view-"]').first().waitFor({ timeout: 15000 });
+      await page.locator('[data-testid^="user-view-"]').first().click();
+      await page.waitForURL((u) => u.pathname.includes('/informations'), { timeout: 15000 });
+      await page.waitForTimeout(1200);
+
+      await page.getByTestId('details-edit-btn').click();
+      const select = page.getByTestId('user-edit-scope-select');
+      await select.waitFor({ timeout: 10000 });
+
+      await select.click();
+      await page.waitForTimeout(500);
+      const options = await page.locator('[role="option"]').allInnerTexts();
+
+      // Sans perimetre, l'utilisateur voit toute la base : l'option doit le
+      // dire, plutot que d'etre une ligne vide.
+      expect(
+        options.some((o) => o.trim() === 'Toute la base'),
+        `l'option « aucun périmètre » manque : ${options.join(' | ')}`,
+      );
+      // Les perimetres viennent du projet, jamais d'une liste en dur.
+      expect(
+        options.some((o) => /Normandie|France entière|Grand Ouest/.test(o)),
+        `les périmètres du projet ne sont pas proposés : ${options.join(' | ')}`,
+      );
+
+      const target = options.find(
+        (o) => o.trim() !== 'Toute la base' && o.trim().length > 0,
+      );
+      await page.locator('[role="option"]', { hasText: target }).first().click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('user-edit-save-btn').click();
+      await page.waitForTimeout(1500);
+
+      expect(sent !== null, 'aucune modification envoyée');
+      expect(
+        sent && 'scopeId' in sent,
+        `le périmètre n'est pas transmis : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.12',
+    us: 'US-00-07',
+    title: 'Le périmètre se choisit dès la création d’un utilisateur',
+    needsProject: true,
+    gherkin: [
+      "Given la fenêtre « Nouvel utilisateur »",
+      'When je choisis un périmètre et je crée le compte',
+      'Then scopeId part avec la création',
+      "And sans périmètre choisi, le champ n'est pas transmis du tout",
+    ],
+    async run({ page, expect, projectId }) {
+      const posts = [];
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') && url.pathname.endsWith('/users'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          posts.push(JSON.parse(route.request().postData() ?? '{}'));
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 'unew', email: 'x@y.z' }),
+          });
+        },
+      );
+
+      const fill = async (suffix) => {
+        await page.getByTestId('user-create-btn').first().click();
+        // Le formulaire de creation n'expose pas d'identifiants de test sur
+        // ses champs : on vise par libelle plutot que d'en ajouter pour le
+        // seul confort du scenario.
+        const dialog = page.locator('[data-slot="dialog-content"]');
+        await dialog.getByPlaceholder('Prénom').waitFor({ timeout: 8000 });
+        await dialog.getByPlaceholder('Prénom').fill('Test');
+        await dialog.getByPlaceholder('Nom', { exact: true }).fill(`Perimetre${suffix}`);
+        await dialog.getByPlaceholder('email@exemple.com').fill(`test.scope${suffix}@example.test`);
+        await page.getByTestId('user-initials-input').fill('TP');
+        await page.getByTestId('user-role-select').click();
+        await page.waitForTimeout(400);
+        await page.locator('[role="option"]').first().click();
+        await page.waitForTimeout(300);
+      };
+
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-create-btn').first().waitFor({ timeout: 15000 });
+
+      // 1. Sans perimetre : le champ ne doit pas partir du tout — le serveur
+      //    applique son defaut sur un champ absent.
+      await fill('A');
+      await page.getByTestId('user-create-submit-btn').click();
+      await page.waitForTimeout(1500);
+      expect(posts.length === 1, `${posts.length} création(s) au lieu d'une`);
+      expect(
+        !('scopeId' in (posts[0] ?? {})),
+        `le périmètre vide a été transmis : ${JSON.stringify(posts[0])}`,
+      );
+
+      // 2. Avec un perimetre choisi.
+      await page.goto(`/${projectId}/users`);
+      await page.getByTestId('user-create-btn').first().waitFor({ timeout: 15000 });
+      await fill('B');
+      const select = page.getByTestId('user-create-scope-select');
+      await select.click();
+      await page.waitForTimeout(400);
+      const options = await page.locator('[role="option"]').allInnerTexts();
+      const named = options.find((o) => o.trim() !== 'Toute la base');
+      await page.locator('[role="option"]', { hasText: named }).first().click();
+      await page.waitForTimeout(300);
+      await page.getByTestId('user-create-submit-btn').click();
+      await page.waitForTimeout(1500);
+
+      expect(posts.length === 2, `${posts.length} création(s) au lieu de deux`);
+      expect(
+        typeof posts[1]?.scopeId === 'string' && posts[1].scopeId.length > 0,
+        `le périmètre choisi n'est pas transmis : ${JSON.stringify(posts[1])}`,
+      );
+    },
+  },
+
+  {
+    id: '07.7',
+    us: 'US-00-07',
+    title: 'Les régions viennent du serveur, jamais du code',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      'Then les 14 régions administratives sont proposées',
+      'And chacune annonce combien de ses départements sont cochés',
+      'And la liste est demandée à GET /geo/regions',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      apiCalls(true);
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /geo/regions')),
+        `la table des régions n'a pas été demandée : ${apiCalls().join(', ')}`,
+      );
+
+      const rows = page.locator('[data-testid^="region-check-"]');
+      const count = await rows.count();
+      expect(count === 14, `${count} région(s) au lieu de 14`);
+
+      // Le compteur par region : combien de ses departements sont coches.
+      const body = await page.getByTestId('region-tree').innerText();
+      expect(/0\/5/.test(body), 'les compteurs par région ne sont pas affichés');
+    },
+  },
+
+  {
+    id: '07.8',
+    us: 'US-00-07',
+    title: 'Une région entière part sous son nom',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      'When je coche une région entière et je crée',
+      'Then elle est transmise dans regions, et departments reste vide',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 's1', name: sent.name }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('TEST Normandie entière');
+      await page.getByTestId('region-check-Normandie').click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune création envoyée');
+      expect(
+        JSON.stringify(sent?.regions) === JSON.stringify(['Normandie']),
+        `la région entière n'est pas transmise sous son nom : ${JSON.stringify(sent)}`,
+      );
+      // Les deux listes partent toujours : le PATCH les remplace en bloc.
+      expect(
+        Array.isArray(sent?.departments) && sent.departments.length === 0,
+        `departments devrait être vide : ${JSON.stringify(sent?.departments)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.9',
+    us: 'US-00-07',
+    title: 'Une région amputée part en départements explicites',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouveau périmètre »',
+      "When je coche une région puis décoche un de ses départements",
+      'Then la case de région passe en état indéterminé',
+      'And les départements restants partent explicitement, sans nom de région',
+    ],
+    async run({ page, expect, projectId }) {
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 's1', name: sent.name }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('TEST Normandie sauf Orne');
+      await page.getByTestId('region-check-Normandie').click();
+      await page.waitForTimeout(300);
+      // Le libelle ouvre la region ; la case a cocher est un bouton distinct.
+      await page.getByTestId('region-Normandie').getByText('Normandie').click();
+      await page.waitForTimeout(400);
+      await page.getByTestId('dept-check-61').click();
+      await page.waitForTimeout(400);
+
+      const state = await page
+        .getByTestId('region-check-Normandie')
+        .getAttribute('data-state');
+      expect(
+        state === 'indeterminate',
+        `la case de région devrait être indéterminée, elle est « ${state} »`,
+      );
+
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune création envoyée');
+      // Le contrat ne permet pas d'exprimer « la Normandie sauf l'Orne » par
+      // un nom de region : elle doit partir en departements.
+      expect(
+        Array.isArray(sent?.regions) && sent.regions.length === 0,
+        `la région amputée est encore transmise sous son nom : ${JSON.stringify(sent)}`,
+      );
+      expect(
+        JSON.stringify(sent?.departments) ===
+          JSON.stringify(['14', '27', '50', '76']),
+        `départements attendus 14/27/50/76 : ${JSON.stringify(sent?.departments)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.13',
+    us: 'US-00-07',
+    title: 'Un nom déjà pris se corrige dans le champ',
+    needsProject: true,
+    gherkin: [
+      'Given un périmètre portant déjà ce nom',
+      'When je crée un périmètre du même nom',
+      'Then le message apparaît sous le champ « Nom »',
+      'And la fenêtre reste ouverte, la saisie intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/scopes'),
+        (route) =>
+          route.request().method() === 'POST'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(err(409, 'SCOPE_NAME_EXISTS')),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-add').click();
+      await page.getByTestId('scope-name').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('scope-name').fill('Normandie');
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('déjà utilisé'),
+        'le conflit de nom n’est pas signalé',
+      );
+      // La correction se fait dans le champ : la saisie ne doit pas partir.
+      const kept = await page.getByTestId('scope-name').inputValue();
+      expect(kept === 'Normandie', `la saisie a été perdue : « ${kept} »`);
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
@@ -1806,9 +2257,15 @@ export const scenarios = [
         .getByText("Identité de l'entreprise")
         .waitFor({ timeout: 8000 });
 
+      /*
+       * Cinq panneaux depuis US-00-07 : les perimetres ont rejoint la
+       * navigation, et leur entree de menu y redirige — meme traitement que
+       * les referentiels. Le scenario compte, plutot que de nommer, pour que
+       * l'ajout d'un panneau qui n'ouvre rien le fasse tomber.
+       */
       const nav = page.getByRole('navigation', { name: 'Paramètres' });
       const entries = await nav.getByRole('button').count();
-      expect(entries === 4, `${entries} entrée(s) au lieu de 4`);
+      expect(entries === 5, `${entries} entrée(s) au lieu de 5`);
 
       // Les écrans qui vivent ailleurs ne doivent pas être dupliqués ici :
       // une entrée qui n'ouvre rien fait douter de toutes les autres.

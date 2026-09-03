@@ -30,6 +30,10 @@ export const getEditUserSchema = () =>
 
       roleCode: z.string().trim().min(1, ZOD_ERRORS.REQUIRED),
 
+      /** Facultatif : la chaine vide signifie « aucun perimetre », donc
+       *  l'acces a toute la base. Envoyee au serveur en `null`. */
+      scopeId: z.string(),
+
       isExternal: z.boolean(),
 
       expiresAt: z

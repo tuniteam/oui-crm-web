@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   Form,
   FormControl,
@@ -19,6 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { CREATE_USER_WINDOW } from '../constants/users.constants';
 import type { useCreateUserForm } from '../hooks/useCreateUserForm';
 import { useRoles } from '../hooks/useRoles';
+import { ScopeSelectField } from './ScopeSelectField';
 
 export type CreateUserHooks = ReturnType<typeof useCreateUserForm>;
 
@@ -36,6 +38,20 @@ export function CreateUserBody({ hooks, open }: Props) {
   const roles = useRoles({ isBackoffice: 'false' }, { enabled: open });
 
   const isExternal = form.watch('isExternal');
+
+  /*
+   * « Fin d'acces » apparait au bas d'un formulaire deja long : sur un ecran
+   * court, elle nait sous le pied de fenetre. Un champ obligatoire qu'on ne
+   * voit pas apparaitre passe pour absent — on l'amene donc a l'ecran.
+   */
+  const expiresRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!isExternal) return;
+    // Instantane, pas anime : le champ est obligatoire et vient d'apparaitre,
+    // il doit etre la tout de suite. Une animation le ferait aussi arriver
+    // apres coup pour qui mesure sa position.
+    expiresRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [isExternal]);
 
   return (
     <Form {...form}>
@@ -180,6 +196,13 @@ export function CreateUserBody({ hooks, open }: Props) {
               </FormItem>
             )}
           />
+
+          <ScopeSelectField
+            control={form.control}
+            name="scopeId"
+            disabled={isBusy}
+            testId="user-create-scope-select"
+          />
         </div>
 
         {/* Acces externe : le serveur exige une date de fin des que la case
@@ -207,6 +230,7 @@ export function CreateUserBody({ hooks, open }: Props) {
           />
 
           {isExternal && (
+            <div ref={expiresRef}>
             <FormField
               control={form.control}
               name="expiresAt"
@@ -227,6 +251,7 @@ export function CreateUserBody({ hooks, open }: Props) {
                 </FormItem>
               )}
             />
+            </div>
           )}
         </div>
       </form>
