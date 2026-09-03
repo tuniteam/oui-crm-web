@@ -14,6 +14,9 @@ export const UI = {
   TIME_PICKER: {
     PICK_TIME: "Choisir l'heure",
   },
+  DATE_PICKER: {
+    PICK_DATE: 'Choisir une date',
+  },
   THEME: {
     DARK_MODE: 'Mode sombre',
     LIGHT_MODE: 'Mode clair',

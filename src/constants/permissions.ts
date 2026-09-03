@@ -7,7 +7,13 @@
 export const PERMISSIONS = {
   DASHBOARD: { READ: 'dashboard:read' },
   STATS: { READ: 'stats:read' },
-  ACTIVITIES: { READ: 'activities:read' },
+  ACTIVITIES: {
+    READ: 'activities:read',
+    CREATE: 'activities:create',
+    UPDATE: 'activities:update',
+    /** Le commercial ne l'a pas : seuls l'admin et le directeur suppriment. */
+    DELETE: 'activities:delete',
+  },
   /** Codes releves sur GET /permissions du projet, pas devines. */
   ORGANIZATIONS: {
     READ: 'organizations:read',

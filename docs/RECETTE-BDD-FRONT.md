@@ -40,7 +40,7 @@ et dans les fichiers `.feature` : les numéros se répètent d'un lot à l'autre
 | **L1** | **US-01-04** | **Organismes — contacts** | ✅ livré |
 | **L1** | **US-01-13** | **Organismes — suppression** | ✅ livré |
 | **L1** | **US-01-05** | **Actions groupées** | ❌ à développer — `POST /organizations/bulk` est livrée côté API |
-| **L1** | **US-01-08** | **Actions commerciales** | ❌ à développer |
+| **L1** | **US-01-08** | **Actions commerciales** | 🟡 onglet Actions livré ; agenda et export ICS à faire (US-01-09) |
 | **L1** | **US-01-11** | **Campagnes** | ✅ livrée — liste, création, statuts, cible, résultats, suppression |
 
 ---
@@ -688,7 +688,7 @@ portant son ciblage et ses quatre mesures.
 | 1 | Liste | des cartes, avec responsable, période et statut | couvert |
 | 2 | Sans campagne | message expliquant à quoi sert une campagne | couvert |
 | 3 | Critères de ciblage | affichés comme une **note**, jamais comme un filtre actif — la cible est figée | couvert |
-| 4 | Quatre mesures | rendues par l'API (`results`), jamais recalculées ; les trois du L2 restent à zéro et l'écran le dit | couvert |
+| 4 | Quatre mesures | rendues par l'API (`results`), jamais recalculées ; « Actions » = réalisées sur la cible **depuis le ciblage** (D11) ; les trois du L2 restent à zéro et l'écran le dit | couvert |
 | 5 | Filtrer par statut | `status` transmis au serveur | à couvrir |
 | 6 | Créer | nom obligatoire, période facultative | couvert |
 | 7 | Période inversée | refusée **avant envoi** — le serveur rendrait `400 INVALID_DATA` | couvert |
@@ -724,6 +724,18 @@ portant son ciblage et ses quatre mesures.
   calculées à la demande. Au L1 seul `activities` est alimenté — les trois
   autres restent à zéro **sans changement de contrat à venir**, donc on les
   affiche en le disant plutôt que de les masquer.
+- **Ce que « Actions » dénombre a dû être demandé à l'API.** Un protocole joué
+  le 03/09/2026 a montré que le compteur suivait le `campaignId` porté par
+  l'action : une action réalisée sur une fiche ciblée mais saisie depuis la
+  fiche ne comptait pas, et ne pouvait plus être rattachée — `PATCH` refuse une
+  action réalisée. Comme le formulaire d'action n'a pas de champ campagne, le
+  compteur serait resté à zéro en permanence. Tranché par la **décision D11**
+  côté API : **les actions réalisées sur les organismes ciblés, postérieures à
+  leur entrée dans la cible**. Trois bornes — dans la cible, réalisée,
+  postérieure au ciblage — et `campaignId` n'entre pas dans le calcul. Le front
+  n'a donc rien à développer. Vérifié en direct le 03/09/2026 : action
+  antérieure au ciblage 0, action planifiée 0, action réalisée sans
+  `campaignId` **1**.
 - **Seules les transitions légales sont proposées.** `DRAFT → ACTIVE →
   CLOSED`, et une campagne close se rouvre. Tout autre mouvement, **le statut
   identique compris**, rend `409`. Offrir les trois statuts et traduire le
@@ -757,6 +769,74 @@ portant son ciblage et ses quatre mesures.
 - **« Planifier les relances » de la maquette n'a pas de route.** Planifier
   relève de `/activities` (L1 · US-01-08), livrée côté API mais sans écran. Le
   bouton est absent tant que cet écran n'existe pas.
+
+---
+
+## L1 · US-01-08 · Actions commerciales — 🟡 onglet Actions livré
+
+Onglet Actions de la fiche organisme — une **frise chronologique**, comme la
+V8 : ce qui s'est dit, pas un tableau de champs. L'agenda et l'export ICS
+relèvent de l'US-01-09 et restent à faire.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | L'onglet apparaît | troisième onglet de la fiche, absent sans `activities:read` | couvert |
+| 2 | Sans action | message expliquant ce qu'une action apporte | couvert |
+| 3 | La frise | type, statut, résultat, compte rendu, date, auteur | couvert |
+| 4 | Bandeau de prochaine action | la planifiée la plus proche, **en retard comprise** | couvert |
+| 5 | Retard signalé | nombre de jours, sans que l'action cesse d'être « la prochaine » | couvert |
+| 6 | Types du référentiel | jamais une liste en dur ; la V8 code `ACTION_TYPES` en dur | couvert |
+| 7 | Aucun type par défaut | le choix est explicite : un défaut invisible ferait enregistrer le mauvais type | couvert |
+| 8 | Durée suggérée | `defaultDurationMin` du référentiel, **indépendant de `ics`** | couvert |
+| 9 | Planifier | l'action naît planifiée ; l'écran le dit, la V8 proposant un statut | couvert |
+| 10 | Avertissement rendez-vous | un type `ics` annonce la bascule en « RDV planifié » | couvert |
+| 11 | L'heure ne se convertit pas | `HH:MM` transporté et affiché tel quel, jamais reconstruit en `Date` | couvert |
+| 12 | Compte rendu obligatoire | réaliser sans compte rendu est refusé **avant envoi** | couvert |
+| 13 | Réaliser | la ligne passe « Réalisée », son compte rendu s'affiche | couvert |
+| 14 | Effet sur le statut commercial | planifier ou réaliser change le statut de la fiche : elle doit être invalidée | couvert |
+| 15 | Gestes réservés aux planifiées | modifier, réaliser et annuler n'apparaissent que sur une action `PLANNED` | couvert |
+| 16 | Action close entre-temps | `409 ACTIVITY_ALREADY_CLOSED` : message, et frise rechargée | couvert |
+| 17 | Avertissement de suppression | annuler ou supprimer un rendez-vous ne fait **pas** redescendre le statut | couvert |
+| 18 | Sans `activities:delete` | pas de bouton Supprimer — le commercial ne l'a pas | à couvrir |
+| 19 | Sans `activities:create` | pas de bouton d'enregistrement | à couvrir |
+| 20 | Scope `OWN` | jamais de refiltrage côté front : le serveur filtre en SQL | à couvrir |
+| 21 | Fiche hors périmètre | l'onglet n'existe pas : la fiche restreinte n'a pas d'onglets | à couvrir |
+| 22 | Modifier une action | re-planification, champs effaçables par `null` | à couvrir |
+
+### Pièges relevés pendant le développement
+
+- **Deux parcours, pas un formulaire.** La maquette met un sélecteur
+  « Réalisée / Planifiée » et le compte rendu dans l'écran de création. Le
+  contrat ne le permet pas : toute action naît `PLANNED`, et la réaliser est
+  une route dédiée où le compte rendu est **obligatoire** — c'est lui qui rend
+  l'action réelle. L'écran annonce ce découpage plutôt que de laisser chercher.
+- **Aucun type présélectionné.** La V8 pré-choisit « Appel ». Un défaut
+  invisible fait enregistrer le mauvais type sans que personne s'en aperçoive :
+  le champ est obligatoire et le choix explicite. Ce point a d'abord été
+  développé dans l'autre sens, puis corrigé.
+- **Le référentiel arrive après le premier rendu.** Un défaut choisi au montage
+  laissait le sélecteur vide, donc le formulaire invalide à l'ouverture. C'est
+  la sonde navigateur qui l'a montré, pas le build.
+- **Radix ne résout le libellé d'un `Select` qu'une fois la liste ouverte.** Le
+  type d'une action **en modification** serait resté invisible à l'ouverture :
+  le libellé vient de nos propres données.
+- **`time` ne se convertit jamais.** `HH:MM` est une heure locale affichée telle
+  quelle. Un `new Date()` sur date + heure puis un `toLocaleTimeString`
+  décalerait tous les rendez-vous d'un fuseau, silencieusement.
+- **`nextActivityAt` est un horodatage à minuit UTC**, pas un jour — vérifié en
+  direct. Un `toLocaleDateString` afficherait la veille à l'ouest de Greenwich.
+  On lit la partie jour de la chaîne, sans jamais construire de `Date`.
+- **`defaultDurationMin` est indépendant de `ics`.** La visioconférence a une
+  durée par défaut de 30 minutes **sans** être exportable. L'export se
+  conditionne à `metadata.ics === true`, jamais à la présence d'une durée.
+- **Une action en retard reste la « prochaine ».** Elle ne disparaît pas parce
+  que sa date est passée : c'est justement celle qu'il faut traiter.
+- **Supprimer ou annuler ne fait pas redescendre le statut commercial.**
+  Constaté en direct, signalé à l'API
+  (`docs/SIGNALEMENT-API-ACTIVITES.md`). En attendant, la confirmation
+  l'annonce plutôt que de laisser croire à une annulation propre.
+- **Le scope `OWN` est appliqué en SQL.** Refiltrer côté front masquerait des
+  lignes aux rôles qui ont le droit de tout voir.
 
 ---
 
@@ -854,7 +934,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 16:57. 89/89 OK._
+_Généré par `npm run bdd` — 2026-09-03 19:58. 99/99 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -885,6 +965,16 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-04 | 01-04.15 | Suppression refusée : « Ne pas démarcher » est proposé | OK | `screenshots/L1-01-04-15.png` |
 | US-01-04 | 01-04.18 | Les longueurs maximales sont celles des colonnes | OK | `screenshots/L1-01-04-18.png` |
 | US-01-04 | 01-04.19 | Fiche disparue à l’écriture : message nommé, saisie conservée | OK | `screenshots/L1-01-04-19.png` |
+| US-01-08 | 01-08.2 | Sans action, l’onglet explique ce qu’une action apporte | OK | `screenshots/L1-01-08-2.png` |
+| US-01-08 | 01-08.4 | La frise annonce la prochaine action, en retard comprise | OK | `screenshots/L1-01-08-4.png` |
+| US-01-08 | 01-08.9 | Planifier : l’action naît planifiée, et l’écran le dit | OK | `screenshots/L1-01-08-9.png` |
+| US-01-08 | 01-08.11 | L’heure et la date s’affichent telles quelles, sans conversion | OK | `screenshots/L1-01-08-11.png` |
+| US-01-08 | 01-08.12 | Réaliser sans compte rendu est refusé avant envoi | OK | `screenshots/L1-01-08-12.png` |
+| US-01-08 | 01-08.13 | Le résultat d’une action réalisée s’affiche par son libellé | OK | `screenshots/L1-01-08-13.png` |
+| US-01-08 | 01-08.14 | Réaliser une action recharge la fiche et la liste des organismes | OK | `screenshots/L1-01-08-14.png` |
+| US-01-08 | 01-08.15 | Une action close ne propose plus ni modification ni réalisation | OK | `screenshots/L1-01-08-15.png` |
+| US-01-08 | 01-08.16 | Une action close entre-temps est dite, et la frise rechargée | OK | `screenshots/L1-01-08-16.png` |
+| US-01-08 | 01-08.17 | Supprimer un rendez-vous avertit que le statut ne redescend pas | OK | `screenshots/L1-01-08-17.png` |
 | US-01-11 | 01-11.1 | Les campagnes s’affichent en cartes, avec leurs mesures | OK | `screenshots/L1-01-11-1.png` |
 | US-01-11 | 01-11.2 | Sans campagne, l’écran explique à quoi elles servent | OK | `screenshots/L1-01-11-2.png` |
 | US-01-11 | 01-11.6 | Créer : le nom suffit, la période est facultative | OK | `screenshots/L1-01-11-6.png` |

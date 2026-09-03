@@ -72,6 +72,14 @@ Ils viennent du §0 et sont les pièges récurrents :
   (`400 PASSWORD_TOO_WEAK`). Aligner les schémas Zod sur cette règle exacte.
 - **Listes** : `?page=1&limit=20` (max 100), réponse `{ data, meta }`.
 - **Identifiants** : id invalide → `400 INVALID_CUID`.
+- **Champs de date** : toujours `FormDatePicker`
+  (`src/components/ui/form-date-picker.tsx`), **jamais `<input type="date">`**.
+  Le champ natif rend le sélecteur de Chrome — bleu Google, boutons en anglais,
+  aucune prise sur l'apparence. La valeur reste la chaîne `YYYY-MM-DD` que le
+  serveur attend. Pour l'heure, `SlotTimePicker`. Tout nouveau champ de date
+  passe par ce composant ; s'il lui manque quelque chose, l'enrichir plutôt que
+  de revenir au natif. Un scénario BDD ne le pilote pas par `fill()` : voir le
+  helper `pickDate` dans `scripts/bdd/scenarios.mjs`.
 
 ## Restituer le résultat
 

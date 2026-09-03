@@ -68,15 +68,15 @@
       la colonne <b>Front</b> si un service l'appelle.
     </p>
     <div class="kpi">
-      <div><b>169</b><span>routes inventoriées</span></div>
-      <div><b>59</b><span>consommées par le front</span></div>
-      <div><b>110</b><span>non consommées</span></div>
-      <div><b>35%</b><span>de couverture</span></div>
+      <div><b>167</b><span>routes inventoriées</span></div>
+      <div><b>62</b><span>consommées par le front</span></div>
+      <div><b>105</b><span>non consommées</span></div>
+      <div><b>37%</b><span>de couverture</span></div>
     </div>
   </header>
 
 <section>
-  <h2>Socle <span class="count">40 / 62 routes côté front · 12 US</span></h2>
+  <h2>Socle <span class="count">39 / 61 routes côté front · 12 US</span></h2>
     <article class="us">
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
@@ -571,19 +571,11 @@
         <span class="us-id">L0 · US-00-09</span>
         <span class="us-title">Administrer les référentiels</span>
         <span class="api-state">Livrée 01/09</span>
-        <span class="tag yes">3 / 3 côté front</span>
+        <span class="tag yes">2 / 2 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
         <tbody>
-        <tr>
-          <td><span class="m GET">GET</span></td>
-          <td class="u">/reference-items</td>
-          <td class="p">references:read [P]</td>
-          <td class="s">livrée</td>
-          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="REFERENCE_ITEMS">REFERENCE_ITEMS</span></td>
-          <td class="how"><ol><li>Paramètres</li><li>Référentiels</li></ol></td>
-        </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/reference-items</td>
@@ -743,7 +735,7 @@
     </article>
 </section>
 <section>
-  <h2>Base commerciale <span class="count">19 / 37 routes côté front · 14 US</span></h2>
+  <h2>Base commerciale <span class="count">23 / 34 routes côté front · 14 US</span></h2>
     <article class="us">
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
@@ -854,19 +846,11 @@
         <span class="us-id">L1 · US-01-04</span>
         <span class="us-title">Gérer les contacts d'un organisme</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag yes">4 / 4 côté front</span>
+        <span class="tag yes">3 / 3 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
         <tbody>
-        <tr>
-          <td><span class="m GET">GET</span></td>
-          <td class="u">/organizations/:id/contacts</td>
-          <td class="p">contacts:read [P]</td>
-          <td class="s">livrée</td>
-          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_CONTACTS_API">ORGANIZATION_CONTACTS_API</span></td>
-          <td class="how"><ol><li>Panneau d’un organisme</li><li>Onglet « Contacts »</li></ol></td>
-        </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/organizations/:id/contacts</td>
@@ -900,7 +884,7 @@
         <span class="us-id">L1 · US-01-08</span>
         <span class="us-title">Planifier et réaliser une action</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag no">0 / 6 côté front</span>
+        <span class="tag yes">6 / 6 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -910,48 +894,48 @@
           <td class="u">/activities</td>
           <td class="p">activities:read [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITIES_API">ACTIVITIES_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/activities</td>
           <td class="p">activities:create [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITIES_API">ACTIVITIES_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m PATCH">PATCH</span></td>
           <td class="u">/activities/:id</td>
           <td class="p">activities:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITY_API">ACTIVITY_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/activities/:id/complete</td>
           <td class="p">activities:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITY_COMPLETE_API">ACTIVITY_COMPLETE_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/activities/:id/cancel</td>
           <td class="p">activities:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITY_CANCEL_API">ACTIVITY_CANCEL_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m DELETE">DELETE</span></td>
           <td class="u">/activities/:id</td>
           <td class="p">activities:delete [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ACTIVITY_API">ACTIVITY_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         </tbody>
       </table></div>
@@ -962,19 +946,11 @@
         <span class="us-id">L1 · US-01-09</span>
         <span class="us-title">Agenda et export ICS</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag no">0 / 2 côté front</span>
+        <span class="tag no">0 / 1 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
         <tbody>
-        <tr>
-          <td><span class="m GET">GET</span></td>
-          <td class="u">/agenda</td>
-          <td class="p">activities:read [P]</td>
-          <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
-        </tr>
         <tr>
           <td><span class="m GET">GET</span></td>
           <td class="u">/activities/:id/ics</td>
@@ -1022,7 +998,7 @@
         <span class="us-id">L1 · US-01-11</span>
         <span class="us-title">Mener une campagne</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag yes">9 / 9 côté front</span>
+        <span class="tag yes">8 / 8 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -1081,14 +1057,6 @@
           <td class="p">campaigns:update [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="CAMPAIGN_ORGANIZATION_API">CAMPAIGN_ORGANIZATION_API</span></td>
-          <td class="how"><span class="tag no">parcours à documenter</span></td>
-        </tr>
-        <tr>
-          <td><span class="m GET">GET</span></td>
-          <td class="u">/campaigns/:id/results</td>
-          <td class="p">campaigns:read [P]</td>
-          <td class="s">livrée</td>
-          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="CAMPAIGN_RESULTS_API">CAMPAIGN_RESULTS_API</span></td>
           <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
@@ -1238,14 +1206,14 @@
     </article>
 </section>
 <section>
-  <h2>Cycle de vente <span class="count">0 / 26 routes côté front · 10 US</span></h2>
+  <h2>Cycle de vente <span class="count">0 / 28 routes côté front · 10 US</span></h2>
     <article class="us">
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
         <span class="us-id">L2 · US-02-01</span>
         <span class="us-title">Gérer la grille tarifaire</span>
-        <span class="api-state">À faire</span>
-        <span class="tag no">0 / 4 côté front</span>
+        <span class="api-state">Livrée 03/09</span>
+        <span class="tag no">0 / 5 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -1254,15 +1222,23 @@
           <td><span class="m GET">GET</span></td>
           <td class="u">/pricing-grids</td>
           <td class="p">pricing:read [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
         <tr>
           <td><span class="m GET">GET</span></td>
-          <td class="u">/pricing-grids/active · /pricing-grids/:id</td>
+          <td class="u">/pricing-grids/active</td>
           <td class="p">pricing:read [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m GET">GET</span></td>
+          <td class="u">/pricing-grids/:id</td>
+          <td class="p">pricing:read [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1270,7 +1246,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/pricing-grids</td>
           <td class="p">pricing:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1278,7 +1254,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/pricing-grids/:id/activate</td>
           <td class="p">pricing:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1499,9 +1475,9 @@
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
         <span class="us-id">L2 · US-02-09</span>
-        <span class="us-title">Piloter le pipeline d'opportunités</span>
-        <span class="api-state">À faire</span>
-        <span class="tag no">0 / 7 côté front</span>
+        <span class="us-title">Piloter le pipeline d’opportunités</span>
+        <span class="api-state">Livrée 03/09</span>
+        <span class="tag no">0 / 8 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -1510,7 +1486,7 @@
           <td><span class="m GET">GET</span></td>
           <td class="u">/opportunities</td>
           <td class="p">opportunities:read [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1518,15 +1494,7 @@
           <td><span class="m GET">GET</span></td>
           <td class="u">/opportunities/board</td>
           <td class="p">opportunities:read [P]</td>
-          <td class="s">à faire</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
-        </tr>
-        <tr>
-          <td><span class="m POST">POST</span></td>
-          <td class="u">/opportunities</td>
-          <td class="p">opportunities:create [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1534,7 +1502,15 @@
           <td><span class="m GET">GET</span></td>
           <td class="u">/opportunities/:id</td>
           <td class="p">opportunities:read [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/opportunities</td>
+          <td class="p">opportunities:create [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1542,7 +1518,7 @@
           <td><span class="m PATCH">PATCH</span></td>
           <td class="u">/opportunities/:id</td>
           <td class="p">opportunities:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1550,7 +1526,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/opportunities/:id/stage</td>
           <td class="p">opportunities:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1558,7 +1534,15 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/opportunities/:id/lose</td>
           <td class="p">opportunities:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m DELETE">DELETE</span></td>
+          <td class="u">/opportunities/:id</td>
+          <td class="p">opportunities:delete [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -2163,11 +2147,12 @@
     </article>
 </section>
 <section>
-  <h2>Déclarées par le front, absentes de l'inventaire <span class="count">1</span></h2>
+  <h2>Déclarées par le front, absentes de l'inventaire <span class="count">2</span></h2>
   <p class="lede" style="margin:0 0 4px">Ces chemins n'existent dans aucune route de l'API. Les chemins de navigation ont été écartés.</p>
   <div class="wrap"><table>
     <thead><tr><th>Appel</th><th>Déclaré dans</th></tr></thead>
     <tbody>
+      <tr><td class="u">/campaigns/:id/results</td><td class="p">CAMPAIGN_RESULTS_API</td></tr>
       <tr><td class="u">/users/:id/email</td><td class="p">USER_CORRECT_EMAIL_API</td></tr>
     </tbody>
   </table></div>
