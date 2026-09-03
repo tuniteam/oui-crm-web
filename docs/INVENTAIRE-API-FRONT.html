@@ -68,14 +68,14 @@
     </p>
     <div class="kpi">
       <div><b>169</b><span>routes inventoriées</span></div>
-      <div><b>39</b><span>consommées par le front</span></div>
-      <div><b>130</b><span>non consommées</span></div>
-      <div><b>23%</b><span>de couverture</span></div>
+      <div><b>45</b><span>consommées par le front</span></div>
+      <div><b>124</b><span>non consommées</span></div>
+      <div><b>27%</b><span>de couverture</span></div>
     </div>
   </header>
 
 <section>
-  <h2>Socle <span class="count">31 / 62 routes côté front · 12 US</span></h2>
+  <h2>Socle <span class="count">35 / 62 routes côté front · 12 US</span></h2>
     <article class="us">
       <h3>
         <span class="us-id">US-00-01</span>
@@ -187,7 +187,7 @@
         <span class="us-id">US-00-03</span>
         <span class="us-title">Voir mes projets et mes accès, choisir mon projet</span>
         <span class="api-state">Livrée 31/08</span>
-        <span class="tag part">1 / 6 côté front</span>
+        <span class="tag part">5 / 6 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -197,7 +197,7 @@
           <td class="u">/profile/me</td>
           <td class="p">Bearer</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ME_API">ME_API</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROFILE_ME_API, ME_API">PROFILE_ME_API, ME_API</span></td>
           <td class="how"><span class="tag auto">automatique</span><p>Chargé après la connexion, puis à chaque montage de l’application</p></td>
         </tr>
         <tr>
@@ -205,7 +205,7 @@
           <td class="u">/profile</td>
           <td class="p">Bearer</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROFILE_API">PROFILE_API</span></td>
           <td class="how"><ol><li>Mon profil</li><li>Informations personnelles</li><li>Modifier</li><li>Enregistrer</li></ol></td>
         </tr>
         <tr>
@@ -213,7 +213,7 @@
           <td class="u">/profile/change-password</td>
           <td class="p">Bearer</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROFILE_PASSWORD_API">PROFILE_PASSWORD_API</span></td>
           <td class="how"><ol><li>Mon profil</li><li>Sécurité</li><li>Modifier le mot de passe</li></ol></td>
         </tr>
         <tr>
@@ -221,7 +221,7 @@
           <td class="u">/profile/avatar</td>
           <td class="p">Bearer</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROFILE_AVATAR_API">PROFILE_AVATAR_API</span></td>
           <td class="how"><ol><li>Mon profil</li><li>Photo de profil</li><li>Modifier</li><li>Choisir une image</li></ol></td>
         </tr>
         <tr>
@@ -229,7 +229,7 @@
           <td class="u">/profile/avatar</td>
           <td class="p">Bearer</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="PROFILE_AVATAR_API">PROFILE_AVATAR_API</span></td>
           <td class="how"><ol><li>Mon profil</li><li>Photo de profil</li><li>Modifier</li><li>Supprimer</li></ol></td>
         </tr>
         <tr>
@@ -730,7 +730,7 @@
     </article>
 </section>
 <section>
-  <h2>Base commerciale <span class="count">8 / 37 routes côté front · 14 US</span></h2>
+  <h2>Base commerciale <span class="count">10 / 37 routes côté front · 14 US</span></h2>
     <article class="us">
       <h3>
         <span class="us-id">US-01-01</span>
@@ -836,7 +836,7 @@
         <span class="us-id">US-01-04</span>
         <span class="us-title">Gérer les contacts d'un organisme</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag part">2 / 4 côté front</span>
+        <span class="tag yes">4 / 4 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -847,7 +847,7 @@
           <td class="p">contacts:read [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_CONTACTS_API">ORGANIZATION_CONTACTS_API</span></td>
-          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer</p></td>
+          <td class="how"><ol><li>Panneau d’un organisme</li><li>Onglet « Contacts »</li></ol></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
@@ -855,23 +855,23 @@
           <td class="p">contacts:create [P]</td>
           <td class="s">livrée</td>
           <td class="f"><span class="tag yes">déclarée</span><span class="src" title="ORGANIZATION_CONTACTS_API">ORGANIZATION_CONTACTS_API</span></td>
-          <td class="how"><span class="tag no">à développer</span><p>Route déclarée, sans écran : l’onglet Contacts (US-01-04) reste à développer</p></td>
+          <td class="how"><ol><li>Onglet « Contacts »</li><li>Ajouter un contact</li><li>Renseigner prénom et nom</li><li>Créer le contact</li></ol></td>
         </tr>
         <tr>
           <td><span class="m PATCH">PATCH</span></td>
           <td class="u">/contacts/:id</td>
           <td class="p">contacts:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="CONTACT_API">CONTACT_API</span></td>
+          <td class="how"><ol><li>Onglet « Contacts »</li><li>Modifier sur une ligne</li><li>Enregistrer</li></ol></td>
         </tr>
         <tr>
           <td><span class="m DELETE">DELETE</span></td>
           <td class="u">/contacts/:id</td>
           <td class="p">contacts:delete [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="CONTACT_API">CONTACT_API</span></td>
+          <td class="how"><ol><li>Onglet « Contacts »</li><li>Supprimer sur une ligne</li><li>Confirmer — si des actions le référencent, « Ne pas démarcher » est proposé à la place</li></ol></td>
         </tr>
         </tbody>
       </table></div>
@@ -1134,7 +1134,7 @@
       <h3>
         <span class="us-id">US-01-06</span>
         <span class="us-title">Importer un fichier XLSX/CSV</span>
-        <span class="api-state">Livrée 02/09 · V2_1 → D2</span>
+        <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 3 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1171,7 +1171,7 @@
       <h3>
         <span class="us-id">US-01-07</span>
         <span class="us-title">Exporter la base</span>
-        <span class="api-state">À faire</span>
+        <span class="api-state">Livrée 03/09</span>
         <span class="tag no">0 / 1 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1181,7 +1181,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/exports/organizations-list</td>
           <td class="p">organizations:export [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1192,7 +1192,7 @@
       <h3>
         <span class="us-id">US-01-12</span>
         <span class="us-title">Rechercher partout</span>
-        <span class="api-state">À faire</span>
+        <span class="api-state">Livrée 03/09</span>
         <span class="tag no">0 / 1 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1202,7 +1202,7 @@
           <td><span class="m GET">GET</span></td>
           <td class="u">/search</td>
           <td class="p">selon type retourné [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
