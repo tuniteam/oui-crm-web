@@ -274,7 +274,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-00-07 · Périmètres — 🟡 lecture et écriture livrées
+## US-00-07 · Périmètres — 🟢 livré
 
 Panneau de Paramètres, comme les Référentiels. Un périmètre est du **contrôle
 d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
@@ -291,8 +291,9 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 | 8 | Région entière | part sous son nom dans `regions`, `departments` vide | couvert |
 | 9 | Région amputée | case en état indéterminé, et les départements restants partent explicitement — le contrat ne permet pas « la Normandie sauf l'Orne » sous un nom de région | couvert |
 | 13 | Nom déjà pris | `409 SCOPE_NAME_EXISTS` : message **sous le champ**, fenêtre maintenue | couvert |
-| 14 | Modifier un périmètre | les listes sont **remplacées en bloc**, pas fusionnées | à couvrir |
-| 10 | Supprimer un périmètre affecté | refusé, en indiquant l'usage | à développer |
+| 14 | Modifier un périmètre mixte | région entière et départements isolés rechargés puis repliés à l'identique ; les deux listes repartent au complet | couvert |
+| 15 | Supprimer un périmètre libre | la requête part et la fenêtre se ferme | couvert |
+| 10 | Supprimer un périmètre affecté | `409 SCOPE_IN_USE` : refus expliqué, **comptes suspendus compris**, et l'action retirée — il n'y a rien à réessayer | couvert |
 | 11 | Affecter à un utilisateur | sélecteur sur la fiche utilisateur, « Toute la base » pour n'en affecter aucun ; masqué sans `scopes:read` | couvert |
 | 12 | Affecter dès la création | même sélecteur ; sans choix, `scopeId` **n'est pas transmis** — le serveur applique son défaut | couvert |
 
@@ -761,7 +762,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 11:28. 71/71 OK._
+_Généré par `npm run bdd` — 2026-09-03 11:54. 74/74 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -820,9 +821,12 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-00-07 | 07.7 | Les régions viennent du serveur, jamais du code | OK | `screenshots/07-7.png` |
 | US-00-07 | 07.8 | Une région entière part sous son nom | OK | `screenshots/07-8.png` |
 | US-00-07 | 07.9 | Une région amputée part en départements explicites | OK | `screenshots/07-9.png` |
+| US-00-07 | 07.10 | Un périmètre affecté ne se supprime pas, et l’écran le dit | OK | `screenshots/07-10.png` |
 | US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/07-11.png` |
 | US-00-07 | 07.12 | Le périmètre se choisit dès la création d’un utilisateur | OK | `screenshots/07-12.png` |
 | US-00-07 | 07.13 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/07-13.png` |
+| US-00-07 | 07.14 | Un périmètre mixte se recharge et se réenregistre à l’identique | OK | `screenshots/07-14.png` |
+| US-00-07 | 07.15 | Un périmètre libre se supprime | OK | `screenshots/07-15.png` |
 | US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
 | US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
 | US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |

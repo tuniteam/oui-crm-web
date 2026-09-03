@@ -71,13 +71,27 @@ Feature: Périmètres géographiques d’un projet (L0 · US-00-07)
     Then le message apparaît sous le champ « Nom »
     And la fenêtre reste ouverte, la saisie intacte
 
-  @a-couvrir
-  Scenario: Modifier un périmètre
-    Then les listes sont remplacées en bloc, pas fusionnées
+  @ok
+  Scenario: Modifier un périmètre mixte
+    Given un périmètre fait d'une région entière et de départements isolés
+    When j'ouvre sa modification
+    Then la région est cochée en entier et les départements isolés le sont aussi
+    When je réenregistre sans rien changer
+    Then les deux listes repartent identiques, chacune au complet
 
-  @a-couvrir
+  @ok
+  Scenario: Supprimer un périmètre libre
+    Given un périmètre que personne ne porte
+    When je le supprime
+    Then la requête part et la fenêtre se ferme
+
+  @ok
   Scenario: Supprimer un périmètre affecté
-    Then refusé, en indiquant l'usage
+    Given un périmètre porté par au moins un utilisateur
+    When je demande sa suppression et confirme
+    Then le serveur la refuse
+    And l'écran explique qu'un compte le porte, suspendu compris
+    And l'action de suppression disparaît — il n'y a rien à réessayer
 
   @ok
   Scenario: Affecter à un utilisateur

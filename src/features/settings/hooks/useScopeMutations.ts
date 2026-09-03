@@ -47,6 +47,10 @@ export function useScopeMutations() {
     mutationFn: ({ id, payload }) => scopesService.update(id, payload),
   });
 
+  const deleteMutation = useMutation<void, unknown, string>({
+    mutationFn: (id) => scopesService.remove(id),
+  });
+
   const settle = useCallback(
     (err: unknown): ScopeWriteOutcome => {
       if (getApiErrorCode(err) === SCOPE_ERRORS.NAME_EXISTS) {
@@ -60,6 +64,7 @@ export function useScopeMutations() {
 
   return {
     saving: createMutation.isPending || updateMutation.isPending,
+    deleting: deleteMutation.isPending,
 
     create: async (payload: CreateScopePayload): Promise<ScopeWriteOutcome> => {
       try {
@@ -69,6 +74,20 @@ export function useScopeMutations() {
         return { status: 'saved', scope };
       } catch (err) {
         return settle(err);
+      }
+    },
+
+    /** Refusee n'est pas echouee : un perimetre affecte se detache d'abord. */
+    remove: async (id: string): Promise<'deleted' | 'in-use' | 'error'> => {
+      try {
+        await deleteMutation.mutateAsync(id);
+        toast.success(SCOPES_UI.TOASTS.DELETED);
+        invalidate();
+        return 'deleted';
+      } catch (err) {
+        if (getApiErrorCode(err) === SCOPE_ERRORS.IN_USE) return 'in-use';
+        toast.error(getApiErrorMessage(err));
+        return 'error';
       }
     },
 
