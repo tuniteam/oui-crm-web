@@ -53,6 +53,7 @@ export const SCOPES_UI = {
   TOASTS: {
     CREATED: 'Périmètre créé',
     UPDATED: 'Périmètre modifié',
+    DELETED: 'Périmètre supprimé',
   },
 } as const;
 
@@ -60,6 +61,37 @@ export const SCOPES_UI = {
 export const SCOPE_ERRORS = {
   NAME_EXISTS: 'SCOPE_NAME_EXISTS',
   IN_USE: 'SCOPE_IN_USE',
+} as const;
+
+export const DELETE_SCOPE_WINDOW = {
+  TITLE: 'Supprimer ce périmètre',
+  INTRO: 'Vous êtes sur le point de supprimer ce périmètre.',
+  BULLETS: [
+    'Il disparaît de la liste et des sélecteurs de la fiche utilisateur',
+    'Les utilisateurs qui le portent retrouvent l’accès à toute la base',
+    'L’opération est inscrite au journal d’activité',
+  ],
+
+  /**
+   * Le serveur refuse la suppression d'un périmètre affecté (`409
+   * SCOPE_IN_USE`), **sans dire lequel** : contrairement aux campagnes, aucun
+   * `messages.meta` ne nomme les gêneurs — vérifié dans la source de l'API.
+   *
+   * Et le compteur affiché ne permet pas de l'anticiper : `usersCount` ne
+   * retient que les affectations actives, quand le garde-fou les compte
+   * toutes. Un périmètre à « 0 utilisateur » peut donc être refusé. L'écran ne
+   * promet donc rien : il propose, et traduit le refus.
+   */
+  BLOCKED: {
+    TITLE: 'Ce périmètre est encore affecté',
+    DESCRIPTION:
+      'Il ne peut pas être supprimé tant qu’un utilisateur le porte, y compris un compte suspendu. Retirez-le de leurs fiches, puis réessayez.',
+  },
+
+  ACTIONS: {
+    CONFIRM: 'Supprimer le périmètre',
+    CANCEL: 'Annuler',
+  },
 } as const;
 
 export const SCOPE_WINDOW = {

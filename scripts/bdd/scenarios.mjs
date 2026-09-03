@@ -2245,6 +2245,197 @@ export const scenarios = [
     },
   },
 
+  {
+    id: '07.14',
+    us: 'US-00-07',
+    title: 'Un périmètre mixte se recharge et se réenregistre à l’identique',
+    needsProject: true,
+    gherkin: [
+      "Given un périmètre fait d'une région entière et de départements isolés",
+      "When j'ouvre sa modification",
+      'Then la région est cochée en entier et les départements isolés le sont aussi',
+      'When je réenregistre sans rien changer',
+      'Then les deux listes repartent identiques, chacune au complet',
+    ],
+    async run({ page, expect, projectId }) {
+      /*
+       * Le jeu de donnees n'a aucun perimetre mixte, et c'est justement le cas
+       * ou le rechargement peut se tromper : les regions enregistrees doivent
+       * etre depliees en departements pour alimenter l'arbre, puis repliees a
+       * l'enregistrement. On sert donc la forme voulue.
+       */
+      const mixed = {
+        id: 'smix',
+        name: 'TEST Mixte',
+        description: null,
+        regions: ['Normandie'],
+        departments: ['01', '03'],
+        portfolioOnly: false,
+        nature: 'ALL',
+        campaignIds: [],
+        usersCount: 0,
+        resolvedDepartments: ['01', '03', '14', '27', '50', '61', '76'],
+      };
+      await mock(page, '/scopes', 200, { data: [mixed] });
+
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.includes('/api/v1/scopes/'),
+        (route) => {
+          if (route.request().method() !== 'PATCH') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mixed),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.getByTestId('scope-edit-smix').click();
+      await page.getByTestId('region-tree').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(800);
+
+      // La region enregistree doit revenir cochee en entier.
+      const normandie = await page
+        .getByTestId('region-check-Normandie')
+        .getAttribute('data-state');
+      expect(
+        normandie === 'checked',
+        `Normandie devrait être entièrement cochée, elle est « ${normandie}° »`.replace('°', ''),
+      );
+
+      // Et les departements isoles, dans leur propre region, partiellement.
+      const auvergne = await page
+        .getByTestId('region-check-Auvergne-Rhône-Alpes')
+        .getAttribute('data-state');
+      expect(
+        auvergne === 'indeterminate',
+        `Auvergne-Rhône-Alpes devrait être partielle, elle est « ${auvergne}° »`.replace('°', ''),
+      );
+
+      const count = await page.getByTestId('region-tree-count').innerText();
+      expect(
+        count.includes('7 départements'),
+        `le compteur devrait annoncer 7 départements : ${count}`,
+      );
+
+      await page.getByTestId('scope-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune modification envoyée');
+      // Repliage a l'identique : la region entiere sous son nom, les isoles
+      // en departements. Les deux listes partent, meme si l'une est vide.
+      expect(
+        JSON.stringify(sent?.regions) === JSON.stringify(['Normandie']),
+        `regions attendu ["Normandie"] : ${JSON.stringify(sent?.regions)}`,
+      );
+      expect(
+        JSON.stringify(sent?.departments) === JSON.stringify(['01', '03']),
+        `departments attendu ["01","03"] : ${JSON.stringify(sent?.departments)}`,
+      );
+    },
+  },
+
+  {
+    id: '07.10',
+    us: 'US-00-07',
+    title: 'Un périmètre affecté ne se supprime pas, et l’écran le dit',
+    needsProject: true,
+    gherkin: [
+      "Given un périmètre porté par au moins un utilisateur",
+      'When je demande sa suppression et confirme',
+      'Then le serveur la refuse',
+      "And l'écran explique qu'un compte le porte, suspendu compris",
+      "And l'action de suppression disparaît — il n'y a rien à réessayer",
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) => /\/api\/v1\/scopes\/[^/]+$/.test(url.pathname),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(err(409, 'SCOPE_IN_USE')),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+
+      await page.locator('[data-testid^="scope-delete-"]').first().click();
+      await page.getByTestId('scope-delete-confirm').click();
+
+      const blocked = page.getByTestId('scope-delete-blocked');
+      await blocked.waitFor({ timeout: 10000 });
+      const text = await blocked.innerText();
+
+      // Le compteur affiche ne permet pas d'anticiper ce refus : il ne compte
+      // que les affectations actives, le garde-fou les compte toutes. Le
+      // message doit donc mentionner les comptes suspendus.
+      expect(
+        text.includes('suspendu'),
+        `le refus n'explique pas qu'un compte suspendu suffit : ${text}`,
+      );
+
+      // Rien a reessayer tant que le perimetre n'est pas detache.
+      expect(
+        !(await page
+          .getByTestId('scope-delete-confirm')
+          .isVisible()
+          .catch(() => false)),
+        'l’action de suppression est encore proposée après le refus',
+      );
+    },
+  },
+
+  {
+    id: '07.15',
+    us: 'US-00-07',
+    title: 'Un périmètre libre se supprime',
+    needsProject: true,
+    gherkin: [
+      "Given un périmètre que personne ne porte",
+      'When je le supprime',
+      'Then la requête part et la fenêtre se ferme',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.route(
+        (url) => /\/api\/v1\/scopes\/[^/]+$/.test(url.pathname),
+        (route) =>
+          route.request().method() === 'DELETE'
+            ? route.fulfill({ status: 204, body: '' })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/settings?panneau=scopes`);
+      await page.getByTestId('scopes-pane').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+
+      apiCalls(true);
+      await page.locator('[data-testid^="scope-delete-"]').first().click();
+      const confirm = page.getByTestId('scope-delete-confirm');
+      await confirm.waitFor({ timeout: 8000 });
+      await confirm.click();
+
+      const closed = await confirm
+        .waitFor({ state: 'hidden', timeout: 10000 })
+        .then(() => true)
+        .catch(() => false);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('DELETE /scopes/')),
+        `aucune suppression envoyée : ${apiCalls().join(', ')}`,
+      );
+      expect(closed, 'la fenêtre est restée ouverte après la suppression');
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

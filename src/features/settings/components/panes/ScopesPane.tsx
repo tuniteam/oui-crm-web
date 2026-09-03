@@ -10,6 +10,7 @@ import {
   SCOPES_UI,
 } from '../../constants/scopes.constants';
 import { useScopes } from '../../hooks/useScopes';
+import { DeleteScopeWindow } from './DeleteScopeWindow';
 import { ScopeWindow } from './ScopeWindow';
 import type { Scope } from '../../types/scopes';
 
@@ -33,6 +34,7 @@ export function ScopesPane() {
   );
   const [editing, setEditing] = useState<Scope | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Scope | null>(null);
 
   const openWindow = (scope: Scope | null) => {
     setEditing(scope);
@@ -82,6 +84,7 @@ export function ScopesPane() {
               key={scope.id}
               scope={scope}
               onEdit={canWrite ? () => openWindow(scope) : undefined}
+              onDelete={canWrite ? () => setDeleting(scope) : undefined}
             />
           ))}
         </ul>
@@ -92,6 +95,13 @@ export function ScopesPane() {
         onOpenChange={setWindowOpen}
         scope={editing}
       />
+
+      {deleting ? (
+        <DeleteScopeWindow
+          scope={deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -100,9 +110,11 @@ export function ScopesPane() {
 function ScopeCard({
   scope,
   onEdit,
+  onDelete,
 }: {
   scope: Scope;
   onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   /*
    * Liste vide = tout le territoire, jamais « aucun département ».
@@ -129,7 +141,11 @@ function ScopeCard({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        {/* `ms-auto` : le bloc reste à droite même quand il bascule à la
+            ligne. Sans lui, `justify-between` colle à gauche une ligne qui ne
+            contient qu'un élément — ce qui arrive dès qu'une description est
+            longue, et pour toutes les cartes sous 1024 px. */}
+        <div className="ms-auto flex shrink-0 items-center gap-2">
           <Badge variant="secondary" appearance="outline">
             <Users className="size-3" />
             {CARD.USERS(scope.usersCount)}
@@ -142,6 +158,16 @@ function ScopeCard({
               onClick={onEdit}
             >
               {UI.ACTIONS.EDIT}
+            </Button>
+          ) : null}
+          {onDelete ? (
+            <Button
+              variant="destructive"
+              size="sm"
+              data-testid={`scope-delete-${scope.id}`}
+              onClick={onDelete}
+            >
+              {UI.ACTIONS.DELETE}
             </Button>
           ) : null}
         </div>
