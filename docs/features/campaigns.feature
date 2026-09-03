@@ -31,7 +31,7 @@ Feature: Campagnes (L1 · US-01-11)
 
   @a-couvrir
   Scenario: Quatre mesures
-    Then rendues par l'API (results), jamais recalculées ; les trois du L2 restent à zéro et l'écran le dit
+    Then rendues par l'API (results), jamais recalculées ; « Actions » = réalisées sur la cible depuis le ciblage (D11) ; les trois du L2 restent à zéro et l'écran le dit
 
   @a-couvrir
   Scenario: Filtrer par statut

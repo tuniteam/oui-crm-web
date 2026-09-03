@@ -688,7 +688,7 @@ portant son ciblage et ses quatre mesures.
 | 1 | Liste | des cartes, avec responsable, période et statut | couvert |
 | 2 | Sans campagne | message expliquant à quoi sert une campagne | couvert |
 | 3 | Critères de ciblage | affichés comme une **note**, jamais comme un filtre actif — la cible est figée | couvert |
-| 4 | Quatre mesures | rendues par l'API (`results`), jamais recalculées ; les trois du L2 restent à zéro et l'écran le dit | couvert |
+| 4 | Quatre mesures | rendues par l'API (`results`), jamais recalculées ; « Actions » = réalisées sur la cible **depuis le ciblage** (D11) ; les trois du L2 restent à zéro et l'écran le dit | couvert |
 | 5 | Filtrer par statut | `status` transmis au serveur | à couvrir |
 | 6 | Créer | nom obligatoire, période facultative | couvert |
 | 7 | Période inversée | refusée **avant envoi** — le serveur rendrait `400 INVALID_DATA` | couvert |
@@ -724,6 +724,18 @@ portant son ciblage et ses quatre mesures.
   calculées à la demande. Au L1 seul `activities` est alimenté — les trois
   autres restent à zéro **sans changement de contrat à venir**, donc on les
   affiche en le disant plutôt que de les masquer.
+- **Ce que « Actions » dénombre a dû être demandé à l'API.** Un protocole joué
+  le 03/09/2026 a montré que le compteur suivait le `campaignId` porté par
+  l'action : une action réalisée sur une fiche ciblée mais saisie depuis la
+  fiche ne comptait pas, et ne pouvait plus être rattachée — `PATCH` refuse une
+  action réalisée. Comme le formulaire d'action n'a pas de champ campagne, le
+  compteur serait resté à zéro en permanence. Tranché par la **décision D11**
+  côté API : **les actions réalisées sur les organismes ciblés, postérieures à
+  leur entrée dans la cible**. Trois bornes — dans la cible, réalisée,
+  postérieure au ciblage — et `campaignId` n'entre pas dans le calcul. Le front
+  n'a donc rien à développer. Vérifié en direct le 03/09/2026 : action
+  antérieure au ciblage 0, action planifiée 0, action réalisée sans
+  `campaignId` **1**.
 - **Seules les transitions légales sont proposées.** `DRAFT → ACTIVE →
   CLOSED`, et une campagne close se rouvre. Tout autre mouvement, **le statut
   identique compris**, rend `409`. Offrir les trois statuts et traduire le
@@ -922,7 +934,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 19:18. 98/98 OK._
+_Généré par `npm run bdd` — 2026-09-03 19:58. 99/99 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -958,6 +970,7 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-08 | 01-08.9 | Planifier : l’action naît planifiée, et l’écran le dit | OK | `screenshots/L1-01-08-9.png` |
 | US-01-08 | 01-08.11 | L’heure et la date s’affichent telles quelles, sans conversion | OK | `screenshots/L1-01-08-11.png` |
 | US-01-08 | 01-08.12 | Réaliser sans compte rendu est refusé avant envoi | OK | `screenshots/L1-01-08-12.png` |
+| US-01-08 | 01-08.13 | Le résultat d’une action réalisée s’affiche par son libellé | OK | `screenshots/L1-01-08-13.png` |
 | US-01-08 | 01-08.14 | Réaliser une action recharge la fiche et la liste des organismes | OK | `screenshots/L1-01-08-14.png` |
 | US-01-08 | 01-08.15 | Une action close ne propose plus ni modification ni réalisation | OK | `screenshots/L1-01-08-15.png` |
 | US-01-08 | 01-08.16 | Une action close entre-temps est dite, et la frise rechargée | OK | `screenshots/L1-01-08-16.png` |

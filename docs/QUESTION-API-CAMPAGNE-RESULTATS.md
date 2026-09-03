@@ -95,3 +95,63 @@ produit tel qu'il est livré.
 4. Quelle que soit la réponse : peut-elle être **écrite dans la section
    `GET /campaigns/:id/results`** du handoff ? C'est la seule ligne du contrat
    dont le sens ne se déduit pas de la charge utile.
+
+---
+
+# Réponse — décision D11, reçue le 03/09/2026
+
+**Lecture retenue : B, avec une borne que le front n'avait pas vue.**
+
+> **Les actions réalisées sur les organismes ciblés, postérieures à leur entrée
+> dans la cible.**
+
+Trois bornes, écrites dans `HANDOFF-L1.md` § `GET /campaigns/:id/results`,
+sous-section « Ce que `activities` dénombre exactement » :
+
+| Borne | Effet |
+|---|---|
+| L'organisme est dans la cible | — |
+| L'action est **réalisée** (`DONE`) | une intention n'est pas un résultat |
+| L'action est **postérieure au ciblage** (`CampaignOrganization.addedAt`) | cibler une fiche qui a un historique ne crédite pas la campagne de son passé |
+
+La borne temporelle ne figurait pas dans la question. Sans elle, une commune
+avec quinze actions à son actif aurait fait apparaître quinze actions
+« produites » par une campagne créée la veille — effet massif sur une cible
+issue d'un import de territoire.
+
+Réponses aux trois autres questions :
+
+- **Q2 — réalisées uniquement.** Le comportement de l'étape 9 est corrigé.
+- **Q3 — sans objet.** `campaignId` ne conditionne plus aucun compteur, donc
+  il n'y a plus rien à rattacher. Le champ reste accepté par `POST /activities`
+  et garde son sens — une action menée délibérément au titre de la campagne.
+- **Q4 — écrit dans le handoff**, ainsi que dans SPEC-13 (décision D11),
+  SPEC-07 et `campaigns.feature`. Suite campagnes : 69/69, dont 7 contrôles
+  ajoutés.
+
+## Conséquence pour le front
+
+**Rien à développer.** Pas de champ « Campagne » au formulaire d'action, pas de
+pré-remplissage, pas d'avertissement sur un oubli irrattrapable. Une action
+saisie depuis la fiche compte dès qu'elle est marquée réalisée.
+
+## Vérification en direct
+
+Protocole rejoué le 03/09/2026 contre l'API en marche, en tant que Wiem
+(`SALES_REP`, Normandie), sur « Commune de Bayeux » (`access: FULL` — une fiche
+hors périmètre refuse l'écriture en `403`, ce qui est conforme).
+
+| Situation | `totals.activities` | Ligne organisme | Attendu |
+|---|---|---|---|
+| Action réalisée **avant** le ciblage | `0` | `0` | le passé n'est pas crédité ✅ |
+| Action planifiée, sans `campaignId` | `0` | `0` | une intention n'est pas un résultat ✅ |
+| La même, **réalisée**, sans `campaignId` | `1` | `1` | **le changement** ✅ |
+
+Les trois bornes se vérifient. Données de vérification supprimées après coup
+(deux actions et une campagne).
+
+> À noter au passage, sans rapport avec D11 : la suppression a dû être faite
+> avec le compte super-administrateur. `SALES_REP` reçoit `403` sur
+> `DELETE /activities/:id` comme sur `DELETE /campaigns/:id` — cohérent avec le
+> fait que l'écran de campagne n'offre pas de bouton Supprimer à un commercial
+> (recette US-01-11, ligne 23).
