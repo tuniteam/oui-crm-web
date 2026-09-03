@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { FormDatePicker } from '@/components/ui/form-date-picker';
 import {
   Select,
   SelectContent,
@@ -238,13 +239,13 @@ export function CreateUserBody({ hooks, open }: Props) {
                 <FormItem>
                   <FormLabel>{LABELS.EXPIRES_AT} *</FormLabel>
                   <FormControl>
-                    {/* `type="date"` rend exactement `YYYY-MM-DD` : le serveur
-                        refuse une date-heure ISO. */}
-                    <Input
-                      type="date"
-                      data-testid="user-expires-input"
+                    {/* Le calendrier de la charte. La valeur reste le jour
+                        `YYYY-MM-DD` : le serveur refuse une date-heure ISO. */}
+                    <FormDatePicker
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
                       disabled={isBusy}
-                      {...field}
+                      data-testid="user-expires-input"
                     />
                   </FormControl>
                   <FormMessage />

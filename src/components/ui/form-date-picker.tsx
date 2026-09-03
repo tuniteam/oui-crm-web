@@ -14,6 +14,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
+/** Amplitude des annees proposees, de part et d'autre de l'annee courante. */
+const YEAR_SPAN = 5;
+const THIS_YEAR = new Date().getFullYear();
+
 type Props = {
   /** Jour `YYYY-MM-DD`, la forme que le serveur attend. */
   value: string;
@@ -62,8 +66,15 @@ export function FormDatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
+        {/* Mois et annee en listes deroulantes : une fin de campagne ou une
+            fin d'affectation se posent souvent a un an de distance, et douze
+            clics sur la fleche pour y arriver ne sont pas une saisie. */}
         <Calendar
           mode="single"
+          captionLayout="dropdown"
+          startMonth={new Date(THIS_YEAR - YEAR_SPAN, 0)}
+          endMonth={new Date(THIS_YEAR + YEAR_SPAN, 11)}
+          defaultMonth={formatDateStringToDate(value) ?? undefined}
           selected={formatDateStringToDate(value) ?? undefined}
           onSelect={(date) => onChange(formatDateToValue(date))}
         />

@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { FormDatePicker } from '@/components/ui/form-date-picker';
 import {
   Select,
   SelectContent,
@@ -209,11 +210,11 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
                 <FormItem>
                   <FormLabel>{LABELS.EXPIRES_AT} *</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      data-testid="user-edit-expires-input"
+                    <FormDatePicker
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
                       disabled={isBusy || isCurrentUser}
-                      {...field}
+                      data-testid="user-edit-expires-input"
                     />
                   </FormControl>
                   <FormMessage />

@@ -53,6 +53,41 @@ const activityFixture = (over = {}) => ({
   ...over,
 });
 
+/**
+ * Choisit un jour dans un FormDatePicker, designe par son `data-testid`.
+ *
+ * Les champs de date ne sont plus des `input[type=date]` : c'est un bouton qui
+ * ouvre le calendrier de la charte, mois et annee en listes deroulantes. Un
+ * `fill()` ne s'y applique plus.
+ *
+ * Le bouton du jour porte comme nom accessible la date entiere en toutes
+ * lettres — « jeudi 31 decembre 2026 » — et non le seul numero, qui serait
+ * d'ailleurs ambigu avec les jours debordant du mois voisin.
+ */
+const pickDate = async (page, testId, iso) => {
+  const [year, month, day] = iso.split('-').map(Number);
+  await page.getByTestId(testId).click();
+
+  const calendar = page.locator('[data-slot="popover-content"]').last();
+  await calendar.waitFor({ timeout: 6000 });
+  await calendar.getByLabel('Choisir l’année').selectOption(String(year));
+  await calendar.getByLabel('Choisir le mois').selectOption(String(month - 1));
+
+  const nom = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+
+  // Le nom accessible peut porter un prefixe (« Aujourd'hui, ») : on cherche
+  // la date en sous-chaine plutot qu'en egalite.
+  await calendar
+    .getByRole('button', { name: nom, exact: false })
+    .first()
+    .click();
+};
+
 /** `GET /activities` seul : la liste des organismes reste celle du serveur. */
 const mockActivities = (page, data) =>
   page.route(
@@ -2640,8 +2675,8 @@ export const scenarios = [
       await page.getByTestId('campaign-name').waitFor({ timeout: 10000 });
 
       await page.getByTestId('campaign-name').fill('TEST période inversée');
-      await page.getByTestId('campaign-start').fill('2026-12-31');
-      await page.getByTestId('campaign-end').fill('2026-09-01');
+      await pickDate(page, 'campaign-start', '2026-12-31');
+      await pickDate(page, 'campaign-end', '2026-09-01');
 
       apiCalls(true);
       await page.getByTestId('campaign-submit').click();

@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { FormDatePicker } from '@/components/ui/form-date-picker';
 import { Textarea } from '@/components/ui/textarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import {
@@ -94,13 +95,14 @@ function Body({ hooks, campaign }: { hooks: Hooks; campaign: Campaign | null }) 
               <FormItem>
                 <FormLabel>{FIELDS.START}</FormLabel>
                 <FormControl>
-                  {/* `type="date"` rend exactement `YYYY-MM-DD`, la forme que
-                      le serveur attend. */}
-                  <Input
-                    type="date"
-                    {...field}
-                    data-testid="campaign-start"
+                  {/* Le calendrier de la charte, pas celui du navigateur :
+                      la valeur reste le jour `YYYY-MM-DD` que le serveur
+                      attend. */}
+                  <FormDatePicker
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
                     disabled={disabled}
+                    data-testid="campaign-start"
                   />
                 </FormControl>
                 <FormMessage />
@@ -115,11 +117,11 @@ function Body({ hooks, campaign }: { hooks: Hooks; campaign: Campaign | null }) 
               <FormItem>
                 <FormLabel>{FIELDS.END}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    data-testid="campaign-end"
+                  <FormDatePicker
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
                     disabled={disabled}
+                    data-testid="campaign-end"
                   />
                 </FormControl>
                 <FormMessage />
