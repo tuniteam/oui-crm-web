@@ -5,6 +5,10 @@
 > d'une déduction. L'**écran** vient de la maquette V8, qui fait foi pour les
 > dispositions, les parcours et les vocabulaires. Quand les deux se
 > contredisent, c'est le contrat qui gagne et l'écart est signalé ici.
+>
+> **Vérifié le 03/09/2026** contre l'API en marche : DTO lus, huit routes
+> appelées, une action créée puis supprimée sur le jeu de démonstration. Les
+> §3 bis et §6 ne viennent pas du handoff mais de ces appels.
 
 ---
 
@@ -118,6 +122,23 @@ sur ces types, et la réponse étant un `blob`, l'erreur se lit avec
 Durée de l'événement : `durationMin`, sinon `defaultDurationMin` du
 référentiel, sinon 60. Sans heure, événement journée entière.
 
+### Les limites de champs, lues dans les DTO
+
+Le handoff ne les donne pas ; elles viennent des validateurs.
+
+| Champ | Limite |
+|---|---|
+| `type`, `result` | 60 caractères, clé du référentiel |
+| `location` | 255 |
+| `report` | 4000 |
+| `durationMin` | entier de 1 à 1440 |
+| `time` | `HH:MM` strict, `00:00` à `23:59` |
+| `completedAt` | ISO 8601, vaut « maintenant » si absent |
+
+`status` est une énumération de **trois** valeurs : `PLANNED`, `DONE`,
+`CANCELLED`. « Réalisée » et « annulée » sont donc deux états distincts, pas un
+seul état terminal.
+
 ### Les vocabulaires viennent du référentiel, jamais du code
 
 Types dans `ACTIVITY_TYPE`, résultats dans `ACTIVITY_RESULT`, tous deux déjà
@@ -127,7 +148,59 @@ inconnu rend `400 INVALID_REFERENCE_VALUE`.
 C'est aussi là que vivent `ics` et `defaultDurationMin`, dans la `metadata` de
 chaque entrée.
 
-### L'agenda
+---
+
+## 3 bis. Ce que seuls les appels en direct ont montré
+
+Quatre points que ni le handoff ni les DTO ne disent, et dont trois sont des
+pièges d'affichage.
+
+### `nextActivityAt` est un horodatage, pas un jour
+
+L'action porte `date: "2026-10-15"`, une chaîne de jour. La marque recalculée
+sur la fiche, elle, vaut `"2026-10-15T00:00:00.000Z"` — **minuit UTC**.
+
+Un `toLocaleDateString` dessus affichera le **14 octobre** pour tout
+utilisateur à l'ouest de Greenwich. C'est le même piège de fuseau que `time`,
+à un endroit où on ne l'attend pas : il faut lire la partie jour de la chaîne,
+pas construire une date.
+
+### Supprimer une action ne rétablit pas le statut commercial
+
+Constaté : une fiche `TO_CONTACT` passée `MEETING_SCHEDULED` par la
+planification d'un rendez-vous **reste `MEETING_SCHEDULED`** après la
+suppression de cette action. Seul `nextActivityAt` retombe à `null`.
+
+Le handoff dit « marques recalculées » : ce sont bien les **marques**, pas le
+statut. L'écran ne doit donc pas laisser croire que supprimer annule la
+bascule — la fiche restera « RDV planifié » sans rendez-vous.
+
+### `initials` peut être nul
+
+L'exemple du handoff montre `"initials": "WB"`. En base, le compte utilisé rend
+`"initials": null`. Toute pastille d'avatar doit donc prévoir le cas, plutôt
+que de découper une chaîne absente.
+
+### `defaultDurationMin` ne suit pas `ics`
+
+Le référentiel du projet donne :
+
+| Type | `ics` | `defaultDurationMin` |
+|---|---|---|
+| RDV physique, Démonstration | `true` | 90 |
+| **Visioconférence** | `false` | 30 |
+| Appel, Email, Relance, Courrier | `false` | — |
+
+La visioconférence a une durée par défaut **sans** être exportable. Le bouton
+d'export se conditionne donc à `metadata.ics === true`, jamais à la présence
+d'une durée.
+
+L'export lui-même est conforme : `DTSTART:20261015T143000`, sans `Z` — heure
+flottante, comme annoncé.
+
+---
+
+## 3 ter. L'agenda
 
 `from` et `to` sont **obligatoires** — une requête par mois affiché. Les
 annulées n'apparaissent pas. `isLate` vient du serveur : une action planifiée à
@@ -207,10 +280,12 @@ comme « Planifier les relances » l'a été sur les campagnes ? L'omettre est p
 sûr — un enchaînement à deux appels peut réussir à moitié — mais c'est une
 commodité réelle pour un commercial qui sort d'un rendez-vous.
 
-**La suppression définitive.** Le contrat la réserve à l'administrateur et au
-directeur, et dit « marques recalculées ». Rien n'indique qu'elle soit bloquée
-par quoi que ce soit — pas d'équivalent du `409` des campagnes. À confirmer par
-un appel en direct avant de coder l'écran, plutôt que de le supposer.
+~~**La suppression définitive.**~~ **Tranchée.** Le service ne porte **aucun
+garde-fou** : pas d'équivalent du `409` des campagnes, quel que soit le statut
+de l'action. Elle supprime, recalcule les marques, et journalise. La question
+qu'elle soulève est ailleurs, et elle est d'interface : puisque la suppression
+ne rétablit pas le statut commercial (§3 bis), faut-il l'avertir dans la
+confirmation ? Je propose oui.
 
 ---
 
