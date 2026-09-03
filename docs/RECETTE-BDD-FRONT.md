@@ -13,29 +13,39 @@
 > **Aucun runner n'est câblé** — voir §Outillage. Ces scénarios valent
 > spécification et checklist de revue, pas build vert.
 
-Les onze US livrées côté API figurent ici. Celles dont l'écran front n'existe
+Toutes les US livrées côté API figurent ici. Celles dont l'écran front n'existe
 pas encore portent les scénarios **à couvrir** : elles servent de plan de
 travail, et la colonne Statut dit où on en est.
 
-| US | Domaine | Statut front |
-|---|---|---|
-| US-00-01 | Connexion, session, déconnexion | ✅ livré |
-| US-00-02 | Activation, mot de passe oublié, changement d'e-mail | ✅ livré |
-| US-00-03 | Profil | 🟡 livré ; volet légal écarté |
-| US-00-04 | Projets, mode projet | ✅ livré |
-| US-00-05 | Utilisateurs du projet | 🟡 tout est là sauf les surcharges de permissions |
-| US-00-06 | Rôles et droits | ❌ à développer |
-| US-00-07 | Périmètres | ❌ à développer |
-| US-00-08 | Paramètres du projet | 🟡 livré hors grille tarifaire |
-| US-00-09 | Référentiels | ❌ à développer |
-| US-00-10 | Journal d'activité | ❌ à développer |
-| US-00-11 | Comptes back-office | ✅ livré |
-| **US-01-01** | **Organismes — liste et recherche** | ✅ livré |
-| **US-01-03** | **Organismes — fiche et modification** | 🟡 Synthèse livrée ; onglet Contacts à développer |
+Le **lot** précède chaque référence d'US, ici comme dans les titres de section
+et dans les fichiers `.feature` : les numéros se répètent d'un lot à l'autre, et
+« US-04 » seul ne dit pas duquel il s'agit.
+
+| Lot | US | Domaine | Statut front |
+|---|---|---|---|
+| L0 | US-00-01 | Connexion, session, déconnexion | ✅ livré |
+| L0 | US-00-02 | Activation, mot de passe oublié, changement d'e-mail | ✅ livré ; **aucun scénario exécuté** |
+| L0 | US-00-03 | Profil | 🟡 livré, volet légal écarté ; **aucun scénario exécuté** |
+| L0 | US-00-04 | Projets, mode projet | ✅ livré |
+| L0 | US-00-05 | Utilisateurs du projet | 🟡 tout est là sauf les surcharges de permissions |
+| L0 | US-00-06 | Rôles et droits | ❌ à développer |
+| L0 | US-00-07 | Périmètres | ✅ livré |
+| L0 | US-00-08 | Paramètres du projet | 🟡 livré hors grille tarifaire |
+| L0 | US-00-09 | Référentiels | ✅ livré |
+| L0 | US-00-10 | Journal d'activité | ❌ à développer |
+| L0 | US-00-11 | Comptes back-office | ✅ livré |
+| **L1** | **US-01-01** | **Organismes — liste et recherche** | ✅ livré |
+| **L1** | **US-01-02** | **Organismes — création** | ✅ livré |
+| **L1** | **US-01-03** | **Organismes — fiche et modification** | 🟡 Synthèse livrée ; onglets L2/L4 à venir |
+| **L1** | **US-01-04** | **Organismes — contacts** | ✅ livré |
+| **L1** | **US-01-13** | **Organismes — suppression** | ✅ livré |
+| **L1** | **US-01-05** | **Actions groupées** | ❌ à développer — `POST /organizations/bulk` est livrée côté API |
+| **L1** | **US-01-08** | **Actions commerciales** | ❌ à développer |
+| **L1** | **US-01-11** | **Campagnes** | 🟡 lecture et création livrées ; la cible reste à faire |
 
 ---
 
-## US-00-01 · Connexion, session, déconnexion
+## L0 · US-00-01 · Connexion, session, déconnexion
 
 ### Validation du formulaire
 
@@ -88,7 +98,7 @@ travail, et la colonne Statut dit où on en est.
 
 ---
 
-## US-00-02 · Activation, mot de passe oublié, changement d'e-mail
+## L0 · US-00-02 · Activation, mot de passe oublié, changement d'e-mail
 
 ### Activation d'un compte
 
@@ -122,7 +132,7 @@ travail, et la colonne Statut dit où on en est.
 
 ---
 
-## US-00-03 · Profil
+## L0 · US-00-03 · Profil
 
 | # | Scénario | Attendu |
 |---|---|---|
@@ -139,7 +149,7 @@ travail, et la colonne Statut dit où on en est.
 
 ---
 
-## US-00-04 · Projets et mode projet
+## L0 · US-00-04 · Projets et mode projet
 
 ### Atterrissage et accès
 
@@ -189,7 +199,7 @@ travail, et la colonne Statut dit où on en est.
 
 ---
 
-## US-00-05 · Utilisateurs du projet — 🟡 création et modification remises au contrat
+## L0 · US-00-05 · Utilisateurs du projet — 🟡 création et modification remises au contrat
 
 Les payloads d'écriture étaient hérités de soft-m et **échouaient à 100 %** :
 `roleId` au lieu de `roleCode`, `initials` et `isExternal` absents, `status`
@@ -258,7 +268,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-00-06 · Rôles et droits — ❌ à développer
+## L0 · US-00-06 · Rôles et droits — ❌ à développer
 
 | # | Scénario | Attendu |
 |---|---|---|
@@ -274,7 +284,7 @@ Restent à développer les surcharges de permissions et la correction d'e-mail.
 
 ---
 
-## US-00-07 · Périmètres — 🟢 livré
+## L0 · US-00-07 · Périmètres — 🟢 livré
 
 Panneau de Paramètres, comme les Référentiels. Un périmètre est du **contrôle
 d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
@@ -319,7 +329,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 
 ---
 
-## US-00-08 · Paramètres du projet
+## L0 · US-00-08 · Paramètres du projet
 
 ### Navigation
 
@@ -368,7 +378,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 
 ---
 
-## US-00-09 · Référentiels — ❌ à développer
+## L0 · US-00-09 · Référentiels — ❌ à développer
 
 | # | Scénario | Attendu |
 |---|---|---|
@@ -383,7 +393,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 
 ---
 
-## US-00-10 · Journal d'activité — ❌ à développer
+## L0 · US-00-10 · Journal d'activité — ❌ à développer
 
 | # | Scénario | Attendu |
 |---|---|---|
@@ -395,7 +405,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 
 ---
 
-## US-00-11 · Comptes back-office
+## L0 · US-00-11 · Comptes back-office
 
 ### Accès
 
@@ -435,7 +445,7 @@ d'accès** : il décide de ce qu'un utilisateur voit dans la base d'organismes.
 
 ---
 
-## US-01-01 · Organismes, liste et recherche — 🟢 livré
+## L1 · US-01-01 · Organismes, liste et recherche — 🟢 livré
 
 Première story du lot L1. La liste reprend les onze colonnes de l'écran
 Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
@@ -508,7 +518,7 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 
 ---
 
-## US-01-02 · Créer un organisme — 🟢 livré
+## L1 · US-01-02 · Créer un organisme — 🟢 livré
 
 Fenêtre `openCreateOrg` de la V8, ses deux chemins : la recherche au registre
 officiel, qui pré-remplit la saisie, et la saisie manuelle.
@@ -574,7 +584,7 @@ officiel, qui pré-remplit la saisie, et la saisie manuelle.
 
 ---
 
-## US-01-04 · Les contacts d'un organisme — 🟢 livré
+## L1 · US-01-04 · Les contacts d'un organisme — 🟢 livré
 
 Onglet Contacts du panneau, deuxième onglet de la fiche. Les contacts sont les
 **détails** d'une fiche : ils exigent partout un accès géographique complet.
@@ -634,7 +644,7 @@ Onglet Contacts du panneau, deuxième onglet de la fiche. Les contacts sont les
 
 ---
 
-## US-01-13 · Supprimer un organisme — 🟢 livré
+## L1 · US-01-13 · Supprimer un organisme — 🟢 livré
 
 Suppression **logique** : la fiche disparaît des lectures, la ligne demeure en
 base. La purge définitive relève du RGPD (US-06-01).
@@ -668,7 +678,53 @@ base. La purge définitive relève du RGPD (US-06-01).
 
 ---
 
-## US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
+## L1 · US-01-11 · Campagnes — 🟡 lecture et création livrées
+
+Écran `RENDER.campagnes` de la maquette : des cartes, deux par ligne, chacune
+portant son ciblage et ses quatre mesures.
+
+| # | Scénario | Attendu | État |
+|---|---|---|---|
+| 1 | Liste | des cartes, avec responsable, période et statut | couvert |
+| 2 | Sans campagne | message expliquant à quoi sert une campagne | couvert |
+| 3 | Critères de ciblage | affichés comme une **note**, jamais comme un filtre actif — la cible est figée | couvert |
+| 4 | Quatre mesures | rendues par l'API (`results`), jamais recalculées ; les trois du L2 restent à zéro et l'écran le dit | couvert |
+| 5 | Filtrer par statut | `status` transmis au serveur | à couvrir |
+| 6 | Créer | nom obligatoire, période facultative | couvert |
+| 7 | Période inversée | refusée **avant envoi** — le serveur rendrait `400 INVALID_DATA` | couvert |
+| 8 | Nom déjà pris | `409 CAMPAIGN_NAME_EXISTS` : message sous le champ, fenêtre maintenue | couvert |
+| 9 | Transitions de statut | seules les transitions légales sont proposées : `DRAFT → ACTIVE → CLOSED`, et une close se rouvre | couvert |
+| 10 | Transition refusée | `409 INVALID_STATUS_TRANSITION` : la liste est rechargée, l'écran ayant divergé | à couvrir |
+| 11 | Modifier | champs effaçables par `null` ; le nom jamais | à couvrir |
+| 12 | Sans `campaigns:create` | pas de bouton de création | à couvrir |
+| 13 | La cible | panneau « Voir les N organismes », ajout et retrait | à développer |
+| 14 | Ajout à la cible | `added` / `alreadyIn` / `skipped` rendus **tous les trois** | à développer |
+| 15 | Effet sur le statut commercial | une fiche `NOT_CONTACTED` ciblée passe `TO_CONTACT` : la liste des organismes doit être invalidée | à développer |
+| 16 | Supprimer | refusée si un périmètre cite la campagne, avec les périmètres nommés | à développer |
+
+### Pièges relevés pendant le développement
+
+- **La cible est figée, les critères sont documentaires.** La maquette met six
+  filtres de ciblage dans la fenêtre de création, ce qui promettrait une cible
+  qui se recalcule. Elle ne se recalcule pas : `criteria` dit seulement comment
+  la liste a été construite. Le champ est donc absent du formulaire, et l'écran
+  annonce que la cible se remplit après la création.
+- **Les quatre mesures viennent du serveur.** La maquette les calcule dans le
+  navigateur en parcourant les organismes ; ici elles sont dans `results`,
+  calculées à la demande. Au L1 seul `activities` est alimenté — les trois
+  autres restent à zéro **sans changement de contrat à venir**, donc on les
+  affiche en le disant plutôt que de les masquer.
+- **Seules les transitions légales sont proposées.** `DRAFT → ACTIVE →
+  CLOSED`, et une campagne close se rouvre. Tout autre mouvement, **le statut
+  identique compris**, rend `409`. Offrir les trois statuts et traduire le
+  refus aurait fait cliquer pour rien.
+- **« Planifier les relances » de la maquette n'a pas de route.** Planifier
+  relève de `/activities` (L1 · US-01-08), livrée côté API mais sans écran. Le
+  bouton est absent tant que cet écran n'existe pas.
+
+---
+
+## L1 · US-01-03 · Organismes, fiche et modification — 🟡 Synthèse livrée
 
 Panneau latéral, onglet Synthèse — le `openDrawer` de la V8. Les onglets
 Actions, Commercial, Client et Support attendent l'US-01-08 et les lots L2/L4.
@@ -762,83 +818,89 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 11:54. 74/74 OK._
+_Généré par `npm run bdd` — 2026-09-03 12:21. 80/80 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
 |---|---|---|---|---|
-| US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/01-01-2.png` |
-| US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/01-01-5.png` |
-| US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/01-01-7.png` |
-| US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/01-01-13.png` |
-| US-01-01 | 01-01.14 | Les filtres de la V8 partent au serveur, et se réinitialisent | OK | `screenshots/01-01-14.png` |
-| US-01-01 | 01-01.15 | Solution et étiquette se choisissent dans les référentiels | OK | `screenshots/01-01-15.png` |
-| US-01-02 | 01-02.1 | La fenêtre s'ouvre sur la recherche officielle | OK | `screenshots/01-02-1.png` |
-| US-01-02 | 01-02.2 | Une recherche trop courte ne part pas | OK | `screenshots/01-02-2.png` |
-| US-01-02 | 01-02.3 | Un résultat du registre pré-remplit la saisie | OK | `screenshots/01-02-3.png` |
-| US-01-02 | 01-02.6 | Registre indisponible : la saisie manuelle est proposée | OK | `screenshots/01-02-6.png` |
-| US-01-02 | 01-02.8 | Trois champs obligatoires, refusés avant envoi | OK | `screenshots/01-02-8.png` |
-| US-01-02 | 01-02.9 | La ville n'est pas obligatoire, contrairement à la V8 | OK | `screenshots/01-02-9.png` |
-| US-01-02 | 01-02.13 | Doublon probable : les candidats de meta sont proposés | OK | `screenshots/01-02-13.png` |
-| US-01-02 | 01-02.14 | Confirmer un doublon rejoue la requête avec force | OK | `screenshots/01-02-14.png` |
-| US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/01-03-1.png` |
-| US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/01-03-3.png` |
-| US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/01-03-6.png` |
-| US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/01-03-10.png` |
-| US-01-03 | 01-03.11 | La fiche montre l’éditeur de la solution et ses dates | OK | `screenshots/01-03-11.png` |
-| US-01-03 | 01-03.12 | Fiche introuvable : le panneau le dit et se referme | OK | `screenshots/01-03-12.png` |
-| US-01-04 | 01-04.2 | Les contacts s’affichent, le principal en tête | OK | `screenshots/01-04-2.png` |
-| US-01-04 | 01-04.7 | Fiche hors périmètre : le refus est expliqué, pas subi | OK | `screenshots/01-04-7.png` |
-| US-01-04 | 01-04.9 | Prénom et nom sont exigés, et le serveur le confirme | OK | `screenshots/01-04-9.png` |
-| US-01-04 | 01-04.15 | Suppression refusée : « Ne pas démarcher » est proposé | OK | `screenshots/01-04-15.png` |
-| US-01-04 | 01-04.18 | Les longueurs maximales sont celles des colonnes | OK | `screenshots/01-04-18.png` |
-| US-01-04 | 01-04.19 | Fiche disparue à l’écriture : message nommé, saisie conservée | OK | `screenshots/01-04-19.png` |
-| US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/01-13-3.png` |
-| US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/01-13-4.png` |
-| US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/01-13-5.png` |
-| US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/01-1.png` |
-| US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/01-2.png` |
-| US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/01-6.png` |
-| US-00-01 | 01.8 | Compte non actif : message dédié, sans mention de blocage | OK | `screenshots/01-8.png` |
-| US-00-01 | 01.9 | Compte verrouillé : compte à rebours, bouton désactivé | OK | `screenshots/01-9.png` |
-| US-00-01 | 01.11 | Le décompte suit meta.lockedUntil, jamais le texte | OK | `screenshots/01-11.png` |
-| US-00-01 | 01.22 | Page protégée sans jeton : redirection vers le login | OK | `screenshots/01-22.png` |
-| US-00-04 | 04.1 | Un back-office atterrit sur la liste des projets | OK | `screenshots/04-1.png` |
-| US-00-04 | 04.3 | La liste affiche projet, produit, statut et fonctionnalités | OK | `screenshots/04-3.png` |
-| US-00-04 | 04.11 | Projet inconnu : écran dédié, jamais de page blanche | OK | `screenshots/04-11.png` |
-| US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/04-13.png` |
-| US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/04-14.png` |
-| US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/04-16.png` |
-| US-00-04 | 04.18 | Le menu plateforme ne propose pas les utilisateurs de projet | OK | `screenshots/04-18.png` |
-| US-00-05 | 05.2 | Le filtre par rôle part bien dans la requête | OK | `screenshots/05-2.png` |
-| US-00-05 | 05.4 | Initiales hors format refusées avant envoi | OK | `screenshots/05-4.png` |
-| US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/05-8.png` |
-| US-00-05 | 05.14 | Le retrait n'est jamais présenté comme une suppression | OK | `screenshots/05-14.png` |
-| US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/05-15.png` |
-| US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/07-1.png` |
-| US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/07-3.png` |
-| US-00-07 | 07.4 | Un seul chemin vers les périmètres | OK | `screenshots/07-4.png` |
-| US-00-07 | 07.7 | Les régions viennent du serveur, jamais du code | OK | `screenshots/07-7.png` |
-| US-00-07 | 07.8 | Une région entière part sous son nom | OK | `screenshots/07-8.png` |
-| US-00-07 | 07.9 | Une région amputée part en départements explicites | OK | `screenshots/07-9.png` |
-| US-00-07 | 07.10 | Un périmètre affecté ne se supprime pas, et l’écran le dit | OK | `screenshots/07-10.png` |
-| US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/07-11.png` |
-| US-00-07 | 07.12 | Le périmètre se choisit dès la création d’un utilisateur | OK | `screenshots/07-12.png` |
-| US-00-07 | 07.13 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/07-13.png` |
-| US-00-07 | 07.14 | Un périmètre mixte se recharge et se réenregistre à l’identique | OK | `screenshots/07-14.png` |
-| US-00-07 | 07.15 | Un périmètre libre se supprime | OK | `screenshots/07-15.png` |
-| US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/08-1.png` |
-| US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/08-4.png` |
-| US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/08-8.png` |
-| US-00-08 | 08.13 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/08-13.png` |
-| US-00-08 | 08.16 | Numérotation affichée en lecture seule | OK | `screenshots/08-16.png` |
-| US-00-09 | 09.1 | Une catégorie à la fois, choisie dans un sélecteur chiffré | OK | `screenshots/09-1.png` |
-| US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/09-4.png` |
-| US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/09-5.png` |
-| US-00-09 | 09.6 | Un glisser-déposer enregistre le nouvel ordre | OK | `screenshots/09-6.png` |
-| US-00-09 | 09.7 | Le libellé se renomme sur place | OK | `screenshots/09-7.png` |
-| US-00-09 | 09.8 | La recherche filtre et suspend le réordonnancement | OK | `screenshots/09-8.png` |
-| US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | OK | `screenshots/11-1.png` |
-| US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | OK | `screenshots/11-9.png` |
-| US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | OK | `screenshots/11-11.png` |
+| US-01-01 | 01-01.2 | Types, solutions et étiquettes affichés en libellés | OK | `screenshots/L1-01-01-2.png` |
+| US-01-01 | 01-01.5 | Le filtre « fiches incomplètes » envoie completenessMax=99 | OK | `screenshots/L1-01-01-5.png` |
+| US-01-01 | 01-01.7 | Une fiche hors périmètre est signalée et ses colonnes vidées | OK | `screenshots/L1-01-01-7.png` |
+| US-01-01 | 01-01.13 | L'action d'ouverture reste atteignable sans defilement | OK | `screenshots/L1-01-01-13.png` |
+| US-01-01 | 01-01.14 | Les filtres de la V8 partent au serveur, et se réinitialisent | OK | `screenshots/L1-01-01-14.png` |
+| US-01-01 | 01-01.15 | Solution et étiquette se choisissent dans les référentiels | OK | `screenshots/L1-01-01-15.png` |
+| US-01-02 | 01-02.1 | La fenêtre s'ouvre sur la recherche officielle | OK | `screenshots/L1-01-02-1.png` |
+| US-01-02 | 01-02.2 | Une recherche trop courte ne part pas | OK | `screenshots/L1-01-02-2.png` |
+| US-01-02 | 01-02.3 | Un résultat du registre pré-remplit la saisie | OK | `screenshots/L1-01-02-3.png` |
+| US-01-02 | 01-02.6 | Registre indisponible : la saisie manuelle est proposée | OK | `screenshots/L1-01-02-6.png` |
+| US-01-02 | 01-02.8 | Trois champs obligatoires, refusés avant envoi | OK | `screenshots/L1-01-02-8.png` |
+| US-01-02 | 01-02.9 | La ville n'est pas obligatoire, contrairement à la V8 | OK | `screenshots/L1-01-02-9.png` |
+| US-01-02 | 01-02.13 | Doublon probable : les candidats de meta sont proposés | OK | `screenshots/L1-01-02-13.png` |
+| US-01-02 | 01-02.14 | Confirmer un doublon rejoue la requête avec force | OK | `screenshots/L1-01-02-14.png` |
+| US-01-03 | 01-03.1 | La fiche s’ouvre avec ses valeurs, référentiels résolus | OK | `screenshots/L1-01-03-1.png` |
+| US-01-03 | 01-03.3 | Enregistrer sans modification n’appelle pas l’API | OK | `screenshots/L1-01-03-3.png` |
+| US-01-03 | 01-03.6 | Les deux statuts sont en lecture seule, avec leur raison | OK | `screenshots/L1-01-03-6.png` |
+| US-01-03 | 01-03.10 | Le panneau ne se ferme que par la croix ou par « Annuler » | OK | `screenshots/L1-01-03-10.png` |
+| US-01-03 | 01-03.11 | La fiche montre l’éditeur de la solution et ses dates | OK | `screenshots/L1-01-03-11.png` |
+| US-01-03 | 01-03.12 | Fiche introuvable : le panneau le dit et se referme | OK | `screenshots/L1-01-03-12.png` |
+| US-01-04 | 01-04.2 | Les contacts s’affichent, le principal en tête | OK | `screenshots/L1-01-04-2.png` |
+| US-01-04 | 01-04.7 | Fiche hors périmètre : le refus est expliqué, pas subi | OK | `screenshots/L1-01-04-7.png` |
+| US-01-04 | 01-04.9 | Prénom et nom sont exigés, et le serveur le confirme | OK | `screenshots/L1-01-04-9.png` |
+| US-01-04 | 01-04.15 | Suppression refusée : « Ne pas démarcher » est proposé | OK | `screenshots/L1-01-04-15.png` |
+| US-01-04 | 01-04.18 | Les longueurs maximales sont celles des colonnes | OK | `screenshots/L1-01-04-18.png` |
+| US-01-04 | 01-04.19 | Fiche disparue à l’écriture : message nommé, saisie conservée | OK | `screenshots/L1-01-04-19.png` |
+| US-01-11 | 01-11.1 | Les campagnes s’affichent en cartes, avec leurs mesures | OK | `screenshots/L1-01-11-1.png` |
+| US-01-11 | 01-11.2 | Sans campagne, l’écran explique à quoi elles servent | OK | `screenshots/L1-01-11-2.png` |
+| US-01-11 | 01-11.6 | Créer : le nom suffit, la période est facultative | OK | `screenshots/L1-01-11-6.png` |
+| US-01-11 | 01-11.7 | Une période inversée est refusée avant envoi | OK | `screenshots/L1-01-11-7.png` |
+| US-01-11 | 01-11.8 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/L1-01-11-8.png` |
+| US-01-11 | 01-11.9 | Seules les transitions de statut légales sont proposées | OK | `screenshots/L1-01-11-9.png` |
+| US-01-13 | 01-13.3 | La fenêtre annonce une suppression logique, pas un effacement | OK | `screenshots/L1-01-13-3.png` |
+| US-01-13 | 01-13.4 | Confirmer supprime et referme le panneau | OK | `screenshots/L1-01-13-4.png` |
+| US-01-13 | 01-13.5 | Renoncer ne supprime rien | OK | `screenshots/L1-01-13-5.png` |
+| US-00-01 | 01.1 | Formulaire vide : deux messages, aucun appel | OK | `screenshots/L0-01-1.png` |
+| US-00-01 | 01.2 | E-mail malformé refusé avant envoi | OK | `screenshots/L0-01-2.png` |
+| US-00-01 | 01.6 | Mot de passe faux : message unique, aucun jeton | OK | `screenshots/L0-01-6.png` |
+| US-00-01 | 01.8 | Compte non actif : message dédié, sans mention de blocage | OK | `screenshots/L0-01-8.png` |
+| US-00-01 | 01.9 | Compte verrouillé : compte à rebours, bouton désactivé | OK | `screenshots/L0-01-9.png` |
+| US-00-01 | 01.11 | Le décompte suit meta.lockedUntil, jamais le texte | OK | `screenshots/L0-01-11.png` |
+| US-00-01 | 01.22 | Page protégée sans jeton : redirection vers le login | OK | `screenshots/L0-01-22.png` |
+| US-00-04 | 04.1 | Un back-office atterrit sur la liste des projets | OK | `screenshots/L0-04-1.png` |
+| US-00-04 | 04.3 | La liste affiche projet, produit, statut et fonctionnalités | OK | `screenshots/L0-04-3.png` |
+| US-00-04 | 04.11 | Projet inconnu : écran dédié, jamais de page blanche | OK | `screenshots/L0-04-11.png` |
+| US-00-04 | 04.13 | Le menu bascule sur les cinq groupes de la V8 | OK | `screenshots/L0-04-13.png` |
+| US-00-04 | 04.14 | Chaque appel scopé porte x-project-id | OK | `screenshots/L0-04-14.png` |
+| US-00-04 | 04.16 | Un écran non livré affiche l’attente, sans être grisé | OK | `screenshots/L0-04-16.png` |
+| US-00-04 | 04.18 | Le menu plateforme ne propose pas les utilisateurs de projet | OK | `screenshots/L0-04-18.png` |
+| US-00-05 | 05.2 | Le filtre par rôle part bien dans la requête | OK | `screenshots/L0-05-2.png` |
+| US-00-05 | 05.4 | Initiales hors format refusées avant envoi | OK | `screenshots/L0-05-4.png` |
+| US-00-05 | 05.8 | Accès externe : la date de fin reste visible et atteignable | OK | `screenshots/L0-05-8.png` |
+| US-00-05 | 05.14 | Le retrait n'est jamais présenté comme une suppression | OK | `screenshots/L0-05-14.png` |
+| US-00-05 | 05.15 | Après un retrait, on revient à la liste du projet | OK | `screenshots/L0-05-15.png` |
+| US-00-07 | 07.1 | Les périmètres se lisent, avec leurs trois axes | OK | `screenshots/L0-07-1.png` |
+| US-00-07 | 07.3 | Un périmètre sans restriction dit « France entière » | OK | `screenshots/L0-07-3.png` |
+| US-00-07 | 07.4 | Un seul chemin vers les périmètres | OK | `screenshots/L0-07-4.png` |
+| US-00-07 | 07.7 | Les régions viennent du serveur, jamais du code | OK | `screenshots/L0-07-7.png` |
+| US-00-07 | 07.8 | Une région entière part sous son nom | OK | `screenshots/L0-07-8.png` |
+| US-00-07 | 07.9 | Une région amputée part en départements explicites | OK | `screenshots/L0-07-9.png` |
+| US-00-07 | 07.10 | Un périmètre affecté ne se supprime pas, et l’écran le dit | OK | `screenshots/L0-07-10.png` |
+| US-00-07 | 07.11 | Le périmètre s’affecte depuis la fiche utilisateur | OK | `screenshots/L0-07-11.png` |
+| US-00-07 | 07.12 | Le périmètre se choisit dès la création d’un utilisateur | OK | `screenshots/L0-07-12.png` |
+| US-00-07 | 07.13 | Un nom déjà pris se corrige dans le champ | OK | `screenshots/L0-07-13.png` |
+| US-00-07 | 07.14 | Un périmètre mixte se recharge et se réenregistre à l’identique | OK | `screenshots/L0-07-14.png` |
+| US-00-07 | 07.15 | Un périmètre libre se supprime | OK | `screenshots/L0-07-15.png` |
+| US-00-08 | 08.1 | La navigation ne liste que les panneaux réels | OK | `screenshots/L0-08-1.png` |
+| US-00-08 | 08.4 | Le panneau ouvert est porte par l'URL | OK | `screenshots/L0-08-4.png` |
+| US-00-08 | 08.8 | SIREN invalide refusé avant envoi | OK | `screenshots/L0-08-8.png` |
+| US-00-08 | 08.13 | Gagnée et Perdue sont figées et désactivées | OK | `screenshots/L0-08-13.png` |
+| US-00-08 | 08.16 | Numérotation affichée en lecture seule | OK | `screenshots/L0-08-16.png` |
+| US-00-09 | 09.1 | Une catégorie à la fois, choisie dans un sélecteur chiffré | OK | `screenshots/L0-09-1.png` |
+| US-00-09 | 09.4 | La clé est normalisée en majuscules à la saisie | OK | `screenshots/L0-09-4.png` |
+| US-00-09 | 09.5 | Une valeur inactive reste affichée, en retrait | OK | `screenshots/L0-09-5.png` |
+| US-00-09 | 09.6 | Un glisser-déposer enregistre le nouvel ordre | OK | `screenshots/L0-09-6.png` |
+| US-00-09 | 09.7 | Le libellé se renomme sur place | OK | `screenshots/L0-09-7.png` |
+| US-00-09 | 09.8 | La recherche filtre et suspend le réordonnancement | OK | `screenshots/L0-09-8.png` |
+| US-00-11 | 11.1 | Les opérateurs s’affichent sans projet sélectionné | OK | `screenshots/L0-11-1.png` |
+| US-00-11 | 11.9 | Les rôles viennent de l’API, aucun code en dur | OK | `screenshots/L0-11-9.png` |
+| US-00-11 | 11.11 | E-mail déjà pris : message, fenêtre maintenue | OK | `screenshots/L0-11-11.png` |
 <!-- bdd:auto:end -->

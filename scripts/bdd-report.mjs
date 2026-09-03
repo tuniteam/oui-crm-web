@@ -99,7 +99,8 @@ const sectionsHtml = sections
     return `
       <section>
         <h2>
-          <span class="us">${esc(section.us)}</span>
+          <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+          <span class="us">${esc(section.lot)} · ${esc(section.us)}</span>
           ${esc(section.title)}
           <span class="counts">${p}/${n} OK${f ? ` · ${f} KO` : ''}</span>
         </h2>

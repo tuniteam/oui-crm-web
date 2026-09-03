@@ -9,7 +9,7 @@ Feature: Valeurs de référentiel d’un projet (L0 · US-00-09)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-09 · Référentiels
+  # ── L0 · US-00-09 · Référentiels
 
   @ok
   Scenario: Affichage

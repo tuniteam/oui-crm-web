@@ -9,7 +9,7 @@ Feature: Profil, accès aux projets et acceptation légale (L0 · US-00-03)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-03 · Profil
+  # ── L0 · US-00-03 · Profil
 
   @a-couvrir
   Scenario: Affichage

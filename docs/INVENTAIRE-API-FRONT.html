@@ -69,17 +69,18 @@
     </p>
     <div class="kpi">
       <div><b>169</b><span>routes inventoriées</span></div>
-      <div><b>45</b><span>consommées par le front</span></div>
-      <div><b>124</b><span>non consommées</span></div>
-      <div><b>27%</b><span>de couverture</span></div>
+      <div><b>50</b><span>consommées par le front</span></div>
+      <div><b>119</b><span>non consommées</span></div>
+      <div><b>30%</b><span>de couverture</span></div>
     </div>
   </header>
 
 <section>
-  <h2>Socle <span class="count">35 / 62 routes côté front · 12 US</span></h2>
+  <h2>Socle <span class="count">40 / 62 routes côté front · 12 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-01</span>
         <span class="us-title">Se connecter, rester connecté, se déconnecter</span>
         <span class="api-state">Livrée 31/08</span>
         <span class="tag yes">3 / 3 côté front</span>
@@ -116,7 +117,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-02</span>
         <span class="us-title">Activer mon compte, réinitialiser mon mot de passe, changer d'email</span>
         <span class="api-state">Livrée 31/08</span>
         <span class="tag yes">7 / 7 côté front</span>
@@ -185,7 +187,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-03</span>
         <span class="us-title">Voir mes projets et mes accès, choisir mon projet</span>
         <span class="api-state">Livrée 31/08</span>
         <span class="tag part">5 / 6 côté front</span>
@@ -246,7 +249,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-04</span>
         <span class="us-title">Administrer les projets (backoffice)</span>
         <span class="api-state">Livrée 31/08</span>
         <span class="tag part">4 / 7 côté front</span>
@@ -315,7 +319,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-05</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-05</span>
         <span class="us-title">Gérer les utilisateurs de mon projet</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag part">6 / 7 côté front</span>
@@ -384,7 +389,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-06</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-06</span>
         <span class="us-title">Consulter et adapter les rôles</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag part">1 / 5 côté front</span>
@@ -437,10 +443,11 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-07</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-07</span>
         <span class="us-title">Gérer les périmètres géographiques</span>
         <span class="api-state">Livrée 01/09</span>
-        <span class="tag no">0 / 5 côté front</span>
+        <span class="tag yes">5 / 5 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -450,47 +457,48 @@
           <td class="u">/scopes</td>
           <td class="p">scopes:read [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SCOPES_API">SCOPES_API</span></td>
+          <td class="how"><ol><li>Ouvrir un projet</li><li>Administration</li><li>Paramètres</li><li>Périmètres</li></ol></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/scopes</td>
           <td class="p">scopes:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SCOPES_API">SCOPES_API</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Périmètres</li><li>Nouveau périmètre</li><li>Nommer et cocher des régions</li><li>Créer le périmètre</li></ol></td>
         </tr>
         <tr>
           <td><span class="m PATCH">PATCH</span></td>
           <td class="u">/scopes/:id</td>
           <td class="p">scopes:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SCOPE_API">SCOPE_API</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Périmètres</li><li>Modifier sur une carte</li><li>Enregistrer</li></ol></td>
         </tr>
         <tr>
           <td><span class="m DELETE">DELETE</span></td>
           <td class="u">/scopes/:id</td>
           <td class="p">scopes:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SCOPE_API">SCOPE_API</span></td>
+          <td class="how"><ol><li>Paramètres</li><li>Périmètres</li><li>Supprimer sur une carte</li><li>Confirmer — refusé tant qu’un utilisateur le porte</li></ol></td>
         </tr>
         <tr>
           <td><span class="m GET">GET</span></td>
           <td class="u">/geo/regions</td>
           <td class="p">scopes:read [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="GEO_REGIONS_API">GEO_REGIONS_API</span></td>
+          <td class="how"><span class="tag auto">automatique</span><p>Chargée à l’ouverture de la fenêtre de périmètre ; table statique, gardée en cache</p></td>
         </tr>
         </tbody>
       </table></div>
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-08</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-08</span>
         <span class="us-title">Régler mon projet</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag part">5 / 7 côté front</span>
@@ -559,7 +567,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-09</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-09</span>
         <span class="us-title">Administrer les référentiels</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag yes">3 / 3 côté front</span>
@@ -596,7 +605,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-10</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-10</span>
         <span class="us-title">Consulter le journal d'activité</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -625,7 +635,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-00-11</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L0 · US-00-11</span>
         <span class="us-title">Administrer les comptes backoffice (super admin)</span>
         <span class="api-state">Livrée 01/09</span>
         <span class="tag no">0 / 7 côté front</span>
@@ -694,7 +705,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">Transverse</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id"> · Transverse</span>
         <span class="us-title">Fichiers et santé</span>
         <span class="api-state">Livré (socle)</span>
         <span class="tag part">1 / 3 côté front</span>
@@ -734,7 +746,8 @@
   <h2>Base commerciale <span class="count">10 / 37 routes côté front · 14 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-01</span>
         <span class="us-title">Rechercher et lister les organismes</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag yes">1 / 1 côté front</span>
@@ -755,7 +768,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-02</span>
         <span class="us-title">Créer un organisme (registre officiel inclus)</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag yes">2 / 2 côté front</span>
@@ -784,7 +798,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-03</span>
         <span class="us-title">Consulter et modifier une fiche</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag yes">2 / 2 côté front</span>
@@ -813,7 +828,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-13</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-13</span>
         <span class="us-title">Supprimer un organisme</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag yes">1 / 1 côté front</span>
@@ -834,7 +850,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-04</span>
         <span class="us-title">Gérer les contacts d'un organisme</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag yes">4 / 4 côté front</span>
@@ -879,7 +896,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-08</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-08</span>
         <span class="us-title">Planifier et réaliser une action</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 6 côté front</span>
@@ -940,7 +958,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-09</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-09</span>
         <span class="us-title">Agenda et export ICS</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -969,7 +988,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-10</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-10</span>
         <span class="us-title">Kanban de prospection</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -998,7 +1018,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-11</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-11</span>
         <span class="us-title">Mener une campagne</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 9 côté front</span>
@@ -1083,7 +1104,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-05</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-05</span>
         <span class="us-title">Actions groupées</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1104,7 +1126,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-14</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-14</span>
         <span class="us-title">Importer un territoire (communes, EPCI)</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1133,7 +1156,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-06</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-06</span>
         <span class="us-title">Importer un fichier XLSX/CSV</span>
         <span class="api-state">Livrée 02/09</span>
         <span class="tag no">0 / 3 côté front</span>
@@ -1170,7 +1194,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-07</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-07</span>
         <span class="us-title">Exporter la base</span>
         <span class="api-state">Livrée 03/09</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1191,7 +1216,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-01-12</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L1 · US-01-12</span>
         <span class="us-title">Rechercher partout</span>
         <span class="api-state">Livrée 03/09</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1215,7 +1241,8 @@
   <h2>Cycle de vente <span class="count">0 / 26 routes côté front · 10 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-01</span>
         <span class="us-title">Gérer la grille tarifaire</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 4 côté front</span>
@@ -1260,7 +1287,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-02</span>
         <span class="us-title">Simuler un devis en temps réel</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1281,7 +1309,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-03</span>
         <span class="us-title">Créer et modifier un devis brouillon</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 5 côté front</span>
@@ -1334,7 +1363,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-04</span>
         <span class="us-title">Soumettre un devis</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1355,7 +1385,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-05</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-05</span>
         <span class="us-title">Valider ou refuser un devis en attente</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1384,7 +1415,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-06</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-06</span>
         <span class="us-title">Suivre la vie d'un devis</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1405,7 +1437,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-07</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-07</span>
         <span class="us-title">Signer un devis</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1434,7 +1467,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-08</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-08</span>
         <span class="us-title">Générer le devis PDF</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1463,7 +1497,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-09</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-09</span>
         <span class="us-title">Piloter le pipeline d'opportunités</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 7 côté front</span>
@@ -1532,7 +1567,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-02-10</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L2 · US-02-10</span>
         <span class="us-title">Devis additionnel et de renouvellement</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1556,7 +1592,8 @@
   <h2>Contractualisation <span class="count">0 / 13 routes côté front · 5 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-03-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L3 · US-03-01</span>
         <span class="us-title">Consulter les contrats et générer le contrat PDF</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 4 côté front</span>
@@ -1601,7 +1638,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-03-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L3 · US-03-02</span>
         <span class="us-title">Générer et compléter l'échéancier</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1630,7 +1668,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-03-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L3 · US-03-03</span>
         <span class="us-title">Suivre les factures et le dépôt Chorus Pro</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 4 côté front</span>
@@ -1675,7 +1714,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-03-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L3 · US-03-04</span>
         <span class="us-title">Préavis et résiliation</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1704,7 +1744,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-03-05</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L3 · US-03-05</span>
         <span class="us-title">Anticiper les renouvellements</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1728,7 +1769,8 @@
   <h2>Après-vente <span class="count">0 / 14 routes côté front · 4 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-04-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L4 · US-04-01</span>
         <span class="us-title">Piloter les déploiements</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 3 côté front</span>
@@ -1765,7 +1807,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-04-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L4 · US-04-02</span>
         <span class="us-title">Planifier et réaliser les formations</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 5 côté front</span>
@@ -1818,7 +1861,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-04-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L4 · US-04-03</span>
         <span class="us-title">Traiter les tickets de support</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 5 côté front</span>
@@ -1871,7 +1915,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-04-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L4 · US-04-04</span>
         <span class="us-title">Suivre le portefeuille clients</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>
@@ -1895,7 +1940,8 @@
   <h2>Pilotage <span class="count">0 / 13 routes côté front · 4 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-05-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L5 · US-05-01</span>
         <span class="us-title">Tableau de bord</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 2 côté front</span>
@@ -1924,7 +1970,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-05-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L5 · US-05-02</span>
         <span class="us-title">Statistiques et concurrence</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 4 côté front</span>
@@ -1969,7 +2016,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-05-03</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L5 · US-05-03</span>
         <span class="us-title">Exporter (registre d'exports)</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 4 côté front</span>
@@ -2014,7 +2062,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-05-04</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L5 · US-05-04</span>
         <span class="us-title">Être notifié</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 3 côté front</span>
@@ -2054,7 +2103,8 @@
   <h2>Administration et RGPD <span class="count">0 / 4 routes côté front · 2 US</span></h2>
     <article class="us">
       <h3>
-        <span class="us-id">US-06-01</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L6 · US-06-01</span>
         <span class="us-title">Purger les prospects hors délai, demande RGPD</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 3 côté front</span>
@@ -2091,7 +2141,8 @@
     </article>
     <article class="us">
       <h3>
-        <span class="us-id">US-06-02</span>
+        <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
+        <span class="us-id">L6 · US-06-02</span>
         <span class="us-title">Sauvegarder et restaurer</span>
         <span class="api-state">À faire</span>
         <span class="tag no">0 / 1 côté front</span>

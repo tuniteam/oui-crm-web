@@ -2436,6 +2436,284 @@ export const scenarios = [
     },
   },
 
+  // ─────────────────────────────── US-01-11
+  {
+    id: '01-11.1',
+    us: 'US-01-11',
+    title: 'Les campagnes s’affichent en cartes, avec leurs mesures',
+    needsProject: true,
+    gherkin: [
+      "Given des campagnes existent dans le projet",
+      "When j'ouvre l'écran « Campagnes »",
+      'Then chaque carte porte son responsable, sa période et son statut',
+      'And les critères de ciblage sont présentés comme une note',
+      'And les quatre mesures viennent du serveur',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [
+          {
+            id: 'c1',
+            name: 'Rentrée 89',
+            description: 'Cibler les communes de l’Yonne.',
+            status: 'ACTIVE',
+            owner: { id: 'u1', fullName: 'Wiem Bousaid', initials: 'WB' },
+            startDate: '2026-09-01',
+            endDate: '2026-12-31',
+            criteria: { department: '89' },
+            organizationsCount: 42,
+            results: { activities: 8, opportunities: 0, quotes: 0, signed: 0 },
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-card-c1').waitFor({ timeout: 15000 });
+      const card = await page.getByTestId('campaign-card-c1').innerText();
+
+      expect(card.includes('Wiem Bousaid'), 'le responsable n’est pas affiché');
+      expect(
+        card.includes('01/09/2026') && card.includes('31/12/2026'),
+        `la période n'est pas affichée : ${card}`,
+      );
+      expect(card.includes('En cours'), 'le statut n’est pas affiché en français');
+
+      // Les criteres sont documentaires : une note, pas un filtre actif.
+      expect(
+        card.includes('Critère de ciblage') && card.includes('department = 89'),
+        'les critères ne sont pas présentés comme une note',
+      );
+
+      // Les quatre mesures, rendues par le serveur. Les trois du L2 sont a
+      // zero, et l'ecran doit le dire au lieu de les masquer.
+      expect(
+        card.includes('8/42'),
+        `la mesure des actions n'est pas celle du serveur : ${card}`,
+      );
+      expect(
+        card.includes('Opportunités') && card.includes('Devis') && card.includes('Signés'),
+        'les mesures du lot L2 sont masquées au lieu d’être annoncées',
+      );
+      expect(
+        card.includes('lot L2'),
+        'rien n’explique pourquoi trois mesures restent à zéro',
+      );
+      expect(
+        card.includes('Voir les 42 organismes'),
+        'la taille de la cible n’est pas affichée',
+      );
+    },
+  },
+
+  {
+    id: '01-11.9',
+    us: 'US-01-11',
+    title: 'Seules les transitions de statut légales sont proposées',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne en brouillon, une en cours et une close',
+      "When je regarde leurs actions",
+      'Then le brouillon ne propose que « Lancer »',
+      'And celle en cours ne propose que « Clore »',
+      'And la close propose de la rouvrir',
+    ],
+    async run({ page, expect, projectId }) {
+      const base = {
+        description: null,
+        owner: null,
+        startDate: null,
+        endDate: null,
+        criteria: null,
+        organizationsCount: 0,
+        results: { activities: 0, opportunities: 0, quotes: 0, signed: 0 },
+      };
+      await mock(page, '/campaigns', 200, {
+        data: [
+          { ...base, id: 'draft', name: 'TEST brouillon', status: 'DRAFT' },
+          { ...base, id: 'active', name: 'TEST en cours', status: 'ACTIVE' },
+          { ...base, id: 'closed', name: 'TEST close', status: 'CLOSED' },
+        ],
+        meta: { total: 3, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-card-draft').waitFor({ timeout: 15000 });
+
+      const visible = (id) =>
+        page.getByTestId(id).isVisible().catch(() => false);
+
+      // `DRAFT → ACTIVE` seulement.
+      expect(await visible('campaign-to-ACTIVE-draft'), 'le brouillon ne propose pas d’être lancé');
+      expect(!(await visible('campaign-to-CLOSED-draft')), 'le brouillon propose d’être clos');
+
+      // `ACTIVE → CLOSED` seulement.
+      expect(await visible('campaign-to-CLOSED-active'), 'la campagne en cours ne propose pas d’être close');
+      expect(!(await visible('campaign-to-ACTIVE-active')), 'la campagne en cours propose son statut actuel');
+
+      // `CLOSED → ACTIVE` : une close se rouvre.
+      expect(await visible('campaign-to-ACTIVE-closed'), 'la campagne close ne peut pas être rouverte');
+    },
+  },
+
+  {
+    id: '01-11.7',
+    us: 'US-01-11',
+    title: 'Une période inversée est refusée avant envoi',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouvelle campagne »',
+      'When je saisis une fin antérieure au début',
+      'Then le message apparaît sous le champ de fin',
+      "And aucune création n'est envoyée",
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-add').click();
+      await page.getByTestId('campaign-name').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('campaign-name').fill('TEST période inversée');
+      await page.getByTestId('campaign-start').fill('2026-12-31');
+      await page.getByTestId('campaign-end').fill('2026-09-01');
+
+      apiCalls(true);
+      await page.getByTestId('campaign-submit').click();
+      await page.waitForTimeout(900);
+
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST /campaigns')),
+        `une création est partie avec une période inversée : ${apiCalls().join(', ')}`,
+      );
+      expect(
+        (await page.locator('body').innerText()).includes('La fin doit suivre le début'),
+        'la période inversée n’est pas signalée',
+      );
+    },
+  },
+
+  {
+    id: '01-11.6',
+    us: 'US-01-11',
+    title: 'Créer : le nom suffit, la période est facultative',
+    needsProject: true,
+    gherkin: [
+      'Given la fenêtre « Nouvelle campagne »',
+      'When je valide sans nom',
+      "Then le champ est signalé et aucune création n'est envoyée",
+      'When je renseigne le nom seul',
+      'Then la création part, sans période ni objectif',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      let sent = null;
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/campaigns'),
+        (route) => {
+          if (route.request().method() !== 'POST') return route.fallback();
+          sent = JSON.parse(route.request().postData() ?? '{}');
+          return route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 'cnew', name: sent.name }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-add').click();
+      await page.getByTestId('campaign-name').waitFor({ timeout: 10000 });
+
+      apiCalls(true);
+      await page.getByTestId('campaign-submit').click();
+      await page.waitForTimeout(900);
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST /campaigns')),
+        'une création est partie sans nom',
+      );
+
+      await page.getByTestId('campaign-name').fill('TEST nom seul');
+      await page.getByTestId('campaign-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(sent !== null, 'aucune création envoyée avec le nom seul');
+      // Champ vide non transmis : le serveur applique ses defauts.
+      expect(
+        sent && !('startDate' in sent) && !('description' in sent),
+        `des champs vides ont été transmis : ${JSON.stringify(sent)}`,
+      );
+    },
+  },
+
+  {
+    id: '01-11.8',
+    us: 'US-01-11',
+    title: 'Un nom déjà pris se corrige dans le champ',
+    needsProject: true,
+    gherkin: [
+      'Given une campagne portant déjà ce nom',
+      'When je crée une campagne du même nom',
+      'Then le message apparaît sous le champ « Nom »',
+      'And la fenêtre reste ouverte, la saisie intacte',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) => url.pathname.endsWith('/api/v1/campaigns'),
+        (route) =>
+          route.request().method() === 'POST'
+            ? route.fulfill({
+                status: 409,
+                contentType: 'application/json',
+                body: JSON.stringify(err(409, 'CAMPAIGN_NAME_EXISTS')),
+              })
+            : route.fallback(),
+      );
+
+      await page.goto(`/${projectId}/campaigns`);
+      await page.getByTestId('campaign-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('campaign-add').click();
+      await page.getByTestId('campaign-name').waitFor({ timeout: 10000 });
+
+      await page.getByTestId('campaign-name').fill('Rentrée 89');
+      await page.getByTestId('campaign-submit').click();
+      await page.waitForTimeout(1200);
+
+      expect(
+        (await page.locator('body').innerText()).includes('déjà utilisé'),
+        'le conflit de nom n’est pas signalé',
+      );
+      const kept = await page.getByTestId('campaign-name').inputValue();
+      expect(kept === 'Rentrée 89', `la saisie a été perdue : « ${kept} »`);
+    },
+  },
+
+  {
+    id: '01-11.2',
+    us: 'US-01-11',
+    title: 'Sans campagne, l’écran explique à quoi elles servent',
+    needsProject: true,
+    gherkin: [
+      "Given aucune campagne dans le projet",
+      "When j'ouvre l'écran",
+      'Then un message explique ce qu’une campagne apporte',
+    ],
+    async run({ page, expect, projectId }) {
+      await mock(page, '/campaigns', 200, {
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+
+      await page.goto(`/${projectId}/campaigns`);
+      const empty = page.getByTestId('campaigns-empty');
+      await empty.waitFor({ timeout: 15000 });
+      const text = await empty.innerText();
+      expect(
+        text.includes('cibler') && text.includes('mesurer'),
+        `le message n'explique pas l'intérêt : ${text}`,
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',

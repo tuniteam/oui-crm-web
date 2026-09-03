@@ -9,7 +9,7 @@ Feature: Comptes back-office (plateforme) (L0 · US-00-11)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-11 · Comptes back-office
+  # ── L0 · US-00-11 · Comptes back-office
 
   @ok
   Scenario: Sans projet sélectionné

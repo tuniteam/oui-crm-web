@@ -9,7 +9,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-01-01 · Organismes, liste et recherche
+  # ── L1 · US-01-01 · Organismes, liste et recherche
 
   @a-couvrir
   Scenario: Liste dans un projet
@@ -97,7 +97,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
   Scenario: Réinitialiser
     Then n'apparaît que si un filtre est actif, et les efface tous
 
-  # ── US-01-02 · Créer un organisme
+  # ── L1 · US-01-02 · Créer un organisme
 
   @ok
   Scenario: Ouverture
@@ -190,7 +190,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
   Scenario: Sans permission
     Then organizations:create absente : ni bouton, ni fenêtre
 
-  # ── US-01-03 · Organismes, fiche et modification
+  # ── L1 · US-01-03 · Organismes, fiche et modification
 
   @ok
   Scenario: Ouvrir une fiche
@@ -262,7 +262,7 @@ Feature: Base des organismes (L1 · US-01-01, US-01-02, US-01-03, US-01-13)
   Scenario: Fiche introuvable
     Then « Fiche introuvable », puis le panneau se referme — jamais un squelette qui attend
 
-  # ── US-01-13 · Supprimer un organisme
+  # ── L1 · US-01-13 · Supprimer un organisme
 
   @a-couvrir
   Scenario: Emplacement de l'action

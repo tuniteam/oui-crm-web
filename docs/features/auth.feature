@@ -9,7 +9,7 @@ Feature: Authentification, session et cycle de vie du compte (L0 · US-00-01, US
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-01 · Connexion, session, déconnexion
+  # ── L0 · US-00-01 · Connexion, session, déconnexion
 
   @ok
   Scenario: Formulaire vide
@@ -99,7 +99,7 @@ Feature: Authentification, session et cycle de vie du compte (L0 · US-00-01, US
   Scenario: Page protégée sans jeton
     Then redirection vers le login
 
-  # ── US-00-02 · Activation, mot de passe oublié, changement d'e-mail
+  # ── L0 · US-00-02 · Activation, mot de passe oublié, changement d'e-mail
 
   @a-couvrir
   Scenario: Lien valide

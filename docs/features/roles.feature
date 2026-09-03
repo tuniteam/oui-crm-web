@@ -9,7 +9,7 @@ Feature: Matrice des rôles d’un projet (L0 · US-00-06)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-06 · Rôles et droits
+  # ── L0 · US-00-06 · Rôles et droits
 
   @a-couvrir
   Scenario: Liste des rôles

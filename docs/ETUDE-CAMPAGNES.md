@@ -1,7 +1,7 @@
-# Étude — Couvrir les campagnes côté front (US-01-11)
+# Étude — Couvrir les campagnes côté front (L1 · US-01-11)
 
 **Date :** 2026-09-03
-**Règles :** `../oui-crm-api/docs/HANDOFF-L1.md` §US-01-11 et §US-01-05.
+**Règles :** `../oui-crm-api/docs/HANDOFF-L1.md` §L1 · US-01-11 et §L1 · US-01-05.
 **Écran :** `docs/OuiCRM_V8.html` (`RENDER.campagnes`, `openCampaignModal`).
 
 > La maquette donne des dispositions, des libellés et des parcours — **jamais
@@ -119,7 +119,7 @@ serveur rend, on ne recalcule pas.
 Deux écarts à assumer, dans la lignée de ce qui a été fait sur les organismes :
 
 - **« Planifier les relances »** : le bouton n'a pas de route de campagne
-  derrière lui. Planifier une action relève de `/activities` (US-01-08, livrée
+  derrière lui. Planifier une action relève de `/activities` (L1 · US-01-08, livrée
   côté API, sans écran). Le bouton n'a donc pas sa place tant que cet écran
   n'existe pas.
 - **Le ciblage de la fenêtre de création** propose six filtres pour construire
@@ -184,7 +184,7 @@ dissociation. Deux options :
 1. **Nommer et s'arrêter** : « Cette campagne est utilisée par les périmètres X
    et Y. Détachez-la avant de la supprimer. » Honnête, mais l'utilisateur n'a
    nulle part où aller.
-2. **Développer US-00-07 (périmètres) d'abord** : cinq routes livrées, aucun
+2. **Développer L0 · US-00-07 (périmètres) d'abord** : cinq routes livrées, aucun
    écran. La dissociation devient alors possible et la boucle se referme.
 
 C'était le seul arbitrage produit de cette étude. **Il est tranché** : les
@@ -203,7 +203,7 @@ la suit.
 les périmètres et s'arrêter là. C'est un cas rare, et il vaut mieux un message
 exact qu'un écran de périmètres bâclé pour l'occasion.
 
-**`ADD_TO_CAMPAIGN` depuis la liste d'organismes** (US-01-05) est le complément
+**`ADD_TO_CAMPAIGN` depuis la liste d'organismes** (L1 · US-01-05) est le complément
 naturel de la tranche B, et il apporte avec lui les quatre autres actions
 groupées. À traiter comme une US à part entière, pas comme un appendice.
 
@@ -211,7 +211,7 @@ groupées. À traiter comme une US à part entière, pas comme un appendice.
 
 ## 8. À corriger avant de commencer
 
-- La recette front affirme qu'US-01-05 n'est pas livrée côté API. Elle l'est.
-- La ligne « Filtre par commercial » de US-01-01 reste bloquée sur le même
+- La recette front affirme qu'L1 · US-01-05 n'est pas livrée côté API. Elle l'est.
+- La ligne « Filtre par commercial » de L1 · US-01-01 reste bloquée sur le même
   besoin — la liste des membres du projet — que le sélecteur de responsable ici.
   Les deux se débloquent ensemble.

@@ -9,7 +9,7 @@ Feature: Administration des projets (L0 · US-00-04)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-00-04 · Projets et mode projet
+  # ── L0 · US-00-04 · Projets et mode projet
 
   @ok
   Scenario: Un back-office se connecte

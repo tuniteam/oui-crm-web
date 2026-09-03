@@ -1,4 +1,4 @@
-# Étude — Couvrir les périmètres côté front (US-00-07)
+# Étude — Couvrir les périmètres côté front (L0 · US-00-07)
 
 **Date :** 2026-09-03
 **Règles :** `../oui-crm-api/docs/HANDOFF-L0.md` §US-00-07 et §US-00-05,
@@ -23,9 +23,9 @@ d'organismes. Trois manques en dépendent directement :
 
 | Ce qui est bloqué | Où | Ce qu'il manque |
 |---|---|---|
-| Affecter un périmètre à un utilisateur | US-00-05, fiche utilisateur | il faut une liste de périmètres à proposer |
-| Supprimer une campagne citée par un périmètre | US-01-11, décision D7 | il faut pouvoir dissocier |
-| Comprendre pourquoi une fiche est « hors de votre périmètre » | US-01-01, déjà livré | l'utilisateur voit la mention, sans jamais voir le périmètre |
+| Affecter un périmètre à un utilisateur | L0 · US-00-05, fiche utilisateur | il faut une liste de périmètres à proposer |
+| Supprimer une campagne citée par un périmètre | L1 · US-01-11, décision D7 | il faut pouvoir dissocier |
+| Comprendre pourquoi une fiche est « hors de votre périmètre » | L1 · US-01-01, déjà livré | l'utilisateur voit la mention, sans jamais voir le périmètre |
 
 Le troisième point est le plus parlant : l'écran des organismes affiche déjà
 « hors de votre périmètre » sur des lignes en projection restreinte, et
@@ -161,7 +161,7 @@ La V8 en fait un **panneau de Paramètres** (`SETPANE.perimetres`). Notre menu
 projet porte une entrée **Périmètres** distincte, aujourd'hui routée vers
 l'écran d'attente.
 
-C'est exactement la situation des **Référentiels**, tranchée en US-00-08 :
+C'est exactement la situation des **Référentiels**, tranchée en L0 · US-00-08 :
 l'entrée de menu redirige vers le panneau de Paramètres. Reprendre ce traitement
 donne une application cohérente et évite un cinquième écran de premier niveau.
 
@@ -193,7 +193,7 @@ Routes : `POST /scopes`, `PATCH /scopes/:id`.
 ### Tranche C — Supprimer, et affecter
 
 La suppression avec son refus, **et** le sélecteur de périmètre sur la fiche
-utilisateur — c'est le déblocage attendu d'US-00-05, et il ne coûte qu'un
+utilisateur — c'est le déblocage attendu de L0 · US-00-05, et il ne coûte qu'un
 `<Select>` une fois la liste disponible.
 
 Routes : `DELETE /scopes/:id`, plus `scopeId` dans `PATCH /users/:id`.

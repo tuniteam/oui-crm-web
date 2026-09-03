@@ -9,7 +9,7 @@ Feature: Contacts d’un organisme (L1 · US-01-04)
   # @ok / @ko  : scénario exécuté par `npm run bdd`
   # @a-couvrir : décrit, pas encore automatisé
 
-  # ── US-01-04 · Les contacts d'un organisme
+  # ── L1 · US-01-04 · Les contacts d'un organisme
 
   @a-couvrir
   Scenario: Onglet
