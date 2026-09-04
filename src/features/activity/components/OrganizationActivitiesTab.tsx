@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CalendarClock, CirclePlus } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toneOf } from '@/shared/constants/tone';
 import {
   ACTIVITIES_UI,
+  ACTIVITY_RESULT_TONES,
   ACTIVITY_STATUS_LABELS,
+  ACTIVITY_STATUS_TONES,
 } from '../constants/activity.constants';
 import { useActivities } from '../hooks/useActivities';
 import { useActivityMutations } from '../hooks/useActivityMutations';
@@ -32,8 +35,11 @@ type Confirm = { activity: Activity; kind: 'cancel' | 'delete' };
  */
 export function OrganizationActivitiesTab({
   organizationId,
+  highlightId = null,
 }: {
   organizationId: string;
+  /** Action visee par un lien — depuis l'agenda, par exemple. */
+  highlightId?: string | null;
 }) {
   const [editing, setEditing] = useState<Activity | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
@@ -64,6 +70,38 @@ export function OrganizationActivitiesTab({
     .filter((a) => a.status === 'PLANNED')
     .sort((a, b) => a.date.localeCompare(b.date))[0];
 
+  /*
+   * Ce qu'il reste a faire d'abord, ce qui a eu lieu ensuite.
+   *
+   * Le serveur trie en date **decroissante**, et ce tri-la ne doit pas
+   * changer : la route est paginee, et c'est lui qui garantit qu'on recoit les
+   * cinquante actions les plus recentes plutot que les cinquante plus
+   * anciennes. L'ordre d'affichage, lui, nous appartient — a l'interieur de ce
+   * qu'on a recu. Les planifiees remontent, de la plus proche a la plus
+   * lointaine ; l'historique suit, du plus recent au plus ancien.
+   */
+  const ordered = [...activities].sort((a, b) => {
+    const aPlanned = a.status === 'PLANNED';
+    const bPlanned = b.status === 'PLANNED';
+    if (aPlanned !== bPlanned) return aPlanned ? -1 : 1;
+    const key = (x: Activity) => `${x.date} ${x.time ?? ''}`;
+    return aPlanned
+      ? key(a).localeCompare(key(b))
+      : key(b).localeCompare(key(a));
+  });
+
+  /*
+   * Defilement instantane, pas `smooth` : une animation ferait courir la
+   * verification apres la position, et l'ancre n'est utile qu'a l'ouverture.
+   */
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!highlightId || loading) return;
+    listRef.current
+      ?.querySelector(`[data-testid="activity-row-${highlightId}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [highlightId, loading]);
+
   const openWindow = (activity: Activity | null) => {
     setEditing(activity);
     setWindowOpen(true);
@@ -93,7 +131,7 @@ export function OrganizationActivitiesTab({
   }
 
   return (
-    <div className="space-y-4" data-testid="organization-activities">
+    <div ref={listRef} className="space-y-4" data-testid="organization-activities">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {next ? (
           <p
@@ -140,23 +178,30 @@ export function OrganizationActivitiesTab({
         </div>
       ) : (
         <ul className="space-y-3">
-          {activities.map((a) => (
+          {ordered.map((a) => (
             <li
               key={a.id}
               data-testid={`activity-row-${a.id}`}
-              className="rounded-lg border border-border p-3"
+              className={`rounded-lg border p-3 ${
+                a.id === highlightId
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border'
+              }`}
             >
               <div className="flex flex-wrap items-center gap-2">
                 <b className="text-sm">{a.type.label}</b>
                 <Badge
-                  variant={a.status === 'DONE' ? 'primary' : 'secondary'}
+                  variant={toneOf(ACTIVITY_STATUS_TONES, a.status)}
                   appearance="outline"
                   data-testid={`activity-status-${a.id}`}
                 >
                   {ACTIVITY_STATUS_LABELS[a.status]}
                 </Badge>
                 {a.result ? (
-                  <Badge variant="secondary" appearance="outline">
+                  <Badge
+                    variant={toneOf(ACTIVITY_RESULT_TONES, a.result.key)}
+                    appearance="outline"
+                  >
                     {a.result.label}
                   </Badge>
                 ) : null}

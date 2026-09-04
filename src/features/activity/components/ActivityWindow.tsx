@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { useContacts } from '@/features/organization/hooks/useContacts';
+import { OrganizationPicker } from '@/features/organization/components/OrganizationPicker';
 import { FormDatePicker } from '@/components/ui/form-date-picker';
 import { SlotTimePicker } from '@/components/ui/slot-time-picker';
 import { ACTIVITY_WINDOW, TIME_SLOT } from '../constants/activity.constants';
@@ -45,7 +46,11 @@ const NO_CONTACT = '__none__';
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  organizationId: string;
+  /**
+   * La fiche concernee, quand l'ecran la connait — l'onglet Actions. Absente
+   * depuis l'agenda : le formulaire demande alors l'organisme.
+   */
+  organizationId?: string;
   /** `null` pour une planification. */
   activity: Activity | null;
 };
@@ -74,12 +79,21 @@ function Body({
 }: {
   hooks: Hooks;
   activity: Activity | null;
-  organizationId: string;
+  organizationId?: string;
 }) {
   const { form, mutations } = hooks;
   const disabled = mutations.saving;
   const { types, loading: typesLoading } = useActivityReference();
-  const { contacts } = useContacts(organizationId);
+
+  /*
+   * Sans contexte de fiche, le formulaire commence par la demander. Les
+   * organismes ne sont charges que dans ce cas : depuis l'onglet Actions, la
+   * fiche est deja connue.
+   */
+  const needsOrganization = !organizationId;
+  const chosen = form.watch('organizationId');
+  const targetId = organizationId ?? chosen;
+  const { contacts } = useContacts(targetId);
 
   const selectedType = form.watch('type');
   const typeMeta = types.find((t) => t.key === selectedType);
@@ -94,10 +108,16 @@ function Body({
    * s'ouvrait en « Champ requis ». Le garde-fou empeche la boucle.
    */
   const applied = useRef<string | null>(null);
-  const wanted = activity?.id ?? 'new';
+  const wanted = activity?.id ?? `new:${organizationId ?? ''}`;
   if (applied.current !== wanted) {
     applied.current = wanted;
-    form.reset(activity ? activityToValues(activity) : emptyActivityValues());
+    form.reset(
+      activity
+        ? activityToValues(activity)
+        : // La fiche du contexte est deja connue : le champ n'apparait pas,
+          // mais la valeur est posee et la regle est satisfaite.
+          emptyActivityValues(organizationId ?? ''),
+    );
   }
 
   /*
@@ -121,6 +141,31 @@ function Body({
   return (
     <Form {...form}>
       <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        {needsOrganization ? (
+          <FormField
+            control={form.control}
+            name="organizationId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
+                  {FIELDS.ORGANIZATION}
+                </FormLabel>
+                {/* Une liste déroulante s'arrêtait au centième organisme, le
+                    maximum du contrat, sans le dire. On cherche. */}
+                <FormControl>
+                  <OrganizationPicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={disabled}
+                    data-testid="activity-organization"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
@@ -260,7 +305,7 @@ function Body({
           )}
         />
 
-        {contacts.length > 0 ? (
+        {targetId && contacts.length > 0 ? (
           <FormField
             control={form.control}
             name="contactId"
@@ -380,6 +425,7 @@ export function ActivityWindow({
             disabled={hooks.mutations.saving}
             onClick={() =>
               void hooks.form.handleSubmit(async (values) => {
+
                 const duration = values.durationMin
                   ? Number(values.durationMin)
                   : null;
@@ -400,7 +446,7 @@ export function ActivityWindow({
                       report: values.report.trim() || null,
                     })
                   : await hooks.mutations.create({
-                      organizationId,
+                      organizationId: organizationId ?? values.organizationId,
                       type: values.type,
                       date: values.date,
                       ...(values.time ? { time: values.time } : {}),

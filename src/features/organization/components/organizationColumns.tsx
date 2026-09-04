@@ -8,14 +8,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { toneOf } from '@/shared/constants/tone';
 import { cn } from '@/lib/utils';
 import type { ReferenceCategory } from '@/features/settings/types/reference-items';
 import {
   CUSTOMER_STATUS_LABELS,
+  CUSTOMER_STATUS_TONES,
   ORGANIZATIONS_UI,
   PRIORITY_LABELS,
+  PRIORITY_TONES,
   SALES_STATUS_LABELS,
+  SALES_STATUS_TONES,
 } from '../constants/organizationList.constants';
 import type { OrganizationListItem } from '../types/organizationList';
 
@@ -147,8 +152,20 @@ export const organizationColumns = (
     header: ({ column }) => (
       <DataGridColumnHeader title={H.SALES_STATUS} visibility={true} column={column} />
     ),
-    cell: ({ row }) => SALES_STATUS_LABELS[row.original.salesStatus],
-    size: 170,
+    /* En pastille, pas en texte : une colonne coloree se lit en diagonale,
+       la meme valeur porte la meme teinte que sur la fiche. */
+    cell: ({ row }) => (
+      <Badge
+        variant={toneOf(SALES_STATUS_TONES, row.original.salesStatus)}
+        appearance="outline"
+        size="sm"
+      >
+        {SALES_STATUS_LABELS[row.original.salesStatus]}
+      </Badge>
+    ),
+    /* « En cours de prospection » en pastille demande un peu plus que le
+       texte nu : sous 195 la pastille est rognee par la colonne. */
+    size: 195,
     enableSorting: true,
   },
   {
@@ -157,8 +174,16 @@ export const organizationColumns = (
     header: ({ column }) => (
       <DataGridColumnHeader title={H.CUSTOMER_STATUS} visibility={true} column={column} />
     ),
-    cell: ({ row }) => CUSTOMER_STATUS_LABELS[row.original.customerStatus],
-    size: 170,
+    cell: ({ row }) => (
+      <Badge
+        variant={toneOf(CUSTOMER_STATUS_TONES, row.original.customerStatus)}
+        appearance="outline"
+        size="sm"
+      >
+        {CUSTOMER_STATUS_LABELS[row.original.customerStatus]}
+      </Badge>
+    ),
+    size: 215,
     enableSorting: true,
   },
   {
@@ -168,7 +193,17 @@ export const organizationColumns = (
       <DataGridColumnHeader title={H.PRIORITY} visibility={true} column={column} />
     ),
     cell: ({ row }) =>
-      row.original.priority ? PRIORITY_LABELS[row.original.priority] : dash(),
+      row.original.priority ? (
+        <Badge
+          variant={toneOf(PRIORITY_TONES, row.original.priority)}
+          appearance="outline"
+          size="sm"
+        >
+          {PRIORITY_LABELS[row.original.priority]}
+        </Badge>
+      ) : (
+        dash()
+      ),
     size: 110,
     enableSorting: true,
   },

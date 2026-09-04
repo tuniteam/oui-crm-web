@@ -7,15 +7,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toneOf } from '@/shared/constants/tone';
 import {
   CUSTOMER_STATUS_LABELS,
+  CUSTOMER_STATUS_TONES,
   PRIORITY_LABELS,
+  PRIORITY_TONES,
   SALES_STATUS_LABELS,
+  SALES_STATUS_TONES,
 } from '../constants/organizationList.constants';
 import { useOrganization } from '../hooks/useOrganization';
 import type { OrganizationDetail } from '../types/organizationDetail';
 import { OrganizationRestrictedPane } from './OrganizationRestrictedPane';
 import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
+import { useSearchParams } from 'react-router-dom';
+import { ORGANIZATIONS_UI } from '../constants/organizationList.constants';
 import { ACTIVITIES_UI } from '@/features/activity/constants/activity.constants';
 import { OrganizationActivitiesTab } from '@/features/activity/components/OrganizationActivitiesTab';
 import { OrganizationContactsTab } from './OrganizationContactsTab';
@@ -90,6 +96,20 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
     s.hasPermission(PERMISSIONS.ACTIVITIES.READ),
   );
 
+  /*
+   * L'onglet ouvert vient de l'URL quand un lien le demande — l'agenda vise
+   * les actions d'une fiche. Sans parametre, on retombe sur la synthese.
+   */
+  const [panelParams] = useSearchParams();
+  const askedTab = panelParams.get(ORGANIZATIONS_UI.TAB_PARAM);
+  const anchor = panelParams.get(ORGANIZATIONS_UI.ANCHOR_PARAM);
+  const defaultTab =
+    askedTab === PANEL_TABS.ACTIVITIES && canReadActivities
+      ? PANEL_TABS.ACTIVITIES
+      : askedTab === PANEL_TABS.CONTACTS && canReadContacts
+        ? PANEL_TABS.CONTACTS
+        : PANEL_TABS.SUMMARY;
+
   return (
     <ReusableSheet<PanelHooks>
       open={open}
@@ -117,14 +137,29 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                 .join(' · ')}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" appearance="outline">
+              {/* Les teintes viennent des tables de la feature, jamais du
+                  composant : la meme valeur porte la meme couleur ici et dans
+                  la liste. */}
+              <Badge
+                variant={toneOf(SALES_STATUS_TONES, organization.salesStatus)}
+                appearance="outline"
+              >
                 {SALES_STATUS_LABELS[organization.salesStatus]}
               </Badge>
-              <Badge variant="secondary" appearance="outline">
+              <Badge
+                variant={toneOf(
+                  CUSTOMER_STATUS_TONES,
+                  organization.customerStatus,
+                )}
+                appearance="outline"
+              >
                 {CUSTOMER_STATUS_LABELS[organization.customerStatus]}
               </Badge>
               {organization.priority ? (
-                <Badge variant="primary" appearance="outline">
+                <Badge
+                  variant={toneOf(PRIORITY_TONES, organization.priority)}
+                  appearance="outline"
+                >
                   {PRIORITY_LABELS[organization.priority]}
                 </Badge>
               ) : null}
@@ -167,7 +202,7 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
         // `key` : changer de fiche recree le formulaire avec les bonnes
         // valeurs initiales, plutot que de reinitialiser l'existant.
         return (
-          <Tabs key={organization.id} defaultValue={PANEL_TABS.SUMMARY}>
+          <Tabs key={organization.id} defaultValue={defaultTab}>
             {/* Trois onglets, pas les six de la V8 : Actions a rejoint la
                 fiche avec l'US-01-08 ; Commercial, Client et Support
                 appartiennent aux lots L2/L4. Mieux vaut trois onglets qui
@@ -212,7 +247,10 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                 ce qui satisfait la regle « planifier exige FULL ». */}
             {canReadActivities ? (
               <TabsContent value={PANEL_TABS.ACTIVITIES}>
-                <OrganizationActivitiesTab organizationId={organization.id} />
+                <OrganizationActivitiesTab
+                  organizationId={organization.id}
+                  highlightId={anchor}
+                />
               </TabsContent>
             ) : null}
           </Tabs>

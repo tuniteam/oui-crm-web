@@ -71,6 +71,23 @@
   --destructive-foreground: #FFFFFF;
   --destructive-soft: #FEE2E2;
 
+  /* Triplet de pastille : fond tendre, texte lisible dessus, filet.
+   * `--X` est fait pour un aplat plein sous du blanc ; il ne passe pas
+   * toujours AA sur son propre `--X-soft`, d'ou un ton `--X-accent` distinct.
+   * Contrastes AA verifies sur la paire accent/soft, pas estimes.
+   * 6.59 · 4.84 · 4.86 · 6.37 · 5.30 pour marque, succes, info, alerte, danger. */
+  --primary-soft: var(--brand-primary-soft);
+  --primary-accent: var(--brand-primary-dark);
+  --primary-border: #BAE6FD;
+  --success-accent: #047857;
+  --success-border: #A7F3D0;
+  --info-accent: #0F766E;
+  --info-border: #99F6E4;
+  --warning-accent: #92400E;
+  --warning-border: #FDE68A;
+  --destructive-accent: #B91C1C;
+  --destructive-border: #FECACA;
+
   /* ========================================
    * Boutons - signature Oui Crm
    * Degrade azur -> bleu ciel repris du logo, filet clair en haut,
@@ -208,6 +225,27 @@
   --info-foreground: var(--gray-900);
   --warning-foreground: var(--gray-900);
   --destructive-foreground: var(--gray-900);
+
+  /* Pastilles - Dark
+   * Les fonds tendres du mode clair sont presque blancs : ils eclateraient
+   * sur un fond sombre. On inverse le triplet — fond profond, texte clair —
+   * plutot que d'assombrir les memes teintes, qui virerait au boueux.
+   * Toutes les paires accent/soft sont >= 8.3:1. */
+  --primary-soft: #082F49;
+  --primary-accent: #7DD3FC;
+  --primary-border: #0C4A6E;
+  --success-soft: #022C22;
+  --success-accent: #6EE7B7;
+  --success-border: #065F46;
+  --info-soft: #042F2E;
+  --info-accent: #5EEAD4;
+  --info-border: #115E59;
+  --warning-soft: #451A03;
+  --warning-accent: #FCD34D;
+  --warning-border: #78350F;
+  --destructive-soft: #450A0A;
+  --destructive-accent: #FCA5A5;
+  --destructive-border: #7F1D1D;
 }
 
 /* ========================================

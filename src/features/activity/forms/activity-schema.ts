@@ -10,6 +10,7 @@ const ZOD = {
   TIME: 'Heure invalide (HH:MM)',
   DURATION: 'Durée entre 1 et 1440 minutes',
   REPORT: 'Le compte rendu est obligatoire',
+  ORGANIZATION: 'Choisissez un organisme',
 };
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -25,6 +26,18 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
  */
 export const getActivitySchema = () =>
   z.object({
+    /**
+     * Toujours obligatoire, quel que soit l'ecran.
+     *
+     * L'onglet Actions le pre-remplit — il connait sa fiche — donc la regle ne
+     * s'y voit jamais ; depuis l'agenda, ou aucune fiche n'est en contexte,
+     * elle s'applique. Une seule regle vaut mieux qu'un garde pose dans le
+     * bouton : `handleSubmit` valide le schema **avant** d'appeler son
+     * callback, si bien qu'un garde n'etait jamais atteint des qu'un autre
+     * champ manquait aussi — le formulaire refusait sans dire qu'il manquait
+     * l'organisme.
+     */
+    organizationId: z.string().trim().min(1, ZOD.ORGANIZATION),
     type: z.string().trim().min(1, ZOD.REQUIRED).max(ACTIVITY_LIMITS.TYPE, ZOD.MAX),
     date: z.string().trim().regex(DAY, ZOD.DATE),
     /*
@@ -83,7 +96,10 @@ export function todayIso(): string {
 }
 
 /** Aucun type par defaut : le choix est explicite, et le champ obligatoire. */
-export const emptyActivityValues = (): ActivitySchemaType => ({
+export const emptyActivityValues = (
+  organizationId = '',
+): ActivitySchemaType => ({
+  organizationId,
   type: '',
   date: todayIso(),
   time: '',
@@ -94,6 +110,7 @@ export const emptyActivityValues = (): ActivitySchemaType => ({
 });
 
 export const activityToValues = (a: Activity): ActivitySchemaType => ({
+  organizationId: a.organization.id,
   type: a.type.key,
   date: a.date,
   // L'heure se transporte telle quelle, jamais reconstruite en `Date`.

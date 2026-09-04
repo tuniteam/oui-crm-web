@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquette — thème OUI CRM proposé</title>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Maquette locale. Deux états sur les mêmes écrans :
+   .avant  = ce que l'application rend aujourd'hui (valeurs relevées
+             dans le navigateur, y compris les replis Tailwind)
+   défaut  = ce qui est proposé
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --bg: #f4f5fa;
+  --panel: #ffffff;
+  --ink: #12141d;
+  --ink2: #3d4356;
+  --muted: #79809a;
+  --border: #e3e6f0;
+
+  --brand: #0369A1;
+  --brand-dk: #075985;
+  --brand-soft: #E0F2FE;
+  --brand-bd: #BAE6FD;
+
+  /* Triplet texte / fond / bordure — le modèle de la maquette V8. */
+  --success: #047857; --success-soft: #D1FAE5; --success-bd: #A7F3D0;
+  --info:    #0F766E; --info-soft:    #CCFBF1; --info-bd:    #99F6E4;
+  --warning: #92400E; --warning-soft: #FEF3C7; --warning-bd: #FDE68A;
+  --danger:  #B91C1C; --danger-soft:  #FEE2E2; --danger-bd:  #FECACA;
+  --neutral: #495057; --neutral-soft: #F1F3F5; --neutral-bd: #DEE2E6;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(18,20,29,.06);
+  --shadow: 0 10px 28px rgba(18,20,29,.07);
+
+  --rail-bg: #15161F;
+  --rail-fg: #C1C6DC;
+  --rail-fg-muted: #7F87A5;
+  --rail-hover: #242637;
+}
+
+/* L'état actuel : tout retombe sur le gris, ou sur le bleu de Tailwind. */
+body.avant {
+  --brand-soft: #eff6ff; --brand-dk: #1d4ed8; --brand-bd: #dbeafe;
+  --success: #1d4ed8; --success-soft: #eff6ff; --success-bd: #dbeafe;
+  --info:    #333333; --info-soft:    #F8F9FA; --info-bd:    transparent;
+  --warning: #333333; --warning-soft: #F8F9FA; --warning-bd: transparent;
+  --danger:  #333333; --danger-soft:  #F8F9FA; --danger-bd:  transparent;
+  --neutral: #333333; --neutral-soft: #F8F9FA; --neutral-bd: transparent;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(18,20,29,.08);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Barre de comparaison ───────────────────────────────── */
+.compare {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px; background: #fff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.compare strong { font-size: 13px; }
+.compare .hint { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+.switch { display: inline-flex; background: #eef0f6; border-radius: 999px; padding: 3px; gap: 2px; }
+.switch button {
+  border: 0; background: transparent; cursor: pointer;
+  font: 600 12.5px/1 var(--font-sans); color: var(--muted);
+  padding: 7px 14px; border-radius: 999px;
+}
+.switch button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: var(--shadow-sm); }
+
+/* ── Coquille applicative ───────────────────────────────── */
+.app { display: grid; grid-template-columns: 220px 1fr; min-height: 640px; }
+
+.rail { background: var(--rail-bg); padding: 16px 12px; color: var(--rail-fg); }
+.rail .brand { display: flex; align-items: center; gap: 9px; padding: 4px 8px 18px; }
+.rail .brand span { font-weight: 800; letter-spacing: -.02em; color: #fff; font-size: 15px; }
+.rail .dot { width: 18px; height: 18px; border-radius: 50%;
+             background: conic-gradient(from 200deg, #38BDF8, #0369A1 60%, #FF6B6B); }
+.rail h4 { font: 700 10.5px/1 var(--font-sans); letter-spacing: .09em;
+           text-transform: uppercase; color: var(--rail-fg-muted); margin: 16px 8px 7px; }
+.rail a { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+          border-radius: var(--radius-sm); color: var(--rail-fg);
+          text-decoration: none; font-size: 13px; }
+.rail a:hover { background: var(--rail-hover); }
+.rail a.on { background: var(--brand); color: #fff; font-weight: 600; }
+body.avant .rail a.on { background: #0369A1; }
+.rail .ico { width: 6px; height: 6px; border-radius: 50%;
+             background: currentColor; opacity: .45; flex: none; margin: 0 4px; }
+.rail a.on .ico { opacity: 1; }
+
+.main { padding: 20px 24px 40px; min-width: 0; }
+.crumbs { display: flex; align-items: center; gap: 8px; color: var(--muted);
+          font-size: 13px; margin-bottom: 16px; }
+.crumbs b { color: var(--ink); font-weight: 600; }
+
+/* ── Tags ───────────────────────────────────────────────── */
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 7px; padding: 3px 9px;
+  font: 700 11.5px/1.35 var(--font-sans);
+  border: 1px solid var(--neutral-bd);
+  background: var(--neutral-soft); color: var(--neutral);
+  white-space: nowrap;
+}
+.tag.brand   { background: var(--brand-soft);   color: var(--brand-dk); border-color: var(--brand-bd); }
+.tag.success { background: var(--success-soft); color: var(--success);  border-color: var(--success-bd); }
+.tag.info    { background: var(--info-soft);    color: var(--info);     border-color: var(--info-bd); }
+.tag.warning { background: var(--warning-soft); color: var(--warning);  border-color: var(--warning-bd); }
+.tag.danger  { background: var(--danger-soft);  color: var(--danger);   border-color: var(--danger-bd); }
+
+/* ── Boutons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  font: 600 13px/1 var(--font-sans);
+  border: 1px solid var(--border); background: #fff; color: var(--ink2);
+}
+.btn:hover { background: #f8f9fc; }
+.btn.primary {
+  border-color: transparent; color: #fff;
+  background: linear-gradient(180deg, #0369A1, #1B79BD);
+  box-shadow: 0 2px 6px -1px rgb(3 105 161 / .4);
+}
+.btn.danger { color: var(--danger); border-color: var(--danger-bd); background: var(--danger-soft); }
+body.avant .btn.danger { color: var(--ink2); border-color: var(--border); background: #fff; }
+.btn.sm { padding: 6px 11px; font-size: 12.5px; }
+
+/* ── Cartes ─────────────────────────────────────────────── */
+.card { background: var(--panel); border: 1px solid var(--border);
+        border-radius: var(--radius); box-shadow: var(--shadow); }
+
+/* ── Tableau ────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; }
+thead th { text-align: left; font: 700 11.5px/1 var(--font-sans);
+           text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+           padding: 13px 14px; border-bottom: 1px solid var(--border); }
+tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #fafbfe; }
+.org { font-weight: 600; }
+.org small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+.num { font: 500 13px/1 var(--font-mono); color: var(--ink2); }
+
+/* ── Fiche ──────────────────────────────────────────────── */
+.sheet { max-width: 980px; margin: 0 auto; }
+.sheet-head { padding: 22px 24px 0; }
+.sheet-head h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: -.02em; }
+.sheet-head .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.tags { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.tabs { display: flex; gap: 4px; padding: 16px 24px 0; border-bottom: 1px solid var(--border); }
+.tabs a { padding: 10px 12px; text-decoration: none; color: var(--muted);
+          font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; }
+.tabs a.on { color: var(--brand); border-bottom-color: var(--brand); }
+body.avant .tabs a.on { color: #0369A1; border-bottom-color: #0369A1; }
+.tabs .count { font: 600 11.5px/1 var(--font-mono); opacity: .75; }
+body.avant .tabs .count { display: none; }
+
+/* Dans la liste, priorite et statut ne sont pas des pastilles aujourd'hui :
+   c'est du texte brut dans une cellule. La comparaison doit le montrer. */
+body.avant table .tag {
+  background: transparent; border-color: transparent; color: var(--ink2);
+  font-weight: 400; font-size: 13.5px; padding-left: 0;
+}
+
+.body { padding: 18px 24px 24px; }
+
+.banner {
+  display: flex; align-items: center; gap: 10px;
+  border-radius: var(--radius-sm); padding: 11px 14px; margin-bottom: 18px;
+  background: var(--warning-soft); border: 1px solid var(--warning-bd);
+  color: var(--warning); font-size: 13.5px;
+}
+.banner b { font-weight: 700; }
+.banner .late { margin-left: auto; font-weight: 700; }
+body.avant .banner { background: #F8F9FA; border-color: var(--border); color: var(--ink2); }
+body.avant .banner .late { font-weight: 600; }
+
+/* La frise : rail vertical et pastille de couleur par action. */
+.timeline { position: relative; padding-left: 26px; }
+.timeline::before {
+  content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px;
+  width: 2px; background: var(--border); border-radius: 2px;
+}
+body.avant .timeline { padding-left: 0; }
+body.avant .timeline::before { display: none; }
+
+.entry { position: relative; padding: 0 0 22px; }
+.entry::before {
+  content: ''; position: absolute; left: -26px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--neutral-soft); border: 3px solid var(--panel);
+  box-shadow: 0 0 0 2px var(--neutral-bd);
+}
+.entry.planned::before  { background: var(--info);    box-shadow: 0 0 0 2px var(--info-bd); }
+.entry.done::before     { background: var(--success); box-shadow: 0 0 0 2px var(--success-bd); }
+.entry.late::before     { background: var(--danger);  box-shadow: 0 0 0 2px var(--danger-bd); }
+body.avant .entry::before { display: none; }
+body.avant .entry {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 12px; background: #fff;
+}
+
+.entry .line { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.entry .line b { font-size: 14.5px; }
+.entry p { margin: 7px 0 0; color: var(--ink2); font-size: 13.5px; }
+.entry .meta { margin-top: 6px; color: var(--muted); font-size: 12.5px; }
+.entry .acts { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
+
+h3.section { font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
+             color: var(--muted); margin: 28px 24px 10px; font-weight: 700; }
+.legend { color: var(--muted); font-size: 12.5px; padding: 0 24px 24px; max-width: 78ch; }
+</style>
+</head>
+<body>
+
+<div class="compare">
+  <strong>Maquette du thème</strong>
+  <div class="switch" role="group" aria-label="Comparer">
+    <button id="b-avant" aria-pressed="false">Aujourd'hui</button>
+    <button id="b-apres" aria-pressed="true">Proposé</button>
+  </div>
+  <span class="hint">Les mêmes écrans, les mêmes données. Seuls les jetons de couleur changent.</span>
+</div>
+
+<h3 class="section">Fiche d'organisme — onglet Actions</h3>
+
+<div class="sheet">
+  <div class="card">
+    <div class="sheet-head">
+      <h2>Commune de Bolbec</h2>
+      <div class="sub">Commune · Bolbec 76210 · Dépt. 76 · Plus de 10 000 hab.</div>
+      <div class="tags">
+        <span class="tag brand">En cours de prospection</span>
+        <span class="tag">Non client</span>
+        <span class="tag danger">Haute</span>
+        <span class="tag warning">Marché public en cours</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <a href="#">Synthèse</a>
+      <a href="#">Contacts <span class="count">2</span></a>
+      <a href="#" class="on">Actions <span class="count">3</span></a>
+      <a href="#">Commercial</a>
+      <a href="#">Client</a>
+      <a href="#">Support</a>
+    </div>
+
+    <div class="body">
+      <div class="banner">
+        <b>Prochaine action</b> · Relance le 01/09/2026 — Fred Yolland
+        <span class="late">en retard de 2 jours</span>
+      </div>
+
+      <div class="timeline">
+        <div class="entry late">
+          <div class="line">
+            <b>Relance</b>
+            <span class="tag info">Planifiée</span>
+          </div>
+          <p>Relancer sur la proposition chiffrée.</p>
+          <div class="meta">01/09/2026 · Fred Yolland · Céline Hébert</div>
+          <div class="acts">
+            <button class="btn primary sm">Marquer réalisée</button>
+            <button class="btn sm">Modifier</button>
+            <button class="btn danger sm">Supprimer</button>
+          </div>
+        </div>
+
+        <div class="entry done">
+          <div class="line">
+            <b>Démonstration</b>
+            <span class="tag success">Réalisée</span>
+            <span class="tag success">RDV obtenu</span>
+          </div>
+          <p>Démonstration en visio, 4 participants.</p>
+          <div class="meta">25/08/2026 · Fred Yolland · Céline Hébert</div>
+          <div class="acts">
+            <button class="btn sm">Modifier</button>
+            <button class="btn danger sm">Supprimer</button>
+          </div>
+        </div>
+
+        <div class="entry done">
+          <div class="line">
+            <b>Appel</b>
+            <span class="tag success">Réalisée</span>
+            <span class="tag info">Intéressé</span>
+          </div>
+          <p>Insatisfaction sur le portail famille actuel.</p>
+          <div class="meta">15/08/2026 · Fred Yolland · Céline Hébert</div>
+          <div class="acts">
+            <button class="btn sm">Modifier</button>
+            <button class="btn danger sm">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="legend" style="max-width:980px;margin:14px auto 0">
+  En basculant sur « Aujourd'hui » : les quatre pastilles d'en-tête deviennent
+  deux gris et un bleu qui n'est pas celui de la marque, « Réalisée » sort en
+  bleu au lieu du vert, le bandeau perd l'ambre du retard, la frise perd son
+  rail et ses pastilles, et « Supprimer » ne se distingue plus de « Modifier ».
+</p>
+
+<h3 class="section">Liste des organismes</h3>
+
+<div class="app" style="margin:0 20px 30px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+  <nav class="rail">
+    <div class="brand"><span class="dot"></span><span>OUI CRM</span></div>
+    <h4>Pilotage</h4>
+    <a href="#"><span class="ico"></span>Tableau de bord</a>
+    <a href="#"><span class="ico"></span>Agenda</a>
+    <h4>Prospection</h4>
+    <a href="#" class="on"><span class="ico"></span>Organismes</a>
+    <a href="#"><span class="ico"></span>Campagnes</a>
+    <a href="#"><span class="ico"></span>Suivi prospection</a>
+    <h4>Commercial</h4>
+    <a href="#"><span class="ico"></span>Opportunités</a>
+    <a href="#"><span class="ico"></span>Devis</a>
+  </nav>
+
+  <div class="main">
+    <div class="crumbs">Périscolia <span>/</span> Prospection <span>/</span> <b>Organismes</b></div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Organisme</th><th>Type</th><th>Dépt.</th><th>Population</th>
+            <th>Solution en place</th><th>Priorité</th><th>Statut commercial</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="org">CC du Pays de Château-Gontier<small>Château-Gontier</small></td>
+            <td>EPCI</td><td class="num">53</td><td class="num">29 500</td>
+            <td>—</td>
+            <td><span class="tag">Normale</span></td>
+            <td><span class="tag brand">En cours de prospection</span></td>
+          </tr>
+          <tr>
+            <td class="org">Commune de Bayeux<small>Bayeux</small></td>
+            <td>Commune</td><td class="num">14</td><td class="num">12 868</td>
+            <td>Excel / papier</td>
+            <td><span class="tag danger">Chaud</span></td>
+            <td><span class="tag warning">RDV programmé</span></td>
+          </tr>
+          <tr>
+            <td class="org">Commune de Caen<small>Caen · Marché public en cours</small></td>
+            <td>Commune</td><td class="num">14</td><td class="num">105 512</td>
+            <td>BL Enfance</td>
+            <td><span class="tag danger">Chaud</span></td>
+            <td><span class="tag brand">En cours de prospection</span></td>
+          </tr>
+          <tr>
+            <td class="org">Commune de Joigny<small>Joigny · À surveiller</small></td>
+            <td>Commune</td><td class="num">89</td><td class="num">9 820</td>
+            <td>Aucun logiciel identifié</td>
+            <td><span class="tag">Normale</span></td>
+            <td><span class="tag info">À contacter</span></td>
+          </tr>
+          <tr>
+            <td class="org">Commune de Rouen<small>Rouen</small></td>
+            <td>Commune</td><td class="num">76</td><td class="num">114 083</td>
+            <td>Concerto</td>
+            <td><span class="tag">Basse</span></td>
+            <td><span class="tag success">Gagnée</span></td>
+          </tr>
+          <tr>
+            <td class="org">Ville de Paris — DASCO<small>Paris</small></td>
+            <td>Commune</td><td class="num">75</td><td class="num">2 145 906</td>
+            <td>—</td>
+            <td><span class="tag">Basse</span></td>
+            <td><span class="tag danger">Perdue</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="legend" style="max-width:1180px;margin:0 auto 40px">
+  C'est sur cet écran que l'écart se voit le plus : aujourd'hui, priorité et
+  statut commercial sont du texte brut dans une cellule, et dix lignes se
+  ressemblent. Avec la table « vocabulaire → couleur », une colonne se lit en
+  diagonale — les fiches chaudes et les affaires perdues sautent aux yeux sans
+  qu'on ait à lire.
+</p>
+
+<script>
+  const body = document.body;
+  const avant = document.getElementById('b-avant');
+  const apres = document.getElementById('b-apres');
+  const set = (estAvant) => {
+    body.classList.toggle('avant', estAvant);
+    avant.setAttribute('aria-pressed', String(estAvant));
+    apres.setAttribute('aria-pressed', String(!estAvant));
+  };
+  avant.addEventListener('click', () => set(true));
+  apres.addEventListener('click', () => set(false));
+</script>
+
+</body>
+</html>

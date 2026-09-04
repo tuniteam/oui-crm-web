@@ -34,6 +34,54 @@ const err = (statusCode, code, extra = {}) => ({
 });
 
 
+
+/** Le mois courant, `YYYY-MM` — les scenarios d'agenda visent la periode ouverte. */
+const agendaMonth = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`;
+};
+
+/** Un jour relatif a aujourd'hui, en `YYYY-MM-DD` — sans construire d'instant. */
+const agendaInDays = (offset) => {
+  const n = new Date();
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() + offset);
+  const pad = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const agendaToday = () => {
+  const n = new Date();
+  return `${agendaMonth()}-${String(n.getDate()).padStart(2, '0')}`;
+};
+
+/** Evenement d'agenda minimal : seuls l'id, le jour et l'heure varient. */
+const agendaFixture = ({ organizationId = 'o1', ...over } = {}) => ({
+  kind: 'ACTIVITY',
+  id: 'e1',
+  date: agendaToday(),
+  time: '09:00',
+  title: 'Appel',
+  subtitle: null,
+  organization: { id: organizationId, name: 'Commune de Joigny' },
+  user: { id: 'u1', fullName: 'Wiem Bousaid', initials: null },
+  status: 'PLANNED',
+  isLate: false,
+  ...over,
+});
+
+/** Une seule page : la pagination a son propre scenario. */
+const mockAgenda = (page, data) =>
+  mock(page, '/agenda', 200, {
+    data,
+    counts: {
+      ACTIVITY: data.length,
+      TRAINING: 0,
+      CONTRACT_END: 0,
+      QUOTE_EXPIRY: 0,
+    },
+    meta: { total: data.length, page: 1, limit: 100, totalPages: 1 },
+  });
+
 /** Action minimale : seuls l'id, le jour et le statut varient d'un scenario a l'autre. */
 const activityFixture = (over = {}) => ({
   id: 'a1',
@@ -3897,6 +3945,787 @@ export const scenarios = [
       expect(
         body.includes('Aucune action planifiée'),
         `l'absence de prochaine action n'est pas dite : ${body.slice(0, 200)}`,
+      );
+    },
+  },
+
+
+  // ─────────────────────────────── US-01-09
+  {
+    id: '01-09.1',
+    us: 'US-01-09',
+    title: 'La grille rend le mois, en une requête bornée',
+    needsProject: true,
+    gherkin: [
+      'Given un mois avec des actions planifiées',
+      'When j’ouvre l’agenda',
+      'Then le serveur est interrogé avec les bornes du mois affiché',
+      'And chaque action figure dans la case de son jour',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'e1', date: day, time: '14:30', title: 'RDV physique' }),
+      ]);
+
+      apiCalls(true);
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-month').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      /*
+       * `from` et `to` sont obligatoires au contrat : une requete par periode
+       * affichee, jamais une requete globale que le front decouperait.
+       */
+      const call = apiCalls().find((c) => c.startsWith('GET /agenda'));
+      expect(!!call, `aucune requête d'agenda : ${apiCalls().join(', ')}`);
+      expect(
+        call.includes(`from=${agendaMonth()}-01`) && call.includes('to='),
+        `les bornes du mois ne sont pas transmises : ${call}`,
+      );
+
+      const cell = await page.getByTestId(`agenda-day-${day}`).innerText();
+      expect(
+        cell.includes('14:30') && cell.includes('RDV physique'),
+        `l'action n'est pas dans la case de son jour : ${cell}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.2',
+    us: 'US-01-09',
+    title: 'Le retard vient du serveur, jamais d’un calcul local',
+    needsProject: true,
+    gherkin: [
+      'Given une action que le serveur déclare en retard',
+      'And une action à la même date qu’il ne déclare pas en retard',
+      'When je regarde l’agenda',
+      'Then seule la première est signalée',
+    ],
+    async run({ page, expect, projectId }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'late', date: day, time: '09:00', isLate: true }),
+        // Meme jour, meme heure : seul `isLate` les distingue. Un calcul local
+        // sur la date les traiterait a l'identique.
+        agendaFixture({ id: 'ok', date: day, time: '09:00', isLate: false }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-month').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      const lateHtml = await page
+        .getByTestId('agenda-event-late')
+        .evaluate((e) => e.className);
+      const okHtml = await page
+        .getByTestId('agenda-event-ok')
+        .evaluate((e) => e.className);
+      expect(
+        lateHtml.includes('destructive'),
+        `le retard n'est pas signalé : ${lateHtml}`,
+      );
+      expect(
+        !okHtml.includes('destructive'),
+        `une action non en retard est signalée : ${okHtml}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.3',
+    us: 'US-01-09',
+    title: 'Le bandeau ne montre que ce qui reste à faire',
+    needsProject: true,
+    gherkin: [
+      'Given une action du jour déjà réalisée',
+      'And une action du jour encore planifiée',
+      'When j’ouvre l’agenda',
+      'Then seule la planifiée figure dans le bandeau d’alerte',
+    ],
+    async run({ page, expect, projectId }) {
+      const today = agendaToday();
+      await mockAgenda(page, [
+        agendaFixture({
+          id: 'done',
+          date: today,
+          time: '09:00',
+          status: 'DONE',
+          title: 'Email déjà envoyé',
+        }),
+        agendaFixture({
+          id: 'todo',
+          date: today,
+          time: '16:00',
+          title: 'Appel à passer',
+        }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-banner').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+
+      /*
+       * Annoncer sous une alerte rouge une action faite le matin use le signal
+       * pour rien. Le bandeau porte ce qui reste a faire, pas ce qui a eu lieu.
+       */
+      const banner = await page.getByTestId('agenda-banner').innerText();
+      expect(
+        banner.includes('Appel à passer'),
+        `l'action à faire manque au bandeau : ${banner}`,
+      );
+      expect(
+        !banner.includes('Email déjà envoyé'),
+        `une action déjà réalisée est annoncée comme à faire : ${banner}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.4',
+    us: 'US-01-09',
+    title: 'Changer de mois redemande la bonne période',
+    needsProject: true,
+    gherkin: [
+      'Given l’agenda du mois courant',
+      'When je passe au mois suivant',
+      'Then le serveur est interrogé avec les bornes de ce mois',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockAgenda(page, []);
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-next').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      const before = await page.getByTestId('agenda-period').innerText();
+      apiCalls(true);
+      await page.getByTestId('agenda-next').click();
+      await page.waitForTimeout(1500);
+
+      const after = await page.getByTestId('agenda-period').innerText();
+      expect(after !== before, `la période affichée n'a pas changé : ${after}`);
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /agenda') && c.includes('from=')),
+        `la nouvelle période n'a pas été demandée : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.5',
+    us: 'US-01-09',
+    title: 'Un mois chargé se pagine, il ne se tronque pas',
+    needsProject: true,
+    gherkin: [
+      'Given un mois dont les actions dépassent une page',
+      'When j’ouvre l’agenda',
+      'Then toutes les pages sont demandées',
+      'And les actions de la seconde page figurent dans la grille',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      /*
+       * Se contenter de la premiere page peindrait une grille a laquelle il
+       * manque des rendez-vous, sans que rien ne le dise. C'est le defaut que
+       * ce scenario interdit.
+       */
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') && url.pathname.endsWith('/agenda'),
+        (route) => {
+          const asked = Number(
+            new URL(route.request().url()).searchParams.get('page') ?? 1,
+          );
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: [
+                agendaFixture({
+                  id: `p${asked}`,
+                  date: day,
+                  time: '10:00',
+                  title: `Action page ${asked}`,
+                }),
+              ],
+              counts: { ACTIVITY: 2, TRAINING: 0, CONTRACT_END: 0, QUOTE_EXPIRY: 0 },
+              meta: { total: 2, page: asked, limit: 1, totalPages: 2 },
+            }),
+          });
+        },
+      );
+
+      apiCalls(true);
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-month').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(1200);
+
+      expect(
+        apiCalls().some((c) => c.includes('/agenda') && c.includes('page=2')),
+        `la seconde page n'a pas été demandée : ${apiCalls().join(', ')}`,
+      );
+      expect(
+        (await page.getByTestId('agenda-event-p2').count()) === 1,
+        'les actions de la seconde page manquent à la grille',
+      );
+    },
+  },
+
+  {
+    id: '01-09.6',
+    us: 'US-01-09',
+    title: 'Ouvrir un événement ouvre la fiche sans quitter l’agenda',
+    needsProject: true,
+    gherkin: [
+      'Given une action à l’agenda',
+      'When je clique dessus',
+      'Then la fiche de son organisme s’ouvre sur l’onglet Actions, sur l’agenda',
+      'And l’action visée est mise en avant',
+    ],
+    async run({ page, expect, projectId }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'e1', date: day, time: '11:00', organizationId: 'o1' }),
+      ]);
+      // La fiche visee doit exister : l'agenda est une porte d'entree, pas un
+      // cul-de-sac.
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'o1',
+            name: 'Commune de Joigny',
+            city: 'Joigny',
+            department: '89',
+            salesStatus: 'TO_CONTACT',
+            customerStatus: 'PROSPECT',
+            access: 'FULL',
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-event-e1').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-event-e1').click();
+      await page.waitForTimeout(2000);
+
+      /*
+       * Le panneau s'ouvre **sur l'agenda**, pas dans le module Organismes :
+       * quitter l'ecran ferait perdre le mois affiche et les filtres a chaque
+       * fermeture de fiche.
+       */
+      const url = page.url();
+      expect(
+        url.includes('/agenda') && !url.includes('/organizations'),
+        `l'agenda a été quitté : ${url}`,
+      );
+      expect(
+        url.includes('fiche=o1') &&
+          url.includes('onglet=activities') &&
+          url.includes('action=e1'),
+        `la fiche, l'onglet et l'action ne sont pas portés par l'URL : ${url}`,
+      );
+
+      // Et refermer rend l'agenda intact.
+      await page.getByTestId('agenda-month').waitFor({ timeout: 10000 });
+    },
+  },
+
+  {
+    id: '01-09.7',
+    us: 'US-01-09',
+    title: 'La vue liste rend la même période, quelle que soit la date',
+    needsProject: true,
+    gherkin: [
+      'Given un mois avec des actions à deux dates',
+      'When je bascule en vue liste',
+      'Then les deux actions y figurent, chacune avec sa date',
+    ],
+    async run({ page, expect, projectId }) {
+      await mockAgenda(page, [
+        agendaFixture({ id: 'a', date: `${agendaMonth()}-05`, time: '09:00' }),
+        agendaFixture({ id: 'b', date: `${agendaMonth()}-19`, time: '15:00' }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-view-list').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-view-list').click();
+      await page.getByTestId('agenda-list').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      const list = await page.getByTestId('agenda-list').innerText();
+      expect(
+        (await page.getByTestId('agenda-event-a').count()) === 1 &&
+          (await page.getByTestId('agenda-event-b').count()) === 1,
+        'les deux actions ne sont pas listées',
+      );
+      /*
+       * La liste ne groupe pas par jour mais par urgence : chaque ligne porte
+       * donc sa propre date, sinon on ne saurait pas quand elle tombe.
+       */
+      expect(
+        list.includes(`/${agendaMonth().slice(5)}/`),
+        `les dates ne sont pas portées par les lignes : ${list.slice(0, 200)}`,
+      );
+    },
+  },
+
+
+  {
+    id: '01-09.13',
+    us: 'US-01-09',
+    title: 'Refermer la fiche recharge l’agenda',
+    needsProject: true,
+    gherkin: [
+      'Given une action planifiée, ouverte depuis l’agenda',
+      'When je la marque réalisée puis referme la fiche',
+      'Then l’agenda est rechargé',
+      'And la grille ne montre plus l’état d’avant',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'a1', date: day, time: '11:00', organizationId: 'o1' }),
+      ]);
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'o1',
+            name: 'Commune de Joigny',
+            city: 'Joigny',
+            department: '89',
+            salesStatus: 'TO_CONTACT',
+            customerStatus: 'PROSPECT',
+            access: 'FULL',
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      });
+      await mockActivities(page, [activityFixture({ id: 'a1', date: day, time: '11:00' })]);
+      await page.route(
+        (url) => url.pathname.endsWith('/activities/a1/complete'),
+        (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(
+              activityFixture({ id: 'a1', status: 'DONE', report: 'Fait.' }),
+            ),
+          }),
+      );
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-event-a1').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-event-a1').click();
+      await page.getByTestId('activity-do-a1').waitFor({ timeout: 15000 });
+      await page.getByTestId('activity-do-a1').click();
+      await page.getByTestId('activity-complete-report').waitFor({ timeout: 10000 });
+      await page.getByTestId('activity-complete-report').fill('DGS convaincue.');
+
+      await page.getByTestId('activity-complete-submit').click();
+      await page.waitForTimeout(1500);
+
+      /*
+       * La fiche s'ouvre **par-dessus** l'agenda : realiser une action puis
+       * refermer le panneau laisserait sinon la grille afficher l'etat d'avant
+       * sous les yeux de l'utilisateur. Le rechargement se fait a la
+       * fermeture, quand l'utilisateur revient a la grille.
+       */
+      apiCalls(true);
+      // Le panneau ne se ferme ni par Echap ni par un clic exterieur : la
+      // croix est le geste prevu.
+      await page.locator('[data-slot="sheet-close"]').first().click();
+      await page.waitForTimeout(2000);
+
+      expect(
+        apiCalls().some((c) => c.startsWith('GET /agenda')),
+        `l'agenda n'a pas été rechargé à la fermeture : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+
+  {
+    id: '01-09.14',
+    us: 'US-01-09',
+    title: 'Enregistrer une action depuis l’agenda demande l’organisme',
+    needsProject: true,
+    gherkin: [
+      'Given l’agenda, sans fiche en contexte',
+      'When j’enregistre une action',
+      'Then la fenêtre commence par demander l’organisme',
+      'And valider sans organisme est refusé avant envoi',
+      'And une fiche hors de mon périmètre n’est pas sélectionnable',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockAgenda(page, []);
+      await mock(page, '/organizations', 200, {
+        data: [
+          {
+            id: 'o1',
+            name: 'Commune de Joigny',
+            city: 'Joigny',
+            department: '89',
+            salesStatus: 'TO_CONTACT',
+            customerStatus: 'PROSPECT',
+            access: 'FULL',
+          },
+          {
+            id: 'o2',
+            name: 'Commune hors secteur',
+            city: null,
+            department: '99',
+            salesStatus: 'TO_CONTACT',
+            customerStatus: 'PROSPECT',
+            access: 'RESTRICTED',
+          },
+        ],
+        meta: { total: 2, page: 1, limit: 100, totalPages: 1 },
+      });
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-add').click();
+      await page.getByTestId('activity-organization').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      // Aucun organisme n'est en contexte depuis l'agenda : le champ existe.
+      const trigger = await page.getByTestId('activity-organization').innerText();
+      expect(
+        trigger.includes('Choisir un organisme'),
+        `un organisme semble présélectionné : ${trigger}`,
+      );
+
+      apiCalls(true);
+      await page.getByTestId('activity-submit').click();
+      await page.waitForTimeout(1000);
+      const body = await page.locator('body').innerText();
+      expect(
+        body.includes('Choisissez un organisme'),
+        `le refus n'est pas expliqué : ${body.slice(0, 300)}`,
+      );
+      expect(
+        !apiCalls().some((c) => c.startsWith('POST /activities')),
+        `le serveur a été appelé sans organisme : ${apiCalls().join(', ')}`,
+      );
+
+      /*
+       * Une fiche hors perimetre se voit en projection restreinte mais
+       * n'accepte pas d'action : le serveur rendrait `403`. On la montre
+       * inerte plutot que de faire cliquer pour rien.
+       */
+      await page.getByTestId('activity-organization').click();
+      await page.waitForTimeout(500);
+      const restricted = page.getByRole('option', { name: /hors secteur/ });
+      expect(
+        (await restricted.getAttribute('aria-disabled')) === 'true',
+        'une fiche hors périmètre est sélectionnable',
+      );
+    },
+  },
+
+
+  {
+    id: '01-09.15',
+    us: 'US-01-09',
+    title: 'L’écran s’ouvre sur « À faire », et l’état filtre la grille',
+    needsProject: true,
+    gherkin: [
+      'Given un mois portant une action planifiée et une réalisée',
+      'When j’ouvre l’agenda',
+      'Then seule la planifiée est affichée',
+      'When je choisis « Historique »',
+      'Then seule la réalisée est affichée',
+      'And le bandeau garde ses comptes absolus',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'todo', date: day, time: '09:00' }),
+        agendaFixture({ id: 'done', date: day, time: '11:00', status: 'DONE' }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-month').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      // « A faire » d'entree : c'est la question que l'ecran doit servir.
+      expect(
+        (await page.getByTestId('agenda-event-todo').count()) === 1 &&
+          (await page.getByTestId('agenda-event-done').count()) === 0,
+        'l’écran ne s’ouvre pas sur les actions à faire',
+      );
+
+      /*
+       * L'etat se calcule ici : `GET /agenda` n'accepte ni `status` ni `type`.
+       * Aucun appel ne doit partir — la periode est deja chargee.
+       */
+      apiCalls(true);
+      await page.getByTestId('agenda-state-done').click();
+      await page.waitForTimeout(1000);
+
+      expect(
+        (await page.getByTestId('agenda-event-done').count()) === 1 &&
+          (await page.getByTestId('agenda-event-todo').count()) === 0,
+        'l’historique ne montre pas les actions réalisées',
+      );
+      expect(
+        !apiCalls().some((c) => c.startsWith('GET /agenda')),
+        `le serveur a été rappelé pour un filtre local : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.16',
+    us: 'US-01-09',
+    title: 'Les quatre sources affichent leur compte, zéro compris',
+    needsProject: true,
+    gherkin: [
+      'Given une fenêtre portant deux actions et aucune autre source',
+      'When je regarde l’agenda',
+      'Then les quatre sources sont listées avec leur compte',
+      'And celles qui arrivent plus tard le disent, à zéro',
+    ],
+    async run({ page, expect, projectId }) {
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') && url.pathname.endsWith('/agenda'),
+        (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: [agendaFixture({ id: 'e1' })],
+              // Calcules **avant** le filtre `kinds` : un compte qui tomberait
+              // a zero en eteignant son calque ne dirait plus rien.
+              counts: {
+                ACTIVITY: 2,
+                TRAINING: 0,
+                CONTRACT_END: 0,
+                QUOTE_EXPIRY: 0,
+              },
+              meta: { total: 1, page: 1, limit: 100, totalPages: 1 },
+            }),
+          }),
+      );
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-sources').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(600);
+
+      const activity = await page.getByTestId('agenda-source-ACTIVITY').innerText();
+      expect(
+        activity.includes('2') && activity.includes('Actions'),
+        `le compte des actions manque : ${activity}`,
+      );
+
+      /*
+       * Un zero **vrai**, pas une absence : les trois sources existent au
+       * contrat et arrivent aux lots suivants. On le dit plutot que de les
+       * masquer, comme les quatre barres des campagnes.
+       */
+      const training = await page.getByTestId('agenda-source-TRAINING').innerText();
+      expect(
+        training.includes('0') && training.includes('prochain lot'),
+        `la source à venir n'est pas expliquée : ${training}`,
+      );
+    },
+  },
+
+  {
+    id: '01-09.17',
+    us: 'US-01-09',
+    title: 'Filtrer par type ne rappelle pas le serveur',
+    needsProject: true,
+    gherkin: [
+      'Given un mois portant un appel et un rendez-vous',
+      'When je filtre sur les rendez-vous',
+      'Then seul le rendez-vous reste affiché',
+      'And aucun appel au serveur n’est fait',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      const day = `${agendaMonth()}-12`;
+      await mockAgenda(page, [
+        agendaFixture({ id: 'call', date: day, time: '09:00', title: 'Appel' }),
+        agendaFixture({ id: 'meet', date: day, time: '11:00', title: 'RDV physique' }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-type').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      apiCalls(true);
+      await page.getByTestId('agenda-type').click();
+      await page.waitForTimeout(500);
+      await page.getByRole('option', { name: 'RDV physique' }).click();
+      await page.waitForTimeout(1000);
+
+      expect(
+        (await page.getByTestId('agenda-event-meet').count()) === 1 &&
+          (await page.getByTestId('agenda-event-call').count()) === 0,
+        'le filtre par type ne s’applique pas',
+      );
+      // La route n'accepte pas `type` : le filtre est local, sur une periode
+      // deja chargee — il ne masque donc rien que le serveur ait filtre.
+      expect(
+        !apiCalls().some((c) => c.startsWith('GET /agenda')),
+        `le serveur a été rappelé pour un filtre local : ${apiCalls().join(', ')}`,
+      );
+    },
+  },
+
+
+  {
+    id: '01-09.18',
+    us: 'US-01-09',
+    title: 'La liste groupe par urgence, sur une fenêtre glissante',
+    needsProject: true,
+    gherkin: [
+      'Given une action en retard et une action de la semaine',
+      'When je bascule en vue Liste',
+      'Then le serveur est interrogé sur une fenêtre qui déborde le mois affiché',
+      'And « En retard » vient en tête, avec son compte',
+      'And la navigation de période disparaît, la liste ne la suivant pas',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      /*
+       * Une date en dur tomberait dans un groupe different selon le jour ou le
+       * scenario s'execute : « Cette semaine » se calcule a trois jours d'ici.
+       */
+      await mockAgenda(page, [
+        agendaFixture({ id: 'late', date: `${agendaMonth()}-01`, isLate: true }),
+        agendaFixture({ id: 'soon', date: agendaInDays(3), time: '10:30' }),
+      ]);
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-view-list').waitFor({ timeout: 15000 });
+
+      apiCalls(true);
+      await page.getByTestId('agenda-view-list').click();
+      await page.getByTestId('agenda-list').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(1000);
+
+      /*
+       * La liste ne suit pas le curseur de mois : grouper par urgence n'a de
+       * sens que si l'urgence est dans la fenetre. Un commercial qui ouvre
+       * l'agenda le 28 doit voir la semaine suivante.
+       */
+      const call = apiCalls().find((c) => c.startsWith('GET /agenda'));
+      expect(!!call, `aucune requête pour la vue Liste : ${apiCalls().join(', ')}`);
+      expect(
+        !call.includes(`from=${agendaMonth()}-01`),
+        `la liste est restée bornée au mois : ${call}`,
+      );
+
+      // « En retard » d'abord, et compte.
+      const list = await page.getByTestId('agenda-list').innerText();
+      expect(
+        list.indexOf('En retard') < list.indexOf('Cette semaine'),
+        `« En retard » ne vient pas en tête : ${list.slice(0, 200)}`,
+      );
+      expect(
+        (await page.getByTestId('agenda-group-late').innerText()) === '1',
+        'le groupe « En retard » n’affiche pas son compte',
+      );
+
+      // Le curseur de mois n'a pas de sens ici : il disparait.
+      expect(
+        (await page.getByTestId('agenda-period').count()) === 0,
+        'la navigation de période reste affichée en vue Liste',
+      );
+    },
+  },
+
+
+  {
+    id: '01-09.19',
+    us: 'US-01-09',
+    title: 'Le sélecteur d’organisme cherche au serveur, et dit ce qu’il ne montre pas',
+    needsProject: true,
+    gherkin: [
+      'Given une base de cinq cents organismes',
+      'When j’ouvre le sélecteur depuis l’agenda',
+      'Then il annonce combien il en montre sur le total',
+      'When je saisis un nom',
+      'Then la recherche part au serveur, jamais un filtre sur les vingt reçus',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockAgenda(page, []);
+
+      /*
+       * Cinq cents fiches pour vingt rendues : une liste deroulante simple
+       * s'arretait au centieme — le maximum du contrat — sans le dire, et le
+       * quatre-centieme organisme etait introuvable.
+       */
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          const search = new URL(route.request().url()).searchParams.get('search');
+          const rows = search
+            ? [{ id: 'found', name: `Commune de ${search}` }]
+            : Array.from({ length: 20 }, (_, i) => ({
+                id: `o${i}`,
+                name: `Organisme ${i}`,
+              }));
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: rows.map((r) => ({
+                ...r,
+                city: null,
+                department: '89',
+                salesStatus: 'TO_CONTACT',
+                customerStatus: 'PROSPECT',
+                access: 'FULL',
+              })),
+              meta: {
+                total: search ? 1 : 500,
+                page: 1,
+                limit: 20,
+                totalPages: search ? 1 : 25,
+              },
+            }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-add').click();
+      await page.getByTestId('activity-organization').waitFor({ timeout: 10000 });
+      await page.getByTestId('activity-organization').click();
+      await page.getByTestId('activity-organization-search').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(900);
+
+      // Sans ce compte, une liste tronquee se lit comme une base vide.
+      const more = await page.getByTestId('activity-organization-more').innerText();
+      expect(
+        more.includes('20') && more.includes('500'),
+        `la troncature n'est pas annoncée : ${more}`,
+      );
+
+      apiCalls(true);
+      await page.getByTestId('activity-organization-search').fill('Joigny');
+      await page.waitForTimeout(1500);
+
+      /*
+       * La recherche part au serveur : filtrer les vingt lignes deja recues ne
+       * trouverait jamais la quatre-centieme.
+       */
+      expect(
+        apiCalls().some(
+          (c) => c.startsWith('GET /organizations') && c.includes('search=Joigny'),
+        ),
+        `la recherche n'a pas été envoyée : ${apiCalls().join(', ')}`,
+      );
+      expect(
+        (await page.getByTestId('activity-organization-option-found').count()) === 1,
+        'le résultat de la recherche n’est pas proposé',
       );
     },
   },

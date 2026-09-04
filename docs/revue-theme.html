@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Revue du thème — pastilles actuelles et proposées</title>
+<style>
+  :root {
+    --ink: #12141d; --ink2: #3d4356; --muted: #79809a;
+    --bg: #f4f5fa; --panel: #fff; --border: #e3e6f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px;
+    font: 14px/1.55 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--ink);
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 32px 0 10px; text-transform: uppercase;
+       letter-spacing: .06em; color: var(--muted); }
+  p.intro { margin: 0 0 8px; color: var(--ink2); max-width: 70ch; }
+  section { background: var(--panel); border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px; margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(18,20,29,.06); }
+  table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase;
+       letter-spacing: .05em; color: var(--muted); padding: 0 12px 8px 0;
+       font-weight: 700; }
+  td { padding: 7px 12px 7px 0; vertical-align: middle;
+       border-top: 1px solid var(--border); }
+  code { font: 12px/1 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+         color: var(--ink2); }
+
+  .tag { display: inline-flex; align-items: center; border-radius: 7px;
+         padding: 3px 9px; font-weight: 700; font-size: 11.5px;
+         border: 1px solid transparent; white-space: nowrap; }
+
+  /* Ce que l'application rend aujourd'hui — valeurs relevees dans le navigateur. */
+  .now-grey  { background: #F8F9FA; color: #333; border-color: transparent; }
+  .now-blue  { background: #eff6ff; color: #1d4ed8; border-color: #dbeafe; }
+  .now-violet{ background: #f5f3ff; color: #6d28d9; border-color: #ede9fe; }
+
+  /* Ce qui est propose. */
+  .new-brand  { background: #E0F2FE; color: #075985; border-color: #BAE6FD; }
+  .new-success{ background: #D1FAE5; color: #047857; border-color: #A7F3D0; }
+  .new-info   { background: #CCFBF1; color: #0F766E; border-color: #99F6E4; }
+  .new-warning{ background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+  .new-danger { background: #FEE2E2; color: #B91C1C; border-color: #FECACA; }
+  .new-grey   { background: #F1F3F5; color: #495057; border-color: #DEE2E6; }
+
+  .swatch { display: inline-block; width: 42px; height: 20px; border-radius: 5px;
+            border: 1px solid rgba(0,0,0,.08); vertical-align: middle; margin-right: 8px; }
+  .ratio { font-weight: 700; }
+  .ok { color: #047857; }
+  .ko { color: #B91C1C; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .vs > div { min-width: 0; }
+  .vs h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+           color: var(--muted); margin: 0 0 10px; }
+  .note { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+  @media (max-width: 760px) { .vs { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>Revue du thème — pastilles actuelles et proposées</h1>
+<p class="intro">
+  Les couleurs « aujourd'hui » sont celles relevées dans le navigateur sur la
+  fiche d'organisme, pas des valeurs supposées. Accompagne
+  <code>docs/REVUE-THEME-COULEUR.md</code>.
+</p>
+
+<h2>La fiche d'organisme, en-tête</h2>
+<section>
+  <div class="vs">
+    <div>
+      <h3>Aujourd'hui</h3>
+      <div class="row">
+        <span class="tag now-grey">En cours de prospection</span>
+        <span class="tag now-grey">Non client</span>
+        <span class="tag now-blue">Normale</span>
+      </div>
+      <p class="note">
+        Trois pastilles, deux gris identiques et un bleu qui n'est pas celui de
+        la marque : <code>#1d4ed8</code>, le repli Tailwind.
+      </p>
+    </div>
+    <div>
+      <h3>Proposé</h3>
+      <div class="row">
+        <span class="tag new-brand">En cours de prospection</span>
+        <span class="tag new-grey">Non client</span>
+        <span class="tag new-info">Normale</span>
+        <span class="tag new-warning">Marché public en cours</span>
+      </div>
+      <p class="note">
+        Le statut commercial porte la marque, la priorité et l'étiquette se
+        distinguent. Le gris reste pour ce qui n'a pas de charge — « Non client ».
+      </p>
+    </div>
+  </div>
+</section>
+
+<h2>La frise d'actions</h2>
+<section>
+  <div class="vs">
+    <div>
+      <h3>Aujourd'hui</h3>
+      <div class="row">
+        <span class="tag now-grey">Planifiée</span>
+        <span class="tag now-blue">Réalisée</span>
+        <span class="tag now-grey">Non intéressé</span>
+      </div>
+      <p class="note">
+        « Réalisée » sort en couleur de marque au lieu du vert : le composant
+        demande <code>variant="primary"</code> pour un état de succès.
+        « Non intéressé » et « Planifiée » partagent le même gris.
+      </p>
+    </div>
+    <div>
+      <h3>Proposé</h3>
+      <div class="row">
+        <span class="tag new-info">Planifiée</span>
+        <span class="tag new-success">Réalisée</span>
+        <span class="tag new-success">RDV obtenu</span>
+        <span class="tag new-danger">Non intéressé</span>
+        <span class="tag new-grey">Annulée</span>
+      </div>
+      <p class="note">
+        La couleur dit le statut avant qu'on lise le texte, comme dans la maquette.
+      </p>
+    </div>
+  </div>
+</section>
+
+<h2>Le piège du repli</h2>
+<section>
+  <p class="intro" style="margin-bottom:12px">
+    La variante <code>info</code> n'a aucun jeton défini : son repli est
+    <code>--color-violet-700</code>. C'est la couleur Periscolia retirée du
+    thème, qui reviendrait dès qu'un écran utiliserait cette variante.
+  </p>
+  <div class="row">
+    <span class="tag now-violet">info — repli violet Periscolia</span>
+    <span style="color:var(--muted)">&rarr;</span>
+    <span class="tag new-info">info — teal proposé</span>
+  </div>
+</section>
+
+<h2>Les paires proposées, et leur contraste</h2>
+<section>
+  <table>
+    <thead>
+      <tr>
+        <th>Rôle</th><th>Aperçu</th><th>Texte</th><th>Fond</th>
+        <th>Bordure</th><th>Contraste</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Marque</td>
+        <td><span class="tag new-brand">En cours</span></td>
+        <td><span class="swatch" style="background:#075985"></span><code>#075985</code></td>
+        <td><span class="swatch" style="background:#E0F2FE"></span><code>#E0F2FE</code></td>
+        <td><code>#BAE6FD</code></td>
+        <td class="ratio ok">6,59:1 — AA</td>
+      </tr>
+      <tr>
+        <td>Succès</td>
+        <td><span class="tag new-success">Réalisée</span></td>
+        <td><span class="swatch" style="background:#047857"></span><code>#047857</code></td>
+        <td><span class="swatch" style="background:#D1FAE5"></span><code>#D1FAE5</code></td>
+        <td><code>#A7F3D0</code></td>
+        <td class="ratio ok">4,84:1 — AA</td>
+      </tr>
+      <tr>
+        <td>Information</td>
+        <td><span class="tag new-info">Planifiée</span></td>
+        <td><span class="swatch" style="background:#0F766E"></span><code>#0F766E</code></td>
+        <td><span class="swatch" style="background:#CCFBF1"></span><code>#CCFBF1</code></td>
+        <td><code>#99F6E4</code></td>
+        <td class="ratio ok">4,86:1 — AA</td>
+      </tr>
+      <tr>
+        <td>Avertissement</td>
+        <td><span class="tag new-warning">En retard</span></td>
+        <td><span class="swatch" style="background:#92400E"></span><code>#92400E</code></td>
+        <td><span class="swatch" style="background:#FEF3C7"></span><code>#FEF3C7</code></td>
+        <td><code>#FDE68A</code></td>
+        <td class="ratio ok">6,37:1 — AA</td>
+      </tr>
+      <tr>
+        <td>Danger</td>
+        <td><span class="tag new-danger">Perdue</span></td>
+        <td><span class="swatch" style="background:#B91C1C"></span><code>#B91C1C</code></td>
+        <td><span class="swatch" style="background:#FEE2E2"></span><code>#FEE2E2</code></td>
+        <td><code>#FECACA</code></td>
+        <td class="ratio ok">5,30:1 — AA</td>
+      </tr>
+      <tr>
+        <td>Neutre</td>
+        <td><span class="tag new-grey">Non client</span></td>
+        <td><span class="swatch" style="background:#495057"></span><code>#495057</code></td>
+        <td><span class="swatch" style="background:#F1F3F5"></span><code>#F1F3F5</code></td>
+        <td><code>#DEE2E6</code></td>
+        <td class="ratio ok">7,35:1 — AAA</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">
+    Contrastes calculés selon WCAG 2.1, pas estimés à l'œil. Toutes les paires
+    passent AA en texte normal.
+  </p>
+</section>
+
+<h2>L'arbitrage à trancher</h2>
+<section>
+  <p class="intro">
+    Dans la maquette, la marque est violette et le bleu sert d'information : les
+    deux ne se confondent pas. Notre marque étant azur, un <code>info</code>
+    bleu entrerait en collision avec elle.
+  </p>
+  <div class="row" style="margin-top:12px">
+    <span class="tag new-brand">marque azur</span>
+    <span class="tag" style="background:#e8f4fc;color:#0f6699;border-color:#c2e0f4">info bleu — maquette</span>
+    <span style="color:var(--muted)">deux bleus voisins</span>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <span class="tag new-brand">marque azur</span>
+    <span class="tag new-info">info teal — proposé</span>
+    <span style="color:var(--muted)">se distinguent</span>
+  </div>
+  <p class="note">
+    C'est le seul écart assumé avec la maquette. Le teal est déjà la valeur de
+    <code>--info</code> dans <code>theme.oui-crm.css</code> ; il n'était
+    simplement jamais atteint.
+  </p>
+</section>
+
+</body>
+</html>
