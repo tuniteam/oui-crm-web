@@ -25,6 +25,7 @@ import { useBoard } from '../hooks/useBoard';
 import { useSalesStatus } from '../hooks/useSalesStatus';
 import type { BoardCard as Card } from '../types/board';
 import type { SalesStatus } from '../types/organizationList';
+import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { BoardCard } from './BoardCard';
 import { BoardCloseWindow } from './BoardCloseWindow';
 import { OrganizationPanel } from './OrganizationPanel';
@@ -63,9 +64,16 @@ export default function ProspectionScreen() {
   );
 
   const { columns, loading, loadMore, loadingMore } = useBoard();
+  /* Une fois pour tout le tableau : les référentiels ne se rechargent pas par
+     carte. Voir la règle « Aucune clé de référentiel à l'écran ». */
+  const { labelOf } = useReferenceLabels();
   const { move } = useSalesStatus();
 
   const shown = columns.filter((c) => c.salesStatus !== HIDDEN);
+  /* Les colonnes affichees, dans l'ordre : ce sont les seules destinations
+     qu'un menu peut proposer. « Non contacte » est masquee, on n'y renvoie
+     pas. */
+  const targets = shown.map((c) => c.salesStatus);
   const hidden = columns.find((c) => c.salesStatus === HIDDEN);
 
   /* `Kanban` travaille sur `Record<colonne, cartes[]>`. Les déplacements en
@@ -258,7 +266,14 @@ export default function ProspectionScreen() {
                           porte, comme dans la V8. */}
                       <KanbanItemHandle asChild>
                         <div>
-                          <BoardCard card={card} onOpen={openPanel} />
+                          <BoardCard
+                            card={card}
+                            onOpen={openPanel}
+                            status={column.salesStatus}
+                            targets={targets}
+                            onMove={onMove}
+                            labelOf={labelOf}
+                          />
                         </div>
                       </KanbanItemHandle>
                     </KanbanItem>
@@ -299,7 +314,12 @@ export default function ProspectionScreen() {
               .flatMap((c) => c.items)
               .find((i) => i.id === value);
             return card ? (
-              <BoardCard card={card} onOpen={() => {}} floating />
+              <BoardCard
+                card={card}
+                onOpen={() => {}}
+                labelOf={labelOf}
+                floating
+              />
             ) : null;
           }}
         </KanbanOverlay>

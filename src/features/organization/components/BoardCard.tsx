@@ -1,5 +1,13 @@
-import { Lock, TriangleAlert } from 'lucide-react';
+import { EllipsisVertical, Lock, TriangleAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge, BadgeDot } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -17,7 +25,9 @@ import {
   PRIORITY_LABELS,
   PRIORITY_TONES,
 } from '../constants/organizationList.constants';
+import { SALES_STATUS_LABELS } from '../constants/organizationList.constants';
 import type { BoardCard as Card } from '../types/board';
+import type { SalesStatus } from '../types/organizationList';
 
 const UI = BOARD_UI;
 
@@ -61,6 +71,20 @@ function Truncated({
 type Props = {
   card: Card;
   onOpen: (id: string) => void;
+  /**
+   * Le statut de la colonne qui la porte, les colonnes atteignables et le
+   * deplacement. Absents de la carte flottante, qui suit le curseur et n'a pas
+   * de menu.
+   */
+  status?: SalesStatus;
+  targets?: SalesStatus[];
+  onMove?: (id: string, to: SalesStatus) => void;
+  /**
+   * Traduit une clé de référentiel en libellé. Passé par l'écran, jamais
+   * appelé ici : `useReferenceLabels` charge les référentiels du projet, et
+   * l'invoquer par carte les rechargerait autant de fois qu'il y a de cartes.
+   */
+  labelOf: (category: 'TAG', key: string) => string | null;
   /** Rendue dans la surimpression qui suit le curseur, pas dans la colonne. */
   floating?: boolean;
 };
@@ -80,7 +104,15 @@ type Props = {
  * étiquettes, ni prochaine action. Elle reste visible, grisée, et son
  * déplacement est désactivé — le serveur le refuserait de toute façon.
  */
-export function BoardCard({ card, onOpen, floating = false }: Props) {
+export function BoardCard({
+  card,
+  onOpen,
+  status,
+  targets,
+  onMove,
+  labelOf,
+  floating = false,
+}: Props) {
   const restricted = card.access === 'RESTRICTED';
   const next = card.nextActivity ?? null;
   /* `date` est une chaîne de jour, jamais un instant : on la lit telle quelle,
@@ -141,29 +173,55 @@ export function BoardCard({ card, onOpen, floating = false }: Props) {
           </Truncated>
         </div>
 
-        {/* Deux lettres remplacent un nom : le survol le rend. */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span
-              data-testid={`board-rep-${card.id}`}
-              className={cn(
-                'grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-bold',
-                card.salesRep
-                  ? 'bg-primary/10 text-primary'
-                  : 'border border-dashed border-border text-muted-foreground',
-              )}
-            >
-              {initialsOf(card.salesRep)}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            {card.salesRep?.fullName ?? UI.UNASSIGNED}
-          </TooltipContent>
-        </Tooltip>
+
+
+          {/* Le second chemin, au clic — pose **a cote** de la pastille, jamais
+              par-dessus. Absent de la carte flottante, qui suit le curseur, et
+              d'une fiche hors perimetre, que le serveur refuserait de deplacer. */}
+        {!floating && !restricted && targets && onMove ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                mode="icon"
+                aria-label={UI.MOVE_LABEL(card.name)}
+                data-testid={`board-move-${card.id}`}
+                className="-me-1 -mt-1 size-6 shrink-0"
+                /* La carte entiere ouvre la fiche : sans cela, ouvrir le menu
+                   ouvrirait aussi le panneau derriere. */
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EllipsisVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuLabel>{UI.MOVE_MENU}</DropdownMenuLabel>
+              {targets
+                .filter((s) => s !== status)
+                .map((s) => (
+                  <DropdownMenuItem
+                    key={s}
+                    data-testid={`board-move-${card.id}-${s}`}
+                    onSelect={() => onMove(card.id, s)}
+                  >
+                    {SALES_STATUS_LABELS[s]}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
 
-      {!restricted && (card.priority || (card.tags ?? []).length > 0) ? (
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      {/*
+        * Le pied de carte porte ce qui qualifie la fiche — priorite, etiquettes
+        * — et, a droite, son commercial. Groupes ici plutot qu'en tete, ils
+        * laissent la ligne du haut entiere a la prochaine action, qui est
+        * l'information la plus longue et la plus utile de la carte.
+        */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+        {!restricted && (card.priority || (card.tags ?? []).length > 0) ? (
+          <>
           {card.priority ? (
             <Badge
               variant={toneOf(PRIORITY_TONES, card.priority)}
@@ -183,17 +241,51 @@ export function BoardCard({ card, onOpen, floating = false }: Props) {
                   variant="secondary"
                   appearance="outline"
                   size="sm"
-                  className="max-w-28 truncate"
+                  className="max-w-28"
                 >
-                  <BadgeDot />
-                  {tag}
+                  <BadgeDot className="shrink-0" />
+                  {/*
+                    * La coupure vit sur le texte, pas sur la pastille : une
+                    * pastille est en `justify-center`, et un `truncate` pose
+                    * sur elle laisse le texte deborder **des deux cotes**, sans
+                    * points de suspension. Il faut un enfant en `min-w-0`.
+                    *
+                    * Une cle inconnue reste affichee telle quelle : une fiche
+                    * peut porter une valeur devenue inactive.
+                    */}
+                  <span className="min-w-0 truncate">
+                    {labelOf('TAG', tag) ?? tag}
+                  </span>
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>{UI.TAG_TOOLTIP(tag)}</TooltipContent>
+              <TooltipContent>
+                {UI.TAG_TOOLTIP(labelOf('TAG', tag) ?? tag)}
+              </TooltipContent>
             </Tooltip>
           ))}
-        </div>
-      ) : null}
+          </>
+        ) : null}
+
+        {/* Deux lettres remplacent un nom : le survol le rend. */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              data-testid={`board-rep-${card.id}`}
+              className={cn(
+                'ms-auto grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-bold',
+                card.salesRep
+                  ? 'bg-primary/10 text-primary'
+                  : 'border border-dashed border-border text-muted-foreground',
+              )}
+            >
+              {initialsOf(card.salesRep)}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            {card.salesRep?.fullName ?? UI.UNASSIGNED}
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   );
 }

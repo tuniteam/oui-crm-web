@@ -13,7 +13,17 @@ export const BOARD_ERRORS = {
 export const BOARD_UI = {
   TITLE: 'Suivi prospection',
   SUBTITLE:
-    'Les organismes engagés, classés par statut commercial. Déplacez une carte pour changer son statut.',
+    'Les organismes engagés, classés par statut commercial. Déplacez une carte, ou utilisez son menu, pour changer son statut.',
+
+  /**
+   * Le glisser-deposer n'est jamais le seul chemin.
+   *
+   * Il suppose une souris, de la precision et l'habitude du geste — trois
+   * choses qu'on ne peut pas exiger d'un commercial au trackpad. Le menu fait
+   * exactement la meme chose au clic, motif de cloture compris.
+   */
+  MOVE_MENU: 'Déplacer vers…',
+  MOVE_LABEL: (name: string) => `Déplacer « ${name} »`,
 
   /**
    * Ce que chaque colonne veut dire, en une phrase.

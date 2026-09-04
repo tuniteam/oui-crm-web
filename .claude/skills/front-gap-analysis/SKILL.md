@@ -171,6 +171,104 @@ travail.
   figée, un cas qui dégrade en silence. C'est là que ce document gagne sa valeur.
 - Les chaînes d'interface citées restent en français.
 
+## Pour qui l'on dessine
+
+**Des commerciaux, pas des utilisateurs avancés.** Ils vivent dans l'écran toute
+la journée, mais ne cherchent pas à apprendre un outil : ils cherchent à ne pas
+perdre une affaire. Ce que ça change, concrètement — chaque règle ci-dessous
+s'est déjà payée quelque part :
+
+- **Rien d'invisible tant qu'on ne survole pas.** Une action qui n'apparaît
+  qu'au survol n'existe pas pour qui ne survole jamais. Sur mobile ou au
+  trackpad, elle est simplement absente.
+- **Un libellé, toujours.** Une icône seule se devine ; un verbe se lit. Les
+  icônes accompagnent, elles ne remplacent pas. Exception : la croix de
+  fermeture et les boutons-icônes ronds, universels — et encore, avec un
+  `aria-label`.
+- **Rien d'irréversible sans confirmation nommée.** Pas « Êtes-vous sûr ? »,
+  mais « 12 fiches vont être supprimées. L'action est sans retour. » Le nombre
+  et la conséquence, pas une formule.
+- **Le glisser-déposer n'est jamais le seul chemin.** Il est agréable quand on
+  le maîtrise, inaccessible sinon. Toute manipulation qui passe par un
+  déplacement doit avoir son équivalent au clic — un menu sur la carte, une
+  action dans la ligne.
+- **Dire ce qui vient de se passer, en chiffres.** « 3 traités, 2 ignorés — 2
+  hors de votre périmètre » vaut mieux que « Enregistré ». Un compte rendu
+  partiel qui se tait fait perdre confiance dans l'outil entier.
+- **Pas de jargon d'interface.** Ni « bulk », ni « scope », ni « filtre actif ».
+  On écrit « toutes les fiches qui correspondent aux filtres », même si c'est
+  plus long.
+- **Un écran qui ne bouge pas.** Une barre qui apparaît et pousse le tableau
+  fait perdre la ligne qu'on visait. Ce qui surgit flotte ou se pose à côté.
+- **L'aide vit à l'endroit du doute**, pas dans une documentation. Une phrase
+  sous le champ au moment où la question se pose.
+
+### Aucune clé de référentiel à l'écran
+
+**Une chaîne en MAJUSCULES_AVEC_UNDERSCORES affichée à l'utilisateur est
+toujours un défaut.** `PUBLIC_TENDER`, `COMPETITOR_RENEWAL`, `IN_PROGRESS` :
+ce sont des clés de base de données, pas des mots. Un commercial n'a aucune
+raison de les lire, et elles sont en anglais.
+
+Le projet a un traducteur unique : `useReferenceLabels`
+(`src/features/settings/hooks/useReferenceLabels.ts`).
+
+```tsx
+const { labelOf } = useReferenceLabels();
+labelOf('TAG', tag) ?? tag
+```
+
+Quatre règles qui vont avec :
+
+- **Le hook se consomme une fois par écran, jamais par ligne.** Il charge les
+  référentiels du projet ; l'appeler dans une carte ou une cellule le ferait
+  autant de fois qu'il y a de cartes. L'écran l'appelle et passe `labelOf` en
+  prop.
+- **Une clé inconnue reste affichée telle quelle**, jamais masquée. Une fiche
+  peut porter une valeur devenue inactive : l'effacer donnerait une colonne
+  vide sans explication. D'où le `?? key`.
+- **Ne jamais écrire ces vocabulaires en dur.** Ils appartiennent au projet et
+  un administrateur les enrichit. Les seules tables `as const` légitimes sont
+  les énumérations **du contrat** (statut commercial, priorité, statut
+  d'action), qui ne sont pas des référentiels.
+- **Certaines routes rendent déjà le libellé.** Les actions renvoient
+  `type: { key, label }` et `result: { key, label }` : on affiche `label`, on
+  ne retraduit rien. Vérifier le payload avant de brancher `labelOf`.
+
+Le contrôle, à faire sur chaque capture : **lire l'écran à voix haute.** Tout ce
+qui ne se prononce pas est une clé oubliée.
+
+### Une règle ne souffre pas d'exception de mise en page
+
+Quand une règle d'interface se heurte à une contrainte de place, **c'est la
+place qui cède**. Une pastille dont le point de couleur ne tient pas dans sa
+colonne demande une colonne plus large, pas un point en moins : une règle qui
+vaut partout sauf dans les tableaux s'apprend deux fois, et le lecteur ne sait
+plus ce qu'il regarde.
+
+Cela vaut pour toute la charte `docs/REGLE-BADGE-VS-BOUTON.md`. Si la place
+manque vraiment, c'est la densité de l'écran qu'il faut revoir — pas le
+vocabulaire visuel.
+
+### Choisir entre deux dispositions
+
+Quand plusieurs solutions se valent techniquement, trancher dans cet ordre :
+
+1. **Celle qui se voit sans être cherchée.** La découvrabilité prime sur la
+   rapidité : un raccourci que personne ne trouve ne fait gagner de temps à
+   personne.
+2. **Celle qui demande une confirmation là où c'est destructif**, quitte à
+   coûter un clic de plus.
+3. **Celle qui réutilise un motif déjà présent dans l'application.** Un écran
+   qui ressemble aux autres s'apprend une fois. Une invention locale s'apprend
+   à chaque fois.
+4. **Celle qui tient sans repli à 1280 px**, la largeur d'un portable de
+   commercial — pas d'un écran de développeur.
+
+Une solution plus rapide pour un utilisateur aguerri, mais opaque pour les
+autres, est **la mauvaise solution ici**. Le dire dans la proposition plutôt que
+de l'imposer.
+
 ## Quelle référence UI selon la zone
 
 | Zone | Référence |

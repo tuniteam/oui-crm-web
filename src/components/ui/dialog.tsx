@@ -138,7 +138,11 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        'text-lg font-semibold leading-none tracking-tight',
+        /* Pas de `leading-none` : une hauteur de ligne egale a la taille du
+           texte ne laisse aucune place aux jambages. Combinee au `truncate`
+           d'un titre long — donc a `overflow: hidden` — elle rasait le bas des
+           « g » et des « p » de toutes les fenetres. */
+        'text-lg font-semibold leading-snug tracking-tight',
         className,
       )}
       {...props}

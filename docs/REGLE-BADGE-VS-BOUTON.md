@@ -119,12 +119,14 @@ règle porte sur des objets — pastilles et boutons. Un filet de couleur au bor
 d'une ligne, un rail de frise, une teinte de fond ne sont ni l'un ni l'autre :
 ils colorent sans ajouter d'objet à distinguer, et restent donc libres.
 
-**Le point, oui — sauf dans une colonne de tableau.** Une colonne de liste ne
-contient que des pastilles : il n'y a rien dont les distinguer, et le point y
-coûte 10 px de large. Sur la liste des organismes, ces 10 px suffisaient à
-faire passer « En cours de prospection » sous la colonne « Actions », qui est
-`sticky right: 0`. Le point est donc réservé aux endroits où une pastille
-côtoie un bouton : en-tête de fiche, carte, frise.
+**Le point va sur toute pastille métier, sans exception** — état, priorité,
+étiquette — y compris dans une colonne de tableau. Il avait d'abord été retiré
+des listes, au motif que ses dix pixels faisaient passer une pastille sous une
+colonne épinglée : c'était traiter une contrainte de largeur comme une règle de
+lecture. Une règle qui souffre une exception s'apprend deux fois. Quand la place
+manque, on élargit la colonne.
+
+Seuls les **compteurs** n'en prennent pas : un nombre n'est pas un état.
 
 Une pastille d'état de cycle de vie passe par `StatusBadge`
 (`src/components/shared/StatusBadge.tsx`), qui applique déjà la règle.
