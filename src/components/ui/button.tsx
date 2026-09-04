@@ -38,6 +38,15 @@ const buttonVariants = cva(
         primary: 'text-primary-foreground',
         mono: 'bg-zinc-950 text-white dark:bg-zinc-300 dark:text-black hover:bg-zinc-950/90 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90',
         destructive: 'text-destructive-foreground',
+        /**
+         * Action destructive secondaire : celle d'une ligne de liste, qui
+         * n'execute rien et ouvre une confirmation. Fond blanc, libelle rouge ;
+         * le rouge ne remplit le bouton qu'au survol. L'aplat rouge plein
+         * (`destructive`) reste au bouton de confirmation de la boite de
+         * dialogue. Voir `docs/REGLE-BADGE-VS-BOUTON.md`.
+         */
+        destructiveOutline:
+          'bg-background border border-input text-destructive hover:border-destructive/30 hover:bg-destructive/10 data-[state=open]:bg-destructive/10',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/90 data-[state=open]:bg-secondary/90',
         outline:
@@ -189,6 +198,12 @@ const buttonVariants = cva(
         mode: 'default',
         appearance: 'default',
         className: DESTRUCTIVE_SURFACE,
+      },
+      {
+        variant: 'destructiveOutline',
+        mode: 'default',
+        appearance: 'default',
+        className: 'shadow-xs shadow-black/5',
       },
 
       // Shadow support

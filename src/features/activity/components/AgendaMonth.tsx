@@ -1,5 +1,8 @@
 import { cn } from '@/lib/utils';
-import { AGENDA_UI } from '../constants/agenda.constants';
+import {
+  AGENDA_HORIZON_SURFACES,
+  AGENDA_UI,
+} from '../constants/agenda.constants';
 import type { AgendaItem } from '../types/agenda';
 import {
   dayNumber,
@@ -7,6 +10,7 @@ import {
   monthGrid,
   todayDay,
 } from '../utils/agenda-month';
+import { horizonOf } from '../utils/agenda-horizon';
 import { AgendaEventRow } from './AgendaEventRow';
 
 /** Au-delà, la cellule pousserait toute la ligne : un « +N » et on bascule. */
@@ -34,18 +38,36 @@ export function AgendaMonth({ cursor, events, onOpen, onSeeDay }: Props) {
   }
 
   return (
-    <div data-testid="agenda-month" className="overflow-x-auto">
+    /*
+     * La grille est un objet, pas un fond de page : une carte bordee et ombree,
+     * posee sur le gris de l'ecran. Sans cette limite, le calendrier se
+     * confondait avec la barre d'outils au-dessus.
+     */
+    <div
+      data-testid="agenda-month"
+      className="overflow-x-auto overflow-hidden rounded-lg border border-border bg-card shadow-xs"
+    >
       <div className="min-w-[52rem]">
-        <div className="grid grid-cols-7 border-b border-border">
+        <div
+          data-slot="calendar-grid"
+          className="grid grid-cols-7 border-b border-border bg-muted/50"
+        >
           {AGENDA_UI.WEEKDAYS.map((d) => (
-            <div key={d} className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+            <div
+              key={d}
+              className="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               {d}
             </div>
           ))}
         </div>
 
         {weeks.map((week) => (
-          <div key={week[0]} className="grid grid-cols-7">
+          <div
+            key={week[0]}
+            data-slot="calendar-grid"
+            className="grid grid-cols-7"
+          >
             {week.map((day) => {
               const list = (byDay.get(day) ?? []).slice();
               // Tri par heure ; une action sans heure ouvre la journee.
@@ -58,10 +80,19 @@ export function AgendaMonth({ cursor, events, onOpen, onSeeDay }: Props) {
                   key={day}
                   data-testid={`agenda-day-${day}`}
                   className={cn(
-                    'min-h-24 space-y-1 border-b border-e border-border p-1.5',
-                    // Les jours voisins restent visibles, en retrait : une
-                    // grille qui commence un jeudi se lit mal sans repères.
-                    !isSameMonth(day, cursor) && 'bg-muted/30',
+                    'min-h-28 space-y-1 border-b border-e border-border p-1.5 last:border-e-0',
+                    /*
+                     * Les jours voisins forment un bloc gris continu. Le filet
+                     * vertical y devient transparent : sur un fond gris, un
+                     * filet plus clair que lui se lit comme un trait blanc — ce
+                     * qui decoupait la zone au lieu de la mettre en retrait.
+                     * Pas d'`opacity` non plus : elle delavait aussi le filet.
+                     */
+                    !isSameMonth(day, cursor) &&
+                      'bg-muted-foreground/10 border-e-muted-foreground/10 text-muted-foreground/70',
+                    // Aujourd'hui se repere de loin : la pastille du numero ne
+                    // suffit pas sur une grille de trente-cinq cases.
+                    day === today && 'bg-primary/5',
                   )}
                 >
                   <div
@@ -69,14 +100,22 @@ export function AgendaMonth({ cursor, events, onOpen, onSeeDay }: Props) {
                       'text-xs',
                       day === today
                         ? 'inline-flex size-5 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground'
-                        : 'text-muted-foreground',
+                        : isSameMonth(day, cursor)
+                          ? 'text-muted-foreground'
+                          : 'text-muted-foreground/60',
                     )}
                   >
                     {dayNumber(day)}
                   </div>
 
                   {shown.map((e) => (
-                    <AgendaEventRow key={e.id} event={e} onOpen={onOpen} compact />
+                    <AgendaEventRow
+                      key={e.id}
+                      event={e}
+                      onOpen={onOpen}
+                      compact
+                      accent={AGENDA_HORIZON_SURFACES[horizonOf(e)]}
+                    />
                   ))}
 
                   {hidden > 0 ? (

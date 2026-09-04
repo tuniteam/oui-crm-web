@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
+import { MarkdownTextarea } from '@/components/shared/MarkdownTextarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { useContacts } from '@/features/organization/hooks/useContacts';
 import { OrganizationPicker } from '@/features/organization/components/OrganizationPicker';
@@ -348,9 +348,11 @@ function Body({
             <FormItem>
               <FormLabel>{FIELDS.REPORT}</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  rows={3}
+                <MarkdownTextarea
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  contentClassName="min-h-20"
                   placeholder={FIELDS.REPORT_PLACEHOLDER}
                   data-testid="activity-report"
                   disabled={disabled}

@@ -27,6 +27,20 @@ export const ACTIVITY_STATUS_TONES: Record<ActivityStatus, Tone> = {
 };
 
 /**
+ * La bille de la frise, dans le meme vocabulaire de couleur que les pastilles :
+ * un retard est rouge, une action faite est verte, une planifiee sarcelle. Une
+ * annulee n'a pas de couleur d'etat — elle a une absence de couleur.
+ *
+ * Le halo reprend la teinte pale du triplet, comme la bordure d'une pastille.
+ */
+export const ACTIVITY_RAIL_DOTS = {
+  late: 'bg-destructive shadow-[0_0_0_2px_var(--destructive-border)]',
+  planned: 'bg-info shadow-[0_0_0_2px_var(--info-border)]',
+  done: 'bg-success shadow-[0_0_0_2px_var(--success-border)]',
+  cancelled: 'bg-muted shadow-[0_0_0_2px_var(--border)]',
+} as const;
+
+/**
  * Resultat d'une action. Les cles viennent du referentiel projet
  * (`ACTIVITY_RESULT`), que l'administrateur peut enrichir : une cle absente de
  * cette table sort en neutre, jamais en couleur choisie au hasard.
@@ -87,6 +101,23 @@ export const ACTIVITIES_UI = {
         late !== null ? ` — en retard de ${late} jour${late > 1 ? 's' : ''}` : '',
       ].join(''),
     NONE: 'Aucune action planifiée.',
+  },
+
+  /**
+   * Deux sections, pas une seule frise : les planifiees vont du plus proche au
+   * plus lointain, l'historique du plus recent au plus ancien. Sur un rail
+   * continu, ce renversement du sens du temps se lit comme un desordre — d'ou
+   * la separation, et l'historique replie par defaut.
+   */
+  SECTIONS: {
+    UPCOMING: 'À venir',
+    PAST: 'Historique',
+    /** Le serveur trie par date décroissante : ce sont les plus anciennes qui
+        manquent quand la page est pleine. */
+    /** Jalon de bas de frise : dit que l'historique est complet, pas coupé. */
+    END: 'Début du suivi',
+    MORE: (hidden: number) =>
+      `Voir ${hidden} action${hidden > 1 ? 's' : ''} plus ancienne${hidden > 1 ? 's' : ''}`,
   },
 
   /** La frise, comme la V8 : ce qui s'est dit, pas un tableau de champs. */
@@ -187,6 +218,15 @@ export const ACTIVITY_COMPLETE_WINDOW = {
     RESULT: 'Résultat',
     RESULT_NONE: 'Non précisé',
   },
+
+  /**
+   * Notes et compte rendu sont **le meme champ** cote API (`report`) : la
+   * cloture reprend donc les notes de preparation au lieu de les perdre. Sans
+   * cette phrase, l'utilisateur retrouve son texte sous un autre nom et croit a
+   * un bug.
+   */
+  REPORT_FROM_NOTES:
+    'Vos notes de préparation sont reprises ici : complétez-les par ce qui s’est réellement dit.',
 
   /** Le compte rendu n'est pas une formalité : il est ce qui rend l'action réelle. */
   HINT: 'Le compte rendu est ce qui rend l’action réelle : il est obligatoire.',

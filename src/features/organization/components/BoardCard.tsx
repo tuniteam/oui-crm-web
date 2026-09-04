@@ -1,6 +1,6 @@
 import { Lock, TriangleAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -170,6 +170,7 @@ export function BoardCard({ card, onOpen, floating = false }: Props) {
               appearance="outline"
               size="sm"
             >
+              <BadgeDot />
               {PRIORITY_LABELS[card.priority]}
             </Badge>
           ) : null}
@@ -184,6 +185,7 @@ export function BoardCard({ card, onOpen, floating = false }: Props) {
                   size="sm"
                   className="max-w-28 truncate"
                 >
+                  <BadgeDot />
                   {tag}
                 </Badge>
               </TooltipTrigger>

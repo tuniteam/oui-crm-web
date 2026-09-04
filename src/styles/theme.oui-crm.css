@@ -478,6 +478,15 @@ body,
   gap: 0.75rem; /* 12px instead of 16px (gap-4) */
 }
 
+/*
+ * Sauf un calendrier : ses cellules sont jointives et separees par un filet,
+ * pas par une gouttiere. La regle ci-dessus vise les grilles de cartes ; elle
+ * ouvrait 12 px de blanc entre chaque jour de la grille du mois.
+ */
+.wrapper main [data-slot='calendar-grid'] {
+  gap: 0;
+}
+
 /* ========================================
  * Leaflet Map Markers
  * ======================================== */

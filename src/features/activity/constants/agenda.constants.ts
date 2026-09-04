@@ -1,5 +1,5 @@
 import type { Tone } from '@/shared/constants/tone';
-import type { AgendaHorizon } from '../types/agenda';
+import { AGENDA_HORIZONS, type AgendaHorizon } from '../types/agenda';
 /** Agenda — L1 · US-01-09. Route scopée projet. */
 export const AGENDA_ROUTES = {
   AGENDA_API: '/agenda',
@@ -71,12 +71,36 @@ export const AGENDA_UI = {
 
   /** `isLate` vient du serveur : le seul signal d'alerte de l'écran. */
   LATE: 'En retard',
+  /** Une action close dans la liste : l'opacité seule ne disait pas pourquoi. */
+  DONE: 'Réalisée',
   MORE: (n: number) => `+${n}`,
 
+  /**
+   * Un message par filtre, pas un seul pour les quatre. « Rien de planifié »
+   * sous « En retard » disait faux deux fois : il y a peut-etre dix actions
+   * planifiees, et l'absence de retard est une bonne nouvelle, pas un manque a
+   * combler.
+   */
   EMPTY: {
-    TITLE: 'Rien de planifié',
-    DESCRIPTION:
-      'Planifiez une action depuis la fiche d’un organisme : elle apparaîtra ici.',
+    todo: {
+      TITLE: 'Rien à faire',
+      DESCRIPTION:
+        'Aucune action à venir. Planifiez-en une depuis la fiche d’un organisme.',
+    },
+    late: {
+      TITLE: 'Aucun retard',
+      DESCRIPTION: 'Toutes les actions planifiées sont dans les temps.',
+    },
+    done: {
+      TITLE: 'Aucune action réalisée',
+      DESCRIPTION:
+        'L’historique se remplit à mesure que les actions sont marquées réalisées.',
+    },
+    all: {
+      TITLE: 'Rien de planifié',
+      DESCRIPTION:
+        'Planifiez une action depuis la fiche d’un organisme : elle apparaîtra ici.',
+    },
   },
 
   ERRORS: {
@@ -126,18 +150,61 @@ export const AGENDA_HORIZON_LABELS = {
 } as const;
 
 /**
- * Couleur de chaque groupe. Seul le retard se signale — colorer les cinq
- * autres reviendrait a ne rien signaler du tout. « Historique » reste neutre :
- * c'est du passe, il ne demande aucune action.
+ * Couleur de chaque groupe — une **echelle d'urgence**, pas un tout-ou-rien.
+ * Le rouge reste unique au retard : c'est lui, et lui seul, qui alerte. En
+ * dessous, la chaleur decroit avec l'echeance (ambre aujourd'hui, sarcelle
+ * cette semaine, bleu ce mois-ci) et s'eteint sur ce qui ne presse pas.
+ * « Historique » reste neutre : c'est du passe, il ne demande aucune action.
  */
 export const AGENDA_HORIZON_TONES: Record<AgendaHorizon, Tone> = {
   late: 'destructive',
   today: 'warning',
-  week: 'secondary',
-  month: 'secondary',
+  week: 'info',
+  month: 'primary',
   later: 'secondary',
   done: 'secondary',
 };
+
+/**
+ * Le filet de gauche d'une ligne, dans le ton de son groupe. Ce n'est ni une
+ * pastille ni un bouton : il colore la liste sans y ajouter d'objet, et ne
+ * touche donc pas a la regle `docs/REGLE-BADGE-VS-BOUTON.md`.
+ */
+export const AGENDA_HORIZON_ACCENTS: Record<AgendaHorizon, string> = {
+  late: 'border-s-destructive',
+  today: 'border-s-warning',
+  week: 'border-s-info',
+  month: 'border-s-primary',
+  later: 'border-s-border',
+  done: 'border-s-success',
+};
+
+/**
+ * Le remplissage, pour les seules cartes de la grille du mois : une cellule de
+ * calendrier est petite et dense, un filet seul s'y perd. Une ligne de liste,
+ * aeree, se contente du filet.
+ */
+const AGENDA_HORIZON_FILLS: Record<AgendaHorizon, string> = {
+  late: 'bg-destructive/10 hover:bg-destructive/15',
+  today: 'bg-warning/10 hover:bg-warning/15',
+  week: 'bg-info/10 hover:bg-info/15',
+  month: 'bg-primary/10 hover:bg-primary/15',
+  later: 'bg-muted/60 hover:bg-muted',
+  done: 'bg-success/10 hover:bg-success/15',
+};
+
+/**
+ * Filet + remplissage, composes plutot que reecrits : les deux moities d'une
+ * meme echelle ne peuvent pas diverger. Comme le filet, un fond n'est ni une
+ * pastille ni un bouton — la regle `docs/REGLE-BADGE-VS-BOUTON.md` ne le
+ * concerne pas.
+ */
+export const AGENDA_HORIZON_SURFACES = Object.fromEntries(
+  AGENDA_HORIZONS.map((h) => [
+    h,
+    `${AGENDA_HORIZON_ACCENTS[h]} ${AGENDA_HORIZON_FILLS[h]}`,
+  ]),
+) as Record<AgendaHorizon, string>;
 
 /** La liste ne suit pas le mois affiché : on le dit, sinon on cherche. */
 export const AGENDA_LIST_WINDOW_HINT =

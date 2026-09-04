@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CirclePlus } from 'lucide-react';
 import { FILTER_ALL, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -222,6 +222,7 @@ function CampaignCard({
           appearance="outline"
           data-testid={`campaign-status-${campaign.id}`}
         >
+          <BadgeDot />
           {CAMPAIGN_STATUS_LABELS[campaign.status]}
         </Badge>
       </div>
@@ -311,7 +312,7 @@ function CampaignCard({
           ) : null}
           {onDelete ? (
             <Button
-              variant="outline"
+              variant="destructiveOutline"
               size="sm"
               data-testid={`campaign-delete-open-${campaign.id}`}
               onClick={onDelete}

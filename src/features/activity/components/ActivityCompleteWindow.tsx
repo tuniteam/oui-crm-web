@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { MarkdownTextarea } from '@/components/shared/MarkdownTextarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { ACTIVITY_COMPLETE_WINDOW } from '../constants/activity.constants';
 import {
@@ -79,14 +80,19 @@ function Body({ hooks, activity }: { hooks: Hooks; activity: Activity | null }) 
                 {FIELDS.REPORT}
               </FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  rows={5}
+                <MarkdownTextarea
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  contentClassName="min-h-32"
                   placeholder={FIELDS.REPORT_PLACEHOLDER}
                   data-testid="activity-complete-report"
                   disabled={disabled}
                 />
               </FormControl>
+              {activity?.report ? (
+                <FormDescription>{UI.REPORT_FROM_NOTES}</FormDescription>
+              ) : null}
               <FormMessage />
             </FormItem>
           )}
