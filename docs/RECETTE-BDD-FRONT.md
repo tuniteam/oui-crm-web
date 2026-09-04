@@ -457,6 +457,7 @@ Organismes de la V8 et ses filtres, dans la limite de ce que l'API sert.
 | 2 | Types, solutions et étiquettes | affichés en libellés, jamais en clés de référentiel | couvert |
 | 3 | Strate | valeur rendue par l'API, jamais recalculée côté front | couvert |
 | 4 | Statuts | libellés français de la V8, dans son ordre | couvert |
+| 4b | Couleur des statuts | statut commercial, statut client et priorité en pastilles ; la teinte vient de la table de la feature, **jamais du composant** — la même valeur porte la même couleur dans la liste et dans la fiche | à couvrir |
 | 5 | Filtre « fiches incomplètes » | envoie `completenessMax=99`, pas 100 | couvert |
 | 6 | Recherche | nom, ville, et début du SIRET si la saisie est numérique | couvert |
 | 7 | Fiche hors périmètre | ligne en retrait, « hors de votre périmètre », colonnes vidées | couvert |
@@ -794,6 +795,7 @@ relèvent de l'US-01-09 : l'agenda est livré, l'export ICS reste hors périmèt
 | 11 | L'heure ne se convertit pas | `HH:MM` transporté et affiché tel quel, jamais reconstruit en `Date` | couvert |
 | 12 | Compte rendu obligatoire | réaliser sans compte rendu est refusé **avant envoi** | couvert |
 | 13 | Réaliser | la ligne passe « Réalisée », son compte rendu s'affiche | couvert |
+| 13b | Couleur du statut et du résultat | « Réalisée » en vert, « Planifiée » en information ; le résultat prend la teinte de sa clé de référentiel, et une clé inconnue sort en neutre — jamais en couleur choisie au hasard | à couvrir |
 | 14 | Effet sur le statut commercial | planifier ou réaliser change le statut de la fiche : elle doit être invalidée | couvert |
 | 15 | Gestes réservés aux planifiées | modifier, réaliser et annuler n'apparaissent que sur une action `PLANNED` | couvert |
 | 16 | Action close entre-temps | `409 ACTIVITY_ALREADY_CLOSED` : message, et frise rechargée | couvert |
@@ -862,6 +864,11 @@ déplace, on clique pour ouvrir la fiche.
 | 11 | Cellule qui déborde | au-delà de trois actions, un « +N » qui bascule vers la liste | à couvrir |
 | 12 | Export ICS | **hors périmètre** — voir les pièges | à développer |
 | 13 | Écrire depuis l'agenda | réaliser une action y recharge l'agenda : la fiche s'ouvre **par-dessus** | couvert |
+| 14 | Enregistrer une action depuis l'agenda | la fenêtre demande l'organisme, aucune fiche n'étant en contexte ; une fiche hors périmètre reste inerte | couvert |
+| 15 | État par défaut | l'écran s'ouvre sur « À faire », et l'état filtre sans rappeler le serveur | couvert |
+| 16 | Les quatre sources | comptes rendus par `counts`, zéro compris, avec le lot à venir nommé | couvert |
+| 17 | Filtrer par type | filtre local, la route n'acceptant pas `type` | couvert |
+| 18 | Vue Liste, par urgence | fenêtre glissante indépendante du mois, « En retard » en tête avec son compte, curseur de période masqué | couvert |
 
 ### Pièges relevés pendant le développement
 
@@ -892,6 +899,37 @@ déplace, on clique pour ouvrir la fiche.
   par-dessus la grille : réaliser une action depuis ce panneau, puis le
   refermer, laissait l'agenda afficher l'état d'avant sous les yeux de
   l'utilisateur. Quatre caches à invalider, donc, et non trois.
+- **Depuis l'agenda, aucune fiche n'est en contexte.** La fenêtre commence
+  donc par demander l'organisme — le champ que la V8 met en tête de son
+  formulaire. Il n'apparaît pas depuis l'onglet Actions, où la fiche est
+  connue, et l'obligation est portée par le formulaire plutôt que par le
+  schéma, qui sert les deux écrans.
+- **La création exige un accès `FULL`.** Une fiche hors périmètre se voit
+  en projection restreinte mais n'accepte pas d'action : elle figure dans
+  le sélecteur, inerte et signalée, plutôt que de faire cliquer pour un
+  `403`.
+- **La route n'accepte ni `status` ni `type`.** Six paramètres seulement :
+  `from`, `to`, `userId`, `kinds`, `page`, `limit`. L'état et le type se
+  filtrent donc côté navigateur — légitime ici, à la différence de la portée
+  `OWN` : la période entière est chargée avant d'être peinte, et rien n'est
+  masqué que le serveur n'ait déjà rendu.
+- **Les annulées ne figurent jamais dans l'agenda.** Le serveur les exclut
+  (`status: { not: CANCELLED }`) : « Historique » ne montre que les réalisées.
+- **`counts` est calculé avant le filtre `kinds`.** C'est ce qui permet
+  d'afficher les quatre sources avec leur compte réel, trois à zéro jusqu'aux
+  lots L2 à L4 — un zéro **vrai**, comme les quatre barres des campagnes. Ce
+  champ avait d'abord été manqué, et son absence avait fait écarter les
+  sources de l'écran.
+- **Le bandeau garde des comptes absolus.** Le retard ne disparaît pas parce
+  qu'on regarde un autre type ou l'historique.
+- **La liste ne suit pas le mois affiché.** Grouper par urgence n'a de sens
+  que si l'urgence est dans la fenêtre : la vue Liste demande donc trente jours
+  en arrière et quatre-vingt-dix en avant, `from` et `to` étant libres. Le
+  curseur de période disparaît alors, comme dans la V8.
+- **« À faire » comprend le retard.** C'est ce que fait la maquette, et
+  l'exclure priverait de ses retards celui qui travaille depuis cette liste.
+  Le groupement par horizon lève le malentendu : le retard devient un groupe
+  nommé et compté, en tête, au lieu d'une ligne parmi les jours.
 - **La destination dépend de `kind`.** Écrite comme une correspondance dès
   maintenant, avec une seule entrée : un devis qui expire devra ouvrir le
   devis, pas la fiche de l'organisme. Ajouter une source sera une ligne.
@@ -997,7 +1035,7 @@ décision sera prise, le découpage naturel est :
 ## Scénarios exécutés
 
 <!-- bdd:auto:start -->
-_Généré par `npm run bdd` — 2026-09-03 21:17. 107/107 OK._
+_Généré par `npm run bdd` — 2026-09-03 22:29. 112/112 OK._
 _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les produire._
 
 | US | # | Scénario | Résultat | Capture |
@@ -1044,8 +1082,13 @@ _Les captures sont locales et non versionnées : relancer `npm run bdd` pour les
 | US-01-09 | 01-09.4 | Changer de mois redemande la bonne période | OK | `screenshots/L1-01-09-4.png` |
 | US-01-09 | 01-09.5 | Un mois chargé se pagine, il ne se tronque pas | OK | `screenshots/L1-01-09-5.png` |
 | US-01-09 | 01-09.6 | Ouvrir un événement ouvre la fiche sans quitter l’agenda | OK | `screenshots/L1-01-09-6.png` |
-| US-01-09 | 01-09.7 | La vue liste rend la même période, groupée par jour | OK | `screenshots/L1-01-09-7.png` |
+| US-01-09 | 01-09.7 | La vue liste rend la même période, quelle que soit la date | OK | `screenshots/L1-01-09-7.png` |
 | US-01-09 | 01-09.13 | Refermer la fiche recharge l’agenda | OK | `screenshots/L1-01-09-13.png` |
+| US-01-09 | 01-09.14 | Enregistrer une action depuis l’agenda demande l’organisme | OK | `screenshots/L1-01-09-14.png` |
+| US-01-09 | 01-09.15 | L’écran s’ouvre sur « À faire », et l’état filtre la grille | OK | `screenshots/L1-01-09-15.png` |
+| US-01-09 | 01-09.16 | Les quatre sources affichent leur compte, zéro compris | OK | `screenshots/L1-01-09-16.png` |
+| US-01-09 | 01-09.17 | Filtrer par type ne rappelle pas le serveur | OK | `screenshots/L1-01-09-17.png` |
+| US-01-09 | 01-09.18 | La liste groupe par urgence, sur une fenêtre glissante | OK | `screenshots/L1-01-09-18.png` |
 | US-01-11 | 01-11.1 | Les campagnes s’affichent en cartes, avec leurs mesures | OK | `screenshots/L1-01-11-1.png` |
 | US-01-11 | 01-11.2 | Sans campagne, l’écran explique à quoi elles servent | OK | `screenshots/L1-01-11-2.png` |
 | US-01-11 | 01-11.6 | Créer : le nom suffit, la période est facultative | OK | `screenshots/L1-01-11-6.png` |

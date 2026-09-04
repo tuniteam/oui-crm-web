@@ -1,3 +1,5 @@
+import type { Tone } from '@/shared/constants/tone';
+import type { AgendaHorizon } from '../types/agenda';
 /** Agenda — L1 · US-01-09. Route scopée projet. */
 export const AGENDA_ROUTES = {
   AGENDA_API: '/agenda',
@@ -17,6 +19,7 @@ export const AGENDA_UI = {
     list: 'Liste',
   } satisfies Record<AgendaView, string>,
 
+  ADD: 'Enregistrer une action',
   TODAY: 'Aujourd’hui',
   PREVIOUS: 'Mois précédent',
   NEXT: 'Mois suivant',
@@ -27,16 +30,44 @@ export const AGENDA_UI = {
     USER: 'Collaborateur',
     /** Visible seulement hors portée `OWN` : voir le commentaire de l'écran. */
     USER_ALL: 'Tous les collaborateurs',
+    TYPE_ALL: 'Tous les types',
   },
 
   /**
-   * Les trois autres sources du contrat — formations, échéances de contrat,
-   * fins de devis — arrivent aux lots L2 à L4. On le dit au lieu d'offrir des
-   * cases à cocher qui ne peuvent rien filtrer : un zéro affiché est une
-   * information, un filtre inerte est un piège à clic.
+   * Les quatre états de la V8. Ils se calculent côté navigateur : la route
+   * n'accepte ni `status` ni `type`, et la période entière est chargée.
+   *
+   * « À faire » par défaut — c'est la question que l'écran doit servir. Les
+   * annulées ne figurent jamais dans l'agenda, le serveur les exclut : donc
+   * « Historique » ne montre que les réalisées.
    */
-  SOURCES_HINT:
-    'Seules les actions commerciales figurent à ce stade. Formations, échéances de contrat et fins de devis les rejoindront.',
+  STATES: {
+    todo: 'À faire',
+    late: 'En retard',
+    done: 'Historique',
+    all: 'Tout',
+  },
+
+  /**
+   * Les quatre sources, avec leur compte réel rendu par `counts`. Trois sont à
+   * zéro jusqu'aux lots L2 à L4 — un zéro **vrai**, pas une absence, et c'est
+   * ce qui les distingue d'un filtre inerte.
+   */
+  SOURCES: {
+    ACTIVITY: 'Actions',
+    TRAINING: 'Formations',
+    CONTRACT_END: 'Échéances de contrat',
+    QUOTE_EXPIRY: 'Fins de devis',
+  },
+  SOURCE_PENDING: 'à partir d’un prochain lot',
+  /**
+   * Deux nombres quand un filtre est actif : ce qu'on voit, et ce que la
+   * période contient. Un total seul au-dessus d'une liste plus courte se lit
+   * comme un chiffre périmé ; le total seul reste juste quand rien n'est
+   * filtré.
+   */
+  SOURCE_COUNT: (shown: number, total: number) =>
+    shown === total ? `${total}` : `${shown} sur ${total}`,
 
   /** `isLate` vient du serveur : le seul signal d'alerte de l'écran. */
   LATE: 'En retard',
@@ -83,3 +114,31 @@ export const AGENDA_BANNER = {
   SEE_ALL: 'Tout voir',
   MORE: (n: number) => `et ${n} autre${n > 1 ? 's' : ''}`,
 } as const;
+
+/** Les groupes de la vue Liste. « En retard » se signale, les autres non. */
+export const AGENDA_HORIZON_LABELS = {
+  late: 'En retard',
+  today: 'Aujourd’hui',
+  week: 'Cette semaine',
+  month: 'Ce mois-ci',
+  later: 'Plus tard',
+  done: 'Historique',
+} as const;
+
+/**
+ * Couleur de chaque groupe. Seul le retard se signale — colorer les cinq
+ * autres reviendrait a ne rien signaler du tout. « Historique » reste neutre :
+ * c'est du passe, il ne demande aucune action.
+ */
+export const AGENDA_HORIZON_TONES: Record<AgendaHorizon, Tone> = {
+  late: 'destructive',
+  today: 'warning',
+  week: 'secondary',
+  month: 'secondary',
+  later: 'secondary',
+  done: 'secondary',
+};
+
+/** La liste ne suit pas le mois affiché : on le dit, sinon on cherche. */
+export const AGENDA_LIST_WINDOW_HINT =
+  'La liste couvre les trente derniers jours et les trois mois à venir, quel que soit le mois affiché.';

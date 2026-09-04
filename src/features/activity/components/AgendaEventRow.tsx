@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AGENDA_UI } from '../constants/agenda.constants';
+import { formatDayFr } from '../utils/activity-date';
 import type { AgendaItem } from '../types/agenda';
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
   onOpen: (event: AgendaItem) => void;
   /** Forme dense pour les cellules du mois, aérée pour la liste. */
   compact?: boolean;
+  /** La liste groupe par urgence, pas par jour : la date doit être portée. */
+  showDate?: boolean;
 };
 
 /**
@@ -17,7 +20,12 @@ type Props = {
  * d'alerte de l'écran, et un calcul local divergerait d'un fuseau. `status`
  * distingue ce qui est fait de ce qui est à faire.
  */
-export function AgendaEventRow({ event, onOpen, compact = false }: Props) {
+export function AgendaEventRow({
+  event,
+  onOpen,
+  compact = false,
+  showDate = false,
+}: Props) {
   const done = event.status === 'DONE';
 
   return (
@@ -44,7 +52,14 @@ export function AgendaEventRow({ event, onOpen, compact = false }: Props) {
 
       {/* L'heure est affichée telle quelle : la reconstruire en `Date`
           décalerait tous les rendez-vous d'un fuseau. */}
-      <span className={cn('font-mono tabular-nums', compact ? 'me-1' : 'w-12 shrink-0')}>
+      {/* Jour et heure lus tels quels : rien ne se reconstruit en `Date`. */}
+      <span
+        className={cn(
+          'font-mono tabular-nums',
+          compact ? 'me-1' : showDate ? 'w-28 shrink-0' : 'w-12 shrink-0',
+        )}
+      >
+        {showDate ? `${formatDayFr(event.date)} ` : ''}
         {event.time ?? ''}
       </span>
 

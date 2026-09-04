@@ -174,7 +174,7 @@ Feature: Actions et agenda (L1 · US-01-08, US-01-09)
   Scenario: Vue liste
     Given un mois avec des actions à deux dates
     When je bascule en vue liste
-    Then les actions sont groupées par jour
+    Then les deux actions y figurent, chacune avec sa date
 
   @a-couvrir
   Scenario: Sans rien de planifié
@@ -202,3 +202,42 @@ Feature: Actions et agenda (L1 · US-01-08, US-01-09)
     When je la marque réalisée puis referme la fiche
     Then l’agenda est rechargé
     And la grille ne montre plus l’état d’avant
+
+  @ok
+  Scenario: Enregistrer une action depuis l'agenda
+    Given l’agenda, sans fiche en contexte
+    When j’enregistre une action
+    Then la fenêtre commence par demander l’organisme
+    And valider sans organisme est refusé avant envoi
+    And une fiche hors de mon périmètre n’est pas sélectionnable
+
+  @ok
+  Scenario: État par défaut
+    Given un mois portant une action planifiée et une réalisée
+    When j’ouvre l’agenda
+    Then seule la planifiée est affichée
+    When je choisis « Historique »
+    Then seule la réalisée est affichée
+    And le bandeau garde ses comptes absolus
+
+  @ok
+  Scenario: Les quatre sources
+    Given une fenêtre portant deux actions et aucune autre source
+    When je regarde l’agenda
+    Then les quatre sources sont listées avec leur compte
+    And celles qui arrivent plus tard le disent, à zéro
+
+  @ok
+  Scenario: Filtrer par type
+    Given un mois portant un appel et un rendez-vous
+    When je filtre sur les rendez-vous
+    Then seul le rendez-vous reste affiché
+    And aucun appel au serveur n’est fait
+
+  @ok
+  Scenario: Vue Liste, par urgence
+    Given une action en retard et une action de la semaine
+    When je bascule en vue Liste
+    Then le serveur est interrogé sur une fenêtre qui déborde le mois affiché
+    And « En retard » vient en tête, avec son compte
+    And la navigation de période disparaît, la liste ne la suivant pas

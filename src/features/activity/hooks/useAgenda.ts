@@ -4,7 +4,11 @@ import { toast } from 'sonner';
 import { useMeStore } from '@/contexts/useMeStore';
 import { AGENDA_UI } from '../constants/agenda.constants';
 import { agendaService } from '../services/agenda.service';
-import type { AgendaItem, AgendaParams } from '../types/agenda';
+import type {
+  AgendaItem,
+  AgendaKind,
+  AgendaParams,
+} from '../types/agenda';
 
 /**
  * L'agenda d'une periode — L1 · US-01-09.
@@ -20,19 +24,27 @@ import type { AgendaItem, AgendaParams } from '../types/agenda';
 export function useAgenda(params: Omit<AgendaParams, 'page'>) {
   const projectId = useMeStore((s) => s.activeProjectId);
 
-  const query = useQuery<AgendaItem[]>({
+  const query = useQuery<{
+    events: AgendaItem[];
+    counts: Record<AgendaKind, number>;
+  }>({
     queryKey: ['agenda', projectId, params],
     queryFn: async () => {
       const first = await agendaService.getPage({ ...params, page: 1 });
+      // Les comptes portent sur toute la fenetre : ils ne se paginent pas.
+      const counts = first.counts;
       const pages = first.meta?.totalPages ?? 1;
-      if (pages <= 1) return first.data;
+      if (pages <= 1) return { events: first.data, counts };
 
       const rest = await Promise.all(
         Array.from({ length: pages - 1 }, (_, i) =>
           agendaService.getPage({ ...params, page: i + 2 }),
         ),
       );
-      return [first, ...rest].flatMap((r) => r.data);
+      return {
+        events: [first, ...rest].flatMap((r) => r.data),
+        counts,
+      };
     },
   });
 
@@ -43,5 +55,9 @@ export function useAgenda(params: Omit<AgendaParams, 'page'>) {
     );
   }, [query.isError, query.error]);
 
-  return { events: query.data ?? [], loading: query.isLoading };
+  return {
+    events: query.data?.events ?? [],
+    counts: query.data?.counts ?? null,
+    loading: query.isLoading,
+  };
 }

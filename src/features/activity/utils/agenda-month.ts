@@ -91,3 +91,26 @@ export function dayLabel(day: string): string {
 }
 
 export const dayNumber = (day: string) => Number(day.slice(8, 10));
+
+/**
+ * La fenetre de la vue Liste — L1 · US-01-09.
+ *
+ * Elle **ne suit pas le curseur de mois** : la liste repond « qu'ai-je a
+ * faire », pas « a quoi ressemble septembre ». Un commercial qui ouvre
+ * l'agenda le 28 doit voir la semaine suivante, qui n'est pas dans le mois
+ * affiche.
+ *
+ * Trente jours en arriere pour que l'historique recent et le retard restent
+ * visibles, quatre-vingt-dix en avant pour couvrir un cycle de prospection.
+ * `from` et `to` etant libres au contrat, c'est un choix d'interface.
+ */
+export const LIST_WINDOW = { BEFORE: 30, AFTER: 90 } as const;
+
+export function slidingWindow(): { from: string; to: string } {
+  const now = new Date();
+  const at = (offset: number) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    return toDay(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+  return { from: at(-LIST_WINDOW.BEFORE), to: at(LIST_WINDOW.AFTER) };
+}

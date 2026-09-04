@@ -1,39 +1,47 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { CirclePlus } from 'lucide-react';
 import { FILTER_ALL, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUsers } from '@/features/user/hooks/useUsers';
 import { OrganizationPanel } from '@/features/organization/components/OrganizationPanel';
 import { ORGANIZATIONS_UI } from '@/features/organization/constants/organizationList.constants';
-import {
-  AGENDA_UI,
-  AGENDA_VIEWS,
-  type AgendaView,
-} from '../constants/agenda.constants';
+import { AGENDA_UI, type AgendaView } from '../constants/agenda.constants';
+import { useActivityReference } from '../hooks/useActivityReference';
 import { useAgenda } from '../hooks/useAgenda';
-import type { AgendaItem, AgendaKind } from '../types/agenda';
+import {
+  AGENDA_STATE_MATCHES,
+  type AgendaItem,
+  type AgendaKind,
+  type AgendaState,
+} from '../types/agenda';
 import {
   monthBounds,
-  monthLabel,
   shiftMonth,
+  slidingWindow,
   todayDay,
 } from '../utils/agenda-month';
+import { ActivityWindow } from './ActivityWindow';
 import { AgendaAlertBanner } from './AgendaAlertBanner';
 import { AgendaList } from './AgendaList';
 import { AgendaMonth } from './AgendaMonth';
+import { AgendaSources } from './AgendaSources';
+import { AgendaToolbar } from './AgendaToolbar';
 
 const UI = AGENDA_UI;
+
+/**
+ * L'agenda rend le **libelle** du type dans `title`, jamais sa cle : c'est par
+ * lui qu'il faut comparer. Le contrat ne porte pas la cle sur un creneau —
+ * meme manque que pour l'export ICS.
+ */
+const typeLabel = (
+  types: { key: string; label: string }[],
+  key: string,
+): string | null => types.find((t) => t.key === key)?.label ?? null;
 
 /**
  * Ce qu'un événement ouvre, selon sa source.
@@ -77,6 +85,10 @@ export default function AgendaScreen() {
   const openedId = params.get(ORGANIZATIONS_UI.PANEL_PARAM);
   const [cursor, setCursor] = useState(todayDay);
   const [view, setView] = useState<AgendaView>('month');
+  // « À faire » d'entrée : c'est la question que l'écran doit servir.
+  const [state, setState] = useState<AgendaState>('todo');
+  const [type, setType] = useState<string>(FILTER_ALL);
+  const [planning, setPlanning] = useState(false);
   const [userId, setUserId] = useState<string>(FILTER_ALL);
 
   /*
@@ -89,10 +101,26 @@ export default function AgendaScreen() {
     s.getPermissionScope(PERMISSIONS.ACTIVITIES.READ),
   );
   const canFilterByUser = scope === 'PROJECT' || scope === 'ALL';
+  const canCreate = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.ACTIVITIES.CREATE),
+  );
   const { users } = useUsers({ page: 1, limit: 100 }, canFilterByUser);
 
-  const { from, to } = useMemo(() => monthBounds(cursor), [cursor]);
-  const { events, loading } = useAgenda({
+  const { types } = useActivityReference();
+
+  /*
+   * La grille regarde un mois ; la liste regarde une **fenetre glissante**.
+   *
+   * Grouper par urgence n'a de sens que si l'urgence est dans la fenetre : un
+   * commercial qui ouvre l'agenda le 28 doit voir la semaine suivante, qui
+   * n'est pas dans le mois affiche. `from` et `to` etant libres au contrat,
+   * c'est un choix d'interface, pas une contrainte.
+   */
+  const { from, to } = useMemo(
+    () => (view === 'list' ? slidingWindow() : monthBounds(cursor)),
+    [view, cursor],
+  );
+  const { events, counts, loading } = useAgenda({
     from,
     to,
     ...(canFilterByUser && userId !== FILTER_ALL ? { userId } : {}),
@@ -106,6 +134,19 @@ export default function AgendaScreen() {
    * en revanche, il faut écarter ce qui est déjà réalisé : annoncer sous une
    * alerte rouge une action faite ce matin, c'est user le signal pour rien.
    */
+  /*
+   * L'état et le type se filtrent ici, pas au serveur : la route n'accepte ni
+   * `status` ni `type`, et la période entière est chargée avant d'être peinte.
+   * Rien n'est masqué que le serveur n'ait déjà rendu.
+   */
+  const shown = events.filter(
+    (e) =>
+      AGENDA_STATE_MATCHES[state](e) &&
+      (type === FILTER_ALL || e.title === typeLabel(types, type)),
+  );
+
+  /* Le bandeau reste **absolu** : le retard ne disparaît pas parce qu'on
+     regarde un autre type ou l'historique. */
   const today = todayDay();
   const late = events.filter((e) => e.isLate);
   const dueToday = events.filter(
@@ -136,7 +177,6 @@ export default function AgendaScreen() {
    */
   const closePanel = () => {
     queryClient.invalidateQueries({ queryKey: ['agenda'], exact: false });
-    return
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
@@ -151,114 +191,83 @@ export default function AgendaScreen() {
 
   return (
     <div className="space-y-4" data-testid="agenda-screen">
-      <div>
-        <h1 className="text-xl font-semibold">{UI.TITLE}</h1>
-        <p className="mt-1 max-w-[80ch] text-sm text-muted-foreground">
-          {UI.SUBTITLE}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">{UI.TITLE}</h1>
+          <p className="mt-1 max-w-[80ch] text-sm text-muted-foreground">
+            {UI.SUBTITLE}
+          </p>
+        </div>
+
+        {/* Depuis l'agenda, aucune fiche n'est en contexte : la fenêtre
+            commence par demander l'organisme. */}
+        {canCreate ? (
+          <Button data-testid="agenda-add" onClick={() => setPlanning(true)}>
+            <CirclePlus className="size-4" />
+            {UI.ADD}
+          </Button>
+        ) : null}
       </div>
 
       <AgendaAlertBanner
         late={late}
         today={dueToday}
         onOpen={open}
-        onSeeAll={() => setView('list')}
+        onSeeAll={() => {
+          setView('list');
+          setState('late');
+        }}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={UI.PREVIOUS}
-            data-testid="agenda-prev"
-            onClick={() => setCursor((c) => shiftMonth(c, -1))}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span
-            data-testid="agenda-period"
-            className="min-w-40 text-center text-sm font-medium"
-          >
-            {monthLabel(cursor)}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={UI.NEXT}
-            data-testid="agenda-next"
-            onClick={() => setCursor((c) => shiftMonth(c, 1))}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            data-testid="agenda-today"
-            onClick={() => setCursor(todayDay())}
-          >
-            {UI.TODAY}
-          </Button>
-        </div>
+      <AgendaToolbar
+        showPeriod={view === 'month'}
+        cursor={cursor}
+        onShiftMonth={(delta) => setCursor((c) => shiftMonth(c, delta))}
+        onToday={() => setCursor(todayDay())}
+        view={view}
+        onView={setView}
+        state={state}
+        onState={setState}
+        type={type}
+        onType={setType}
+        types={types}
+        users={canFilterByUser ? users : null}
+        userId={userId}
+        onUserId={setUserId}
+      />
 
-        <div className="ms-auto flex flex-wrap items-center gap-2">
-          {canFilterByUser ? (
-            <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger data-testid="agenda-user" className="w-56">
-                <SelectValue placeholder={UI.FILTERS.USER_ALL} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={FILTER_ALL}>{UI.FILTERS.USER_ALL}</SelectItem>
-                {users.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {[u.firstName, u.lastName].filter(Boolean).join(' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
-
-          <div className="flex items-center gap-1 rounded-lg border border-border p-0.5">
-            {AGENDA_VIEWS.map((v) => (
-              <Button
-                key={v}
-                size="sm"
-                variant={view === v ? 'primary' : 'ghost'}
-                data-testid={`agenda-view-${v}`}
-                onClick={() => setView(v)}
-              >
-                {UI.VIEWS[v]}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <AgendaSources counts={counts} shown={shown.length} />
 
       {loading ? (
         <Skeleton className="h-96 w-full" />
       ) : view === 'month' ? (
         <AgendaMonth
           cursor={cursor}
-          events={events}
+          events={shown}
           onOpen={open}
           onSeeDay={() => setView('list')}
         />
       ) : (
-        <AgendaList events={events} onOpen={open} />
+        <AgendaList events={shown} onOpen={open} />
       )}
+
+      <ActivityWindow
+        open={planning}
+        onOpenChange={(next) => {
+          setPlanning(next);
+          // Une action planifiée depuis ici doit apparaître dans la grille.
+          if (!next) {
+            queryClient.invalidateQueries({ queryKey: ['agenda'], exact: false });
+          }
+        }}
+        activity={null}
+      />
 
       <OrganizationPanel
         organizationId={openedId}
         onOpenChange={(next) => !next && closePanel()}
       />
 
-      {/* Trois des quatre sources du contrat n'ont pas encore de données. On
-          le dit, plutôt que d'offrir des cases à cocher qui ne peuvent rien
-          filtrer : un filtre inerte est un piège à clic. */}
-      <p className="flex items-start gap-2 text-xs text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" />
-        {UI.SOURCES_HINT}
-      </p>
     </div>
   );
 }
