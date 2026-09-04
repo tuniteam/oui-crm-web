@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { useContacts } from '@/features/organization/hooks/useContacts';
-import { useOrganizations } from '@/features/organization/hooks/useOrganizations';
+import { OrganizationPicker } from '@/features/organization/components/OrganizationPicker';
 import { FormDatePicker } from '@/components/ui/form-date-picker';
 import { SlotTimePicker } from '@/components/ui/slot-time-picker';
 import { ACTIVITY_WINDOW, TIME_SLOT } from '../constants/activity.constants';
@@ -92,9 +92,6 @@ function Body({
    */
   const needsOrganization = !organizationId;
   const chosen = form.watch('organizationId');
-  const { organizations } = useOrganizations(
-    needsOrganization ? { page: 1, limit: 100 } : { page: 1, limit: 1 },
-  );
   const targetId = organizationId ?? chosen;
   const { contacts } = useContacts(targetId);
 
@@ -153,36 +150,16 @@ function Body({
                 <FormLabel className="after:ml-0.5 after:text-destructive after:content-['*']">
                   {FIELDS.ORGANIZATION}
                 </FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={disabled}
-                >
-                  <FormControl>
-                    <SelectTrigger data-testid="activity-organization">
-                      <SelectValue placeholder={FIELDS.ORGANIZATION_PLACEHOLDER}>
-                        {organizations.find((o) => o.id === field.value)?.name}
-                      </SelectValue>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {organizations.map((o) => (
-                      /* Une fiche hors perimetre se voit en projection
-                         restreinte mais n'accepte pas d'action : le serveur
-                         rendrait `403`. On la montre inerte plutot que de
-                         faire cliquer pour rien. */
-                      <SelectItem
-                        key={o.id}
-                        value={o.id}
-                        disabled={o.access === 'RESTRICTED'}
-                      >
-                        {o.access === 'RESTRICTED'
-                          ? FIELDS.ORGANIZATION_RESTRICTED(o.name)
-                          : o.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Une liste déroulante s'arrêtait au centième organisme, le
+                    maximum du contrat, sans le dire. On cherche. */}
+                <FormControl>
+                  <OrganizationPicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={disabled}
+                    data-testid="activity-organization"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

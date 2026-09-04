@@ -151,3 +151,20 @@ export const ORGANIZATIONS_UI = {
     FETCH: 'Impossible de charger les organismes',
   },
 } as const;
+
+/**
+ * Le sélecteur d'organisme — recherche serveur.
+ *
+ * `GET /organizations` plafonne à cent lignes par page : une liste déroulante
+ * simple s'arrêtait au centième organisme sans le dire. On cherche donc, et on
+ * annonce ce qui reste au-delà des résultats montrés.
+ */
+export const ORGANIZATION_PICKER = {
+  PLACEHOLDER: 'Choisir un organisme',
+  SEARCH: 'Nom, ville ou SIRET…',
+  EMPTY: 'Aucun organisme ne correspond',
+  /** Hors périmètre, le serveur refuse la création : la ligne reste inerte. */
+  RESTRICTED: (name: string) => `${name} — hors de votre périmètre`,
+  MORE: (shown: number, total: number) =>
+    `${shown} sur ${total} — affinez votre recherche`,
+} as const;

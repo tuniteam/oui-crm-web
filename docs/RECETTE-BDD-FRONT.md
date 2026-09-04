@@ -869,6 +869,7 @@ déplace, on clique pour ouvrir la fiche.
 | 16 | Les quatre sources | comptes rendus par `counts`, zéro compris, avec le lot à venir nommé | couvert |
 | 17 | Filtrer par type | filtre local, la route n'acceptant pas `type` | couvert |
 | 18 | Vue Liste, par urgence | fenêtre glissante indépendante du mois, « En retard » en tête avec son compte, curseur de période masqué | couvert |
+| 19 | Choisir l'organisme | recherche serveur, et le compte de ce qui n'est pas montré | à exécuter |
 
 ### Pièges relevés pendant le développement
 
@@ -930,6 +931,14 @@ déplace, on clique pour ouvrir la fiche.
   l'exclure priverait de ses retards celui qui travaille depuis cette liste.
   Le groupement par horizon lève le malentendu : le retard devient un groupe
   nommé et compté, en tête, au lieu d'une ligne parmi les jours.
+- **Une liste déroulante d'organismes s'arrête au centième.** `GET
+  /organizations` plafonne à cent lignes par page : au-delà, les suivantes
+  n'arrivaient jamais et rien ne le disait. Le sélecteur cherche donc au
+  serveur — `?search=` — montre vingt résultats et annonce le reste. Dans un
+  combobox on affine, on ne feuillette pas.
+- **Le libellé du choix se lit sur la fiche, pas sur la page de résultats.**
+  Sans cela, taper autre chose viderait le champ à l'écran alors que la valeur
+  tient toujours.
 - **La destination dépend de `kind`.** Écrite comme une correspondance dès
   maintenant, avec une seule entrée : un devis qui expire devra ouvrir le
   devis, pas la fiche de l'organisme. Ajouter une source sera une ligne.

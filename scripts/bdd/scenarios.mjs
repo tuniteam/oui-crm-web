@@ -4638,6 +4638,98 @@ export const scenarios = [
     },
   },
 
+
+  {
+    id: '01-09.19',
+    us: 'US-01-09',
+    title: 'Le sélecteur d’organisme cherche au serveur, et dit ce qu’il ne montre pas',
+    needsProject: true,
+    gherkin: [
+      'Given une base de cinq cents organismes',
+      'When j’ouvre le sélecteur depuis l’agenda',
+      'Then il annonce combien il en montre sur le total',
+      'When je saisis un nom',
+      'Then la recherche part au serveur, jamais un filtre sur les vingt reçus',
+    ],
+    async run({ page, expect, projectId, apiCalls }) {
+      await mockAgenda(page, []);
+
+      /*
+       * Cinq cents fiches pour vingt rendues : une liste deroulante simple
+       * s'arretait au centieme — le maximum du contrat — sans le dire, et le
+       * quatre-centieme organisme etait introuvable.
+       */
+      await page.route(
+        (url) =>
+          url.pathname.includes('/api/v1') &&
+          url.pathname.endsWith('/organizations'),
+        (route) => {
+          const search = new URL(route.request().url()).searchParams.get('search');
+          const rows = search
+            ? [{ id: 'found', name: `Commune de ${search}` }]
+            : Array.from({ length: 20 }, (_, i) => ({
+                id: `o${i}`,
+                name: `Organisme ${i}`,
+              }));
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              data: rows.map((r) => ({
+                ...r,
+                city: null,
+                department: '89',
+                salesStatus: 'TO_CONTACT',
+                customerStatus: 'PROSPECT',
+                access: 'FULL',
+              })),
+              meta: {
+                total: search ? 1 : 500,
+                page: 1,
+                limit: 20,
+                totalPages: search ? 1 : 25,
+              },
+            }),
+          });
+        },
+      );
+
+      await page.goto(`/${projectId}/agenda`);
+      await page.getByTestId('agenda-add').waitFor({ timeout: 15000 });
+      await page.getByTestId('agenda-add').click();
+      await page.getByTestId('activity-organization').waitFor({ timeout: 10000 });
+      await page.getByTestId('activity-organization').click();
+      await page.getByTestId('activity-organization-search').waitFor({ timeout: 10000 });
+      await page.waitForTimeout(900);
+
+      // Sans ce compte, une liste tronquee se lit comme une base vide.
+      const more = await page.getByTestId('activity-organization-more').innerText();
+      expect(
+        more.includes('20') && more.includes('500'),
+        `la troncature n'est pas annoncée : ${more}`,
+      );
+
+      apiCalls(true);
+      await page.getByTestId('activity-organization-search').fill('Joigny');
+      await page.waitForTimeout(1500);
+
+      /*
+       * La recherche part au serveur : filtrer les vingt lignes deja recues ne
+       * trouverait jamais la quatre-centieme.
+       */
+      expect(
+        apiCalls().some(
+          (c) => c.startsWith('GET /organizations') && c.includes('search=Joigny'),
+        ),
+        `la recherche n'a pas été envoyée : ${apiCalls().join(', ')}`,
+      );
+      expect(
+        (await page.getByTestId('activity-organization-option-found').count()) === 1,
+        'le résultat de la recherche n’est pas proposé',
+      );
+    },
+  },
+
   // ─────────────────────────────── US-00-08
   {
     id: '08.1',
