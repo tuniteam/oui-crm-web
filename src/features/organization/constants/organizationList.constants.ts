@@ -1,3 +1,4 @@
+import type { Tone } from '@/shared/constants/tone';
 import type {
   CustomerStatus,
   Priority,
@@ -30,6 +31,43 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   LOW: 'Basse',
   NORMAL: 'Normale',
   HIGH: 'Haute',
+};
+
+/**
+ * Couleur de chaque valeur, a cote de son libelle.
+ *
+ * Une progression : on ne contacte pas encore (neutre), on doit contacter
+ * (info), on prospecte (marque), un rendez-vous est pose (alerte, il engage
+ * une date), c'est clos (neutre a nouveau). Le neutre encadre le parcours,
+ * la couleur marque ce qui est en cours.
+ */
+export const SALES_STATUS_TONES: Record<SalesStatus, Tone> = {
+  NOT_CONTACTED: 'secondary',
+  TO_CONTACT: 'info',
+  IN_PROGRESS: 'primary',
+  MEETING_SCHEDULED: 'warning',
+  CLOSED: 'secondary',
+};
+
+/**
+ * Le client actif est le seul succes ; suspendu et resilie sont des alertes
+ * de gravite croissante. « Non client » reste neutre : c'est l'etat de depart
+ * de toute fiche, le colorer ferait clignoter la liste entiere.
+ */
+export const CUSTOMER_STATUS_TONES: Record<CustomerStatus, Tone> = {
+  NOT_CUSTOMER: 'secondary',
+  DEPLOYING: 'info',
+  ACTIVE: 'success',
+  SUSPENDED: 'warning',
+  TERMINATED: 'destructive',
+  LOST_BEFORE_GOLIVE: 'destructive',
+};
+
+/** Seule la priorite haute merite d'attirer l'oeil ; sinon la colonne crie. */
+export const PRIORITY_TONES: Record<Priority, Tone> = {
+  LOW: 'secondary',
+  NORMAL: 'secondary',
+  HIGH: 'destructive',
 };
 
 export const ORGANIZATIONS_UI = {

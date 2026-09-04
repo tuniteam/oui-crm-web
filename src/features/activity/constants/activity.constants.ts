@@ -1,3 +1,4 @@
+import type { Tone } from '@/shared/constants/tone';
 import type { ActivityStatus } from '../types/activity';
 
 /** Actions commerciales — L1 · US-01-08. Routes scopées projet. */
@@ -12,6 +13,32 @@ export const ACTIVITY_STATUS_LABELS: Record<ActivityStatus, string> = {
   PLANNED: 'Planifiée',
   DONE: 'Réalisée',
   CANCELLED: 'Annulée',
+};
+
+/**
+ * Une action realisee est un aboutissement : elle est verte. La frise sortait
+ * jusqu'ici « Réalisée » dans la couleur de marque, parce que le composant
+ * choisissait sa teinte lui-meme.
+ */
+export const ACTIVITY_STATUS_TONES: Record<ActivityStatus, Tone> = {
+  PLANNED: 'info',
+  DONE: 'success',
+  CANCELLED: 'secondary',
+};
+
+/**
+ * Resultat d'une action. Les cles viennent du referentiel projet
+ * (`ACTIVITY_RESULT`), que l'administrateur peut enrichir : une cle absente de
+ * cette table sort en neutre, jamais en couleur choisie au hasard.
+ */
+export const ACTIVITY_RESULT_TONES: Partial<Record<string, Tone>> = {
+  MEETING_BOOKED: 'success',
+  INTERESTED: 'success',
+  DOCUMENTATION_SENT: 'info',
+  CALL_BACK: 'info',
+  NO_ANSWER: 'secondary',
+  WRONG_CONTACT: 'warning',
+  NOT_INTERESTED: 'destructive',
 };
 
 /** Codes d'erreur routés par l'écran. */
@@ -89,6 +116,7 @@ export const ACTIVITIES_UI = {
 
   ERRORS: {
     FETCH: 'Impossible de charger les actions',
+    ORGANIZATION_REQUIRED: 'Choisissez un organisme',
     /** Une action close est de l'histoire : on recharge plutôt que d'insister. */
     CLOSED:
       'Cette action n’est plus modifiable : elle a été réalisée ou annulée entre-temps.',
@@ -108,6 +136,11 @@ export const ACTIVITY_WINDOW = {
   EDIT_TITLE: 'Modifier l’action',
 
   FIELDS: {
+    /** Demandé seulement quand l'écran ne fournit pas de fiche — l'agenda. */
+    ORGANIZATION: 'Organisme',
+    ORGANIZATION_PLACEHOLDER: 'Choisir un organisme',
+    /** Hors périmètre, le serveur refuse la création : la ligne reste inerte. */
+    ORGANIZATION_RESTRICTED: (name: string) => `${name} — hors de votre périmètre`,
     TYPE: 'Type',
     /**
      * Aucun type n'est presélectionné. La maquette pré-choisit « Appel », mais

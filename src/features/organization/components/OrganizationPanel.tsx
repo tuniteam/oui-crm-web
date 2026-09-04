@@ -7,10 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toneOf } from '@/shared/constants/tone';
 import {
   CUSTOMER_STATUS_LABELS,
+  CUSTOMER_STATUS_TONES,
   PRIORITY_LABELS,
+  PRIORITY_TONES,
   SALES_STATUS_LABELS,
+  SALES_STATUS_TONES,
 } from '../constants/organizationList.constants';
 import { useOrganization } from '../hooks/useOrganization';
 import type { OrganizationDetail } from '../types/organizationDetail';
@@ -133,14 +137,29 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                 .join(' · ')}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" appearance="outline">
+              {/* Les teintes viennent des tables de la feature, jamais du
+                  composant : la meme valeur porte la meme couleur ici et dans
+                  la liste. */}
+              <Badge
+                variant={toneOf(SALES_STATUS_TONES, organization.salesStatus)}
+                appearance="outline"
+              >
                 {SALES_STATUS_LABELS[organization.salesStatus]}
               </Badge>
-              <Badge variant="secondary" appearance="outline">
+              <Badge
+                variant={toneOf(
+                  CUSTOMER_STATUS_TONES,
+                  organization.customerStatus,
+                )}
+                appearance="outline"
+              >
                 {CUSTOMER_STATUS_LABELS[organization.customerStatus]}
               </Badge>
               {organization.priority ? (
-                <Badge variant="primary" appearance="outline">
+                <Badge
+                  variant={toneOf(PRIORITY_TONES, organization.priority)}
+                  appearance="outline"
+                >
                   {PRIORITY_LABELS[organization.priority]}
                 </Badge>
               ) : null}

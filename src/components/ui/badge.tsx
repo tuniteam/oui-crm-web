@@ -97,34 +97,42 @@ const badgeVariants = cva(
       },
       /* Outline */
       {
+        /* Sans ce couple, une pastille neutre en `outline` n'avait aucun
+           filet : elle flottait a cote de ses voisines colorees, qui en ont
+           toutes un. */
+        variant: 'secondary',
+        appearance: 'outline',
+        className: 'bg-secondary text-secondary-foreground border-border',
+      },
+      {
         variant: 'primary',
         appearance: 'outline',
         className:
-          'text-[var(--color-primary-accent,var(--color-blue-700))] border-[var(--color-primary-soft,var(--color-blue-100))] bg-[var(--color-primary-soft,var(--color-blue-50))] dark:bg-[var(--color-primary-soft,var(--color-blue-950))] dark:border-[var(--color-primary-soft,var(--color-blue-900))] dark:text-[var(--color-primary-soft,var(--color-blue-600))]',
+          'text-[var(--color-primary-accent,var(--color-blue-700))] border-[var(--color-primary-border,var(--color-blue-100))] bg-[var(--color-primary-soft,var(--color-blue-50))] dark:bg-[var(--color-primary-soft,var(--color-blue-950))] dark:border-[var(--color-primary-border,var(--color-blue-900))] dark:text-[var(--color-primary-soft,var(--color-blue-600))]',
       },
       {
         variant: 'success',
         appearance: 'outline',
         className:
-          'text-[var(--color-success-accent,var(--color-green-700))] border-[var(--color-success-soft,var(--color-green-200))] bg-[var(--color-success-soft,var(--color-green-50))] dark:bg-[var(--color-success-soft,var(--color-green-950))] dark:border-[var(--color-success-soft,var(--color-green-900))] dark:text-[var(--color-success-soft,var(--color-green-600))]',
+          'text-[var(--color-success-accent,var(--color-green-700))] border-[var(--color-success-border,var(--color-green-200))] bg-[var(--color-success-soft,var(--color-green-50))] dark:bg-[var(--color-success-soft,var(--color-green-950))] dark:border-[var(--color-success-border,var(--color-green-900))] dark:text-[var(--color-success-soft,var(--color-green-600))]',
       },
       {
         variant: 'warning',
         appearance: 'outline',
         className:
-          'text-[var(--color-warning-accent,var(--color-yellow-700))] border-[var(--color-warning-soft,var(--color-yellow-200))] bg-[var(--color-warning-soft,var(--color-yellow-50))] dark:bg-[var(--color-warning-soft,var(--color-yellow-950))] dark:border-[var(--color-warning-soft,var(--color-yellow-900))] dark:text-[var(--color-warning-soft,var(--color-yellow-600))]',
+          'text-[var(--color-warning-accent,var(--color-yellow-700))] border-[var(--color-warning-border,var(--color-yellow-200))] bg-[var(--color-warning-soft,var(--color-yellow-50))] dark:bg-[var(--color-warning-soft,var(--color-yellow-950))] dark:border-[var(--color-warning-border,var(--color-yellow-900))] dark:text-[var(--color-warning-soft,var(--color-yellow-600))]',
       },
       {
         variant: 'info',
         appearance: 'outline',
         className:
-          'text-[var(--color-info-accent,var(--color-violet-700))] border-[var(--color-info-soft,var(--color-violet-100))] bg-[var(--color-info-soft,var(--color-violet-50))] dark:bg-[var(--color-info-soft,var(--color-violet-950))] dark:border-[var(--color-info-soft,var(--color-violet-900))] dark:text-[var(--color-info-soft,var(--color-violet-400))]',
+          'text-[var(--color-info-accent,var(--color-violet-700))] border-[var(--color-info-border,var(--color-violet-100))] bg-[var(--color-info-soft,var(--color-violet-50))] dark:bg-[var(--color-info-soft,var(--color-violet-950))] dark:border-[var(--color-info-border,var(--color-violet-900))] dark:text-[var(--color-info-soft,var(--color-violet-400))]',
       },
       {
         variant: 'destructive',
         appearance: 'outline',
         className:
-          'text-[var(--color-destructive-accent,var(--color-red-700))] border-[var(--color-destructive-soft,var(--color-red-100))] bg-[var(--color-destructive-soft,var(--color-red-50))] dark:bg-[var(--color-destructive-soft,var(--color-red-950))] dark:border-[var(--color-destructive-soft,var(--color-red-900))] dark:text-[var(--color-destructive-soft,var(--color-red-600))]',
+          'text-[var(--color-destructive-accent,var(--color-red-700))] border-[var(--color-destructive-border,var(--color-red-100))] bg-[var(--color-destructive-soft,var(--color-red-50))] dark:bg-[var(--color-destructive-soft,var(--color-red-950))] dark:border-[var(--color-destructive-border,var(--color-red-900))] dark:text-[var(--color-destructive-soft,var(--color-red-600))]',
       },
       /* Ghost */
       {
