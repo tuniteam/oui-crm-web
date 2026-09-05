@@ -5,6 +5,7 @@ import { useMeStore } from '@/contexts/useMeStore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { noWindowHooks } from '@/components/window/ReusableWindow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CAMPAIGN_TARGET_UI } from '../constants/campaign.constants';
 import { useCampaignTarget } from '../hooks/useCampaignTarget';
@@ -20,8 +21,6 @@ type Props = {
 };
 
 /** Le slot `useHooks` n'a rien a porter : tout vient du composant. */
-type Hooks = Record<string, never>;
-const emptyHooks = (): Hooks => ({});
 
 /**
  * La cible d'une campagne — L1 · US-01-11, tranche B.
@@ -45,12 +44,12 @@ export function CampaignTargetPanel({ campaign, onOpenChange }: Props) {
 
   return (
     <>
-      <ReusableSheet<Hooks>
+      <ReusableSheet<Record<string, never>>
         open={!!campaign}
         onOpenChange={onOpenChange}
         title={campaign ? `${UI.TITLE} · ${campaign.name}` : UI.TITLE}
         description={UI.SUBTITLE}
-        useHooks={emptyHooks}
+        useHooks={noWindowHooks}
         renderBody={() => (
           <div className="space-y-4" data-testid="campaign-target">
             {canUpdate ? (

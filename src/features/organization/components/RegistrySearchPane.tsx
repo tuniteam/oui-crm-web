@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CREATE_ORGANIZATION_UI } from '../constants/organizationCreate.constants';
-import type { CreateOrganizationHooks } from '../hooks/useCreateOrganizationForm';
+import type { useRegistrySearch } from '../hooks/useRegistrySearch';
+import type { RegistryMatch } from '../types/organizationCreate';
 
 const { REGISTRY } = CREATE_ORGANIZATION_UI;
 
@@ -32,16 +33,35 @@ function Notice({
   );
 }
 
+type Props = {
+  registry: ReturnType<typeof useRegistrySearch>;
+  /** Ce que fait le choix d'un resultat — creation ou completion de fiche. */
+  onPick: (match: RegistryMatch) => void;
+  /** Le libelle du bouton de chaque resultat, l'un ou l'autre parcours. */
+  useLabel?: string;
+  /** La requete posee d'emblee : le nom de la fiche qu'on complete. */
+  initialQuery?: string;
+};
+
 /**
  * Recherche au registre officiel.
  *
- * Un resultat ne cree rien : il pre-remplit la saisie, que l'utilisateur
- * relit. Le type de structure est obligatoire et le registre ne le donne pas,
- * donc une creation en un clic serait de toute facon incomplete.
+ * Un resultat ne cree rien et n'enregistre rien : il pre-remplit une saisie,
+ * que l'utilisateur relit. Le type de structure est obligatoire et le registre
+ * ne le donne pas, donc une creation en un clic serait de toute facon
+ * incomplete.
+ *
+ * Le panneau ne sait pas ce qu'on fera du resultat — creer une fiche, ou
+ * completer celle qui est ouverte. Les deux parcours interrogent le meme
+ * registre et affichent les memes resultats ; seul `onPick` les separe.
  */
-export function RegistrySearchPane({ hooks }: { hooks: CreateOrganizationHooks }) {
-  const { registry, applyMatch } = hooks;
-  const [q, setQ] = useState('');
+export function RegistrySearchPane({
+  registry,
+  onPick,
+  useLabel = REGISTRY.USE,
+  initialQuery = '',
+}: Props) {
+  const [q, setQ] = useState(initialQuery);
 
   const tooShort = q.trim().length < REGISTRY.MIN_LENGTH;
 
@@ -127,9 +147,9 @@ export function RegistrySearchPane({ hooks }: { hooks: CreateOrganizationHooks }
               variant="outline"
               size="sm"
               data-testid={`registry-use-${match.siret}`}
-              onClick={() => applyMatch(match)}
+              onClick={() => onPick(match)}
             >
-              {REGISTRY.USE}
+              {useLabel}
             </Button>
           </li>
         ))}

@@ -9,7 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ReusableWindow } from '@/components/window/ReusableWindow';
+import {
+  noWindowHooks,
+  ReusableWindow,
+} from '@/components/window/ReusableWindow';
 import {
   BULK_ACTION_LABELS,
   BULK_FIELDS,
@@ -18,7 +21,6 @@ import {
 import type { BulkAction, BulkPayload } from '../types/bulk';
 
 const UI = BULK_WINDOW;
-const emptyHooks = (): Record<string, never> => ({});
 
 type Option = { value: string; label: string };
 
@@ -70,7 +72,7 @@ export function BulkActionWindow({
       open={action !== null}
       onOpenChange={onOpenChange}
       title={action ? BULK_ACTION_LABELS[action] : ''}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       preventClose
       className="max-w-lg"
       renderBody={() => (

@@ -41,6 +41,16 @@ type ReusableWindowProps<THooks> = {
  * Le corps défile de façon autonome : l'en-tête et le pied restent visibles,
  * ce qui compte pour des formulaires longs comme la matrice des droits.
  */
+/**
+ * Pour une fenetre qui ne porte pas d'etat propre.
+ *
+ * `useHooks` est requis par l'API, mais beaucoup de fenetres n'ont rien a y
+ * mettre — elles recoivent tout en props. Chacune redeclarait la meme fonction
+ * vide ; une seule reference partagee evite en prime de fournir un nouveau
+ * `useHooks` a chaque rendu.
+ */
+export const noWindowHooks = (): Record<string, never> => ({});
+
 export function ReusableWindow<THooks>({
   open,
   onOpenChange,

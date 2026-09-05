@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ReusableSheet } from '@/components/drawer/ReusableSheet';
+import { noWindowHooks } from '@/components/window/ReusableWindow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SALES_STATUS_LABELS } from '@/features/organization/constants/organizationList.constants';
 import { formatShortDateFr } from '@/shared/utils/date-utils';
@@ -20,8 +21,6 @@ type Props = {
 };
 
 /** Le slot `useHooks` n'a rien a porter : tout vient du composant. */
-type Hooks = Record<string, never>;
-const emptyHooks = (): Hooks => ({});
 
 /**
  * Le detail des resultats d'une campagne — L1 · US-01-11, tranche C.
@@ -38,12 +37,12 @@ export function CampaignResultsPanel({ campaign, onOpenChange }: Props) {
   const results = useCampaignResults(campaign?.id ?? null, !!campaign);
 
   return (
-    <ReusableSheet<Hooks>
+    <ReusableSheet<Record<string, never>>
       open={!!campaign}
       onOpenChange={onOpenChange}
       title={campaign ? `${UI.TITLE} · ${campaign.name}` : UI.TITLE}
       description={UI.SUBTITLE}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       renderBody={() => (
         <div className="space-y-4" data-testid="campaign-results">
           {results.loading ? (

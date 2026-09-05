@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { ACTIONS_COLUMN_ID } from '@/constants';
 import { formatShortDateFr } from '@/shared/utils/date-utils';
+import { formatInteger } from '@/shared/utils/string-utils';
 import { Eye } from 'lucide-react';
 import { COMMON } from '@/constants/common';
 import {
@@ -39,8 +40,6 @@ const isRestricted = (o: OrganizationListItem) => o.access === 'RESTRICTED';
 /** Un tiret pour tout ce qu'une fiche restreinte ne rend pas : la V8 vide ces
  *  cellules plutot que de laisser croire a une donnee absente. */
 const dash = () => <span className="text-muted-foreground">{EMPTY_VALUE}</span>;
-
-const number = new Intl.NumberFormat('fr-FR');
 
 const dateFr = (iso?: string | null) => formatShortDateFr(iso) || null;
 
@@ -117,7 +116,7 @@ export const organizationColumns = (
     ),
     cell: ({ row }) =>
       row.original.population != null
-        ? number.format(row.original.population)
+        ? formatInteger(row.original.population)
         : dash(),
     size: 110,
     enableSorting: true,

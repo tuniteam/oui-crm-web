@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ReusableWindow } from '@/components/window/ReusableWindow';
+import {
+  noWindowHooks,
+  ReusableWindow,
+} from '@/components/window/ReusableWindow';
 import { BOARD_CLOSE_WINDOW } from '../constants/board.constants';
 import type { BoardCard } from '../types/board';
 
 const UI = BOARD_CLOSE_WINDOW;
-const emptyHooks = (): Record<string, never> => ({});
 
 type Props = {
   /** La carte déposée sur « Clôturé », ou `null`. */
@@ -39,7 +41,7 @@ export function BoardCloseWindow({ card, onOpenChange, onConfirm }: Props) {
       open={!!card}
       onOpenChange={onOpenChange}
       title={UI.TITLE}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       className="max-w-lg"
       renderBody={() => (
         <div className="space-y-3" data-testid="board-close">

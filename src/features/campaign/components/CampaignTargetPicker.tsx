@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ReusableWindow } from '@/components/window/ReusableWindow';
+import {
+  noWindowHooks,
+  ReusableWindow,
+} from '@/components/window/ReusableWindow';
 import { useOrganizations } from '@/features/organization/hooks/useOrganizations';
 import { CAMPAIGN_TARGET_UI } from '../constants/campaign.constants';
 import { useCampaignTarget } from '../hooks/useCampaignTarget';
@@ -19,7 +22,6 @@ type Props = {
   campaignId: string;
 };
 
-const emptyHooks = (): Record<string, never> => ({});
 
 type Hooks = {
   search: string;
@@ -72,7 +74,7 @@ export function CampaignTargetPicker({ open, onOpenChange, campaignId }: Props) 
       open={open}
       onOpenChange={onOpenChange}
       title={UI.TITLE}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       preventClose
       renderBody={() => (
         <div className="space-y-4">

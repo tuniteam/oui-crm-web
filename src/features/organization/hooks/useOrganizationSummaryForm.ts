@@ -44,6 +44,7 @@ function toFormValues(o: OrganizationDetail): OrganizationSummarySchemaType {
     tags: o.tags ?? [],
     priority: o.priority ?? 'NORMAL',
     notes: o.notes ?? '',
+    openingHours: o.openingHours ?? null,
   };
 }
 
@@ -114,6 +115,13 @@ export function useOrganizationSummaryForm(organization: OrganizationDetail) {
     if (!same(v.services, initial.services)) payload.services = v.services;
     if (!same(v.tags, initial.tags)) payload.tags = v.tags;
     if (v.priority !== initial.priority) payload.priority = v.priority;
+    /*
+     * Compare en profondeur : l'objet est remplace en entier par la fenetre
+     * d'edition, donc jamais egal par reference meme quand rien n'a bouge.
+     */
+    if (!same(v.openingHours, initial.openingHours)) {
+      payload.openingHours = v.openingHours;
+    }
 
     return Object.keys(payload).length > 0 ? payload : null;
   };

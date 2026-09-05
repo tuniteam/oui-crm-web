@@ -42,6 +42,14 @@ export type OrganizationDetail = {
   phone?: string | null;
   email?: string | null;
   website?: string | null;
+  /**
+   * Horaires d'ouverture — L1 · US-01-15.
+   *
+   * Alimente par l'import depuis l'Annuaire de l'administration, et **modifiable**
+   * depuis la fiche : `PATCH` l'accepte, `null` efface. Absent de
+   * `GET /organizations` — verifie : la liste ne le porte pas.
+   */
+  openingHours?: OpeningHours | null;
 
   population?: number | null;
   /** Strate tarifaire de la grille active du projet. Calculee par l'API. */
@@ -99,6 +107,8 @@ export type UpdateOrganizationPayload = {
   phone?: string | null;
   email?: string | null;
   website?: string | null;
+  /** `null` efface les horaires ; `days: []` serait accepte et **stocke**. */
+  openingHours?: OpeningHours | null;
   solution?: string | null;
   schoolCount?: number | null;
   childCount?: number | null;
@@ -121,3 +131,31 @@ export const refKey = (ref?: ReferenceRef | null): string | null =>
 /** Cles d'une liste de referentiels lue. */
 export const refKeys = (refs?: ReferenceRef[] | null): string[] =>
   (refs ?? []).map((r) => r.key);
+
+/** Les sept jours du contrat, dans l'ordre de la semaine. */
+export const OPENING_DAYS = [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+] as const;
+
+export type OpeningDay = (typeof OPENING_DAYS)[number];
+
+/**
+ * Les horaires declares d'une structure.
+ *
+ * `days` est une **liste**, pas un objet indexe, et les jours de fermeture en
+ * sont **absents** — jamais presents avec une liste vide. Un ecran qui rend la
+ * semaine entiere doit donc completer lui-meme les jours manquants par
+ * « Ferme » : les lire comme un dictionnaire afficherait une mairie ouverte
+ * sept jours sur sept.
+ */
+export type OpeningHours = {
+  days: { day: OpeningDay; slots: string[] }[];
+  /** Precision libre de la structure : permanence, agence postale, saison. */
+  comment?: string | null;
+};

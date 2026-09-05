@@ -122,7 +122,9 @@ export function CreateOrganizationBody({
         ))}
       </div>
 
-      {!isManual && <RegistrySearchPane hooks={hooks} />}
+      {!isManual && (
+        <RegistrySearchPane registry={hooks.registry} onPick={hooks.applyMatch} />
+      )}
 
       {isManual && (
         <Form {...form}>
