@@ -1,12 +1,14 @@
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ReusableWindow } from '@/components/window/ReusableWindow';
+import {
+  noWindowHooks,
+  ReusableWindow,
+} from '@/components/window/ReusableWindow';
 import {
   ACTIVITY_CANCEL_WINDOW,
   ACTIVITY_DELETE_WINDOW,
 } from '../constants/activity.constants';
 
-const emptyHooks = (): Record<string, never> => ({});
 
 type Props = {
   open: boolean;
@@ -41,7 +43,7 @@ export function ActivityConfirmWindow({
       open={open}
       onOpenChange={onOpenChange}
       title={UI.TITLE}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       className="max-w-lg"
       renderBody={() => (
         <div className="space-y-3" data-testid={`activity-confirm-${kind}`}>

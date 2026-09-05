@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ReusableWindow } from '@/components/window/ReusableWindow';
+import {
+  noWindowHooks,
+  ReusableWindow,
+} from '@/components/window/ReusableWindow';
 import { useScopeMutations } from '@/features/settings/hooks/useScopeMutations';
 import { useScopes } from '@/features/settings/hooks/useScopes';
 import { CAMPAIGN_DELETE_UI } from '../constants/campaign.constants';
@@ -15,7 +18,6 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-const emptyHooks = (): Record<string, never> => ({});
 
 /**
  * Supprimer une campagne — L1 · US-01-11, tranche C.
@@ -71,7 +73,7 @@ export function CampaignDeleteDialog({ campaign, onOpenChange }: Props) {
       open={!!campaign}
       onOpenChange={onOpenChange}
       title={blocking ? UI.BLOCKED_TITLE : UI.TITLE}
-      useHooks={emptyHooks}
+      useHooks={noWindowHooks}
       className="max-w-lg"
       renderBody={() => (
         <div className="space-y-4" data-testid="campaign-delete">

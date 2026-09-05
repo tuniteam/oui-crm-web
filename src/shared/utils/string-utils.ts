@@ -14,3 +14,21 @@ export function formatFileSize(bytes: number): string {
   const formatted = unitIndex === 0 ? size.toString() : size.toFixed(1).replace(/\.0$/, '');
   return `${formatted} ${FILE_SIZE_UNITS[unitIndex]}`;
 }
+
+/**
+ * Un entier lisible : « 149 695 » plutot que « 149695 ».
+ *
+ * Separateur de milliers francais — l'espace fine insecable — pour la liste
+ * comme pour la fiche : deux formateurs distincts finiraient par diverger, et
+ * un meme nombre ne s'ecrirait pas pareil d'un ecran a l'autre.
+ *
+ * Le formateur est construit une fois : `Intl.NumberFormat` est couteux a
+ * instancier, et une cellule de tableau le rappellerait a chaque ligne.
+ */
+const integerFr = new Intl.NumberFormat('fr-FR');
+
+export function formatInteger(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '';
+  const digits = String(value).replace(/\D/g, '');
+  return digits === '' ? '' : integerFr.format(Number(digits));
+}
