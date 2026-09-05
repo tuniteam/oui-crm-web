@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CirclePlus } from 'lucide-react';
 import { FILTER_ALL, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -19,6 +19,8 @@ import {
   CAMPAIGNS_UI,
 } from '../constants/campaign.constants';
 import { useCampaignMutations } from '../hooks/useCampaignMutations';
+import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
+import { describeCriteria } from '../utils/campaign-criteria';
 import { useCampaigns } from '../hooks/useCampaigns';
 import {
   CAMPAIGN_STATUSES,
@@ -46,6 +48,9 @@ function periodOf(campaign: Campaign): string {
 
 /** Campagnes — L1 · US-01-11, tranche A. */
 export default function CampaignsScreen() {
+  /* Une fois pour l'écran : les référentiels ne se rechargent pas par carte.
+     Voir « Aucune clé de référentiel à l'écran ». */
+  const { labelOf } = useReferenceLabels();
   const [status, setStatus] = useState<string>(FILTER_ALL);
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
@@ -131,6 +136,7 @@ export default function CampaignsScreen() {
             <CampaignCard
               key={campaign.id}
               campaign={campaign}
+              labelOf={labelOf}
               onEdit={canUpdate ? () => openWindow(campaign) : undefined}
               onStatus={
                 canUpdate
@@ -178,8 +184,11 @@ function CampaignCard({
   onResults,
   onDelete,
   busy,
+  labelOf,
 }: {
   campaign: Campaign;
+  /** Traduit les critères de ciblage. Chargé une fois par l'écran, pas ici. */
+  labelOf: ReturnType<typeof useReferenceLabels>['labelOf'];
   onEdit?: () => void;
   onStatus?: (next: CampaignStatus) => void;
   onTarget: () => void;
@@ -222,6 +231,7 @@ function CampaignCard({
           appearance="outline"
           data-testid={`campaign-status-${campaign.id}`}
         >
+          <BadgeDot />
           {CAMPAIGN_STATUS_LABELS[campaign.status]}
         </Badge>
       </div>
@@ -233,12 +243,7 @@ function CampaignCard({
       ) : null}
 
       <p className="mt-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        {CARD.CRITERIA} :{' '}
-        {campaign.criteria && Object.keys(campaign.criteria).length > 0
-          ? Object.entries(campaign.criteria)
-              .map(([k, v]) => `${k} = ${String(v)}`)
-              .join(' · ')
-          : CARD.NO_CRITERIA}
+        {CARD.CRITERIA} : {describeCriteria(campaign.criteria, labelOf) ?? CARD.NO_CRITERIA}
       </p>
 
       <div className="mt-3 space-y-1.5">
@@ -311,7 +316,7 @@ function CampaignCard({
           ) : null}
           {onDelete ? (
             <Button
-              variant="outline"
+              variant="destructiveOutline"
               size="sm"
               data-testid={`campaign-delete-open-${campaign.id}`}
               onClick={onDelete}

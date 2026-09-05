@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FILTER_ALL, FILTER_DEBOUNCE_MS, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -39,6 +39,8 @@ import {
 import { organizationColumns } from './organizationColumns';
 import { CreateOrganizationWindow } from './CreateOrganizationWindow';
 import { OrganizationPanel } from './OrganizationPanel';
+import { OrganizationsBulkBar } from './OrganizationsBulkBar';
+import type { BulkFilters } from '../types/bulk';
 
 const { SEARCH, EMPTY_STATE } = ORGANIZATIONS_UI;
 
@@ -52,6 +54,22 @@ const { SEARCH, EMPTY_STATE } = ORGANIZATIONS_UI;
  * Deux filtres de la V8 restent de cote : la strate, que l'API ne filtre pas,
  * et le commercial, qui demande la liste des membres du projet.
  */
+/**
+ * Les filtres d'une liste, moins ce qui ne designe qu'une page.
+ *
+ * `selectAll` porte sur un **ensemble**, pas sur un ecran : le contrat refuse
+ * `page`, `limit`, `sort` et `order`.
+ */
+/** Ce que `filters` ne doit pas porter : le contrat agit sur tout l'ensemble. */
+const PAGINATION_KEYS = ['page', 'limit', 'sort', 'order'] as const;
+
+function stripPagination(params: OrganizationListParams | null): BulkFilters {
+  if (!params) return {};
+  const filters: OrganizationListParams = { ...params };
+  for (const key of PAGINATION_KEYS) delete filters[key];
+  return filters;
+}
+
 export default function OrganizationsTable() {
   const hasPermission = useMeStore((s) => s.hasPermission);
   const { labelOf, optionsOf } = useReferenceLabels();
@@ -290,9 +308,23 @@ export default function OrganizationsTable() {
     ],
   );
 
+  /**
+   * Les filtres **effectivement envoyés** par la liste, mémorisés au vol.
+   *
+   * `selectAll` les rejoue côté serveur : les reconstruire ailleurs les ferait
+   * diverger tôt ou tard, et l'action porterait alors sur un autre ensemble
+   * que celui qu'on regarde — sur une suppression, ce serait grave.
+   */
+  const lastParams = useRef<OrganizationListParams | null>(null);
+  // Le formateur ne l'a pas : ni cases à cocher, ni barre.
+  const canBulk = useMeStore((s) => s.hasPermission(PERMISSIONS.ORGANIZATIONS.BULK));
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectionKey, setSelectionKey] = useState(0);
+  const [total, setTotal] = useState(0);
+
   const buildParams = useCallback(
-    (pagination: { pageIndex: number; pageSize: number }, search: string) =>
-      ({
+    (pagination: { pageIndex: number; pageSize: number }, search: string) => {
+      const params = {
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
         search: search || undefined,
@@ -314,7 +346,10 @@ export default function OrganizationsTable() {
         tag: debouncedTag === FILTER_ALL ? undefined : debouncedTag,
         // 99 et non 100 : le contrat est inclusif, 100 ramenerait toute la base.
         completenessMax: debouncedIncompleteOnly ? 99 : undefined,
-      }) satisfies OrganizationListParams,
+      } satisfies OrganizationListParams;
+      lastParams.current = params;
+      return params;
+    },
     [
       debouncedType,
       debouncedSalesStatus,
@@ -351,6 +386,41 @@ export default function OrganizationsTable() {
       getData={getData}
       getMeta={getMeta}
       buildParams={buildParams}
+      /* `key` : vider la sélection après une action groupée demande de
+         remonter la table, qui garde son état de cases cochées. */
+      key={selectionKey}
+      enableRowSelection={canBulk}
+      onSelectedIdsChange={setSelectedIds}
+      onDataChange={(result) => setTotal(result.meta?.total ?? 0)}
+      subHeader={
+        canBulk && selectedIds.length > 0 ? (
+          <OrganizationsBulkBar
+            ids={selectedIds}
+            total={total}
+            /* Les filtres tels que la liste les a envoyés — jamais une copie
+               reconstruite, qui divergerait. */
+            filters={stripPagination(lastParams.current)}
+            onClear={() => setSelectionKey((k) => k + 1)}
+            onDone={(done) => {
+              setSelectionKey((k) => k + 1);
+              /*
+               * La fiche ouverte vit dans l'URL : une suppression groupee qui
+               * l'emporte laisserait le panneau ouvert sur une fiche disparue,
+               * que le rechargement ferait echouer en 404. En `selectAll` on
+               * ne sait pas ce qui a ete pris — la fermer est le seul choix
+               * sur.
+               */
+              if (
+                done.action === 'DELETE' &&
+                openedId &&
+                (done.allMatching || done.ids.includes(openedId))
+              ) {
+                setOpenedId(null);
+              }
+            }}
+          />
+        ) : null
+      }
       enableSearch
       searchPlaceholder={SEARCH.PLACEHOLDER}
       searchToolTipText={SEARCH.TOOLTIP}

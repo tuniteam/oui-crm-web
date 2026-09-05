@@ -8,6 +8,7 @@ import {
 } from '@/features/settings/constants/constants';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
 import AgendaScreen from '@/features/activity/components/AgendaScreen';
+import ProspectionScreen from '@/features/organization/components/ProspectionScreen';
 import CampaignsScreen from '@/features/campaign/components/CampaignsScreen';
 import OrganizationsTable from '@/features/organization/components/OrganizationsTable';
 import UsersTable from '@/features/user/components/UsersTable';
@@ -24,7 +25,6 @@ import { RequirePermission } from '@/guards/RequirePermission';
 const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'dashboard', title: MENU_PROJECT.DASHBOARD, permission: PERMISSIONS.DASHBOARD.READ },
   { path: 'stats', title: MENU_PROJECT.STATS, permission: PERMISSIONS.STATS.READ },
-  { path: 'prospecting', title: MENU_PROJECT.PROSPECTING, permission: PERMISSIONS.ACTIVITIES.READ },
   { path: 'opportunities', title: MENU_PROJECT.OPPORTUNITIES, permission: PERMISSIONS.OPPORTUNITIES.READ },
   { path: 'quotes', title: MENU_PROJECT.QUOTES, permission: PERMISSIONS.QUOTES.READ },
   { path: 'contracts', title: MENU_PROJECT.CONTRACTS, permission: PERMISSIONS.CONTRACTS.READ },
@@ -49,6 +49,7 @@ export function ProjectWorkspaceRoutes() {
         }
       >
         <Route path="organizations" element={<OrganizationsTable />} />
+        <Route path="prospecting" element={<ProspectionScreen />} />
       </Route>
 
       <Route

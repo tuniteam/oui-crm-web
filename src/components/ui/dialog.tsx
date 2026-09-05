@@ -5,6 +5,7 @@ import { cva, VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
+import { OVERLAY_CLOSE_CLASS } from './overlay-close';
 
 const dialogContentVariants = cva(
   'flex flex-col fixed outline-0 z-50 border border-border bg-background p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg',
@@ -84,8 +85,13 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogClose className="cursor-pointer outline-0 absolute end-5 top-5 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="size-4" />
+          <DialogClose
+            className={cn(
+              OVERLAY_CLOSE_CLASS,
+              'outline-0 focus:outline-hidden data-[state=open]:bg-accent data-[state=open]:text-muted-foreground',
+            )}
+          >
+            <X className="size-8" />
             <span className="sr-only">Close</span>
           </DialogClose>
         )}
@@ -132,7 +138,11 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        'text-lg font-semibold leading-none tracking-tight',
+        /* Pas de `leading-none` : une hauteur de ligne egale a la taille du
+           texte ne laisse aucune place aux jambages. Combinee au `truncate`
+           d'un titre long — donc a `overflow: hidden` — elle rasait le bas des
+           « g » et des « p » de toutes les fenetres. */
+        'text-lg font-semibold leading-snug tracking-tight',
         className,
       )}
       {...props}

@@ -98,97 +98,110 @@ export function AgendaToolbar({
   onUserId,
 }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {showPeriod ? (
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          aria-label={UI.PREVIOUS}
-          data-testid="agenda-prev"
-          onClick={() => onShiftMonth(-1)}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <span
-          data-testid="agenda-period"
-          className="min-w-40 text-center text-sm font-medium"
-        >
-          {monthLabel(cursor)}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          aria-label={UI.NEXT}
-          data-testid="agenda-next"
-          onClick={() => onShiftMonth(1)}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          data-testid="agenda-today"
-          onClick={onToday}
-        >
-          {UI.TODAY}
-        </Button>
-      </div>
-      ) : null}
+    /*
+     * Deux rangees, pas une seule qui se replie. La premiere est identique en
+     * vue Mois et en vue Liste : filtres a gauche, Mois / Liste ancre a droite.
+     * Le curseur de mois occupe la seconde — glisse dans la premiere, il la
+     * faisait deborder et poussait Mois / Liste a la ligne, si bien que la
+     * barre changeait de forme selon la vue.
+     */
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {users ? (
+            <Select value={userId} onValueChange={onUserId}>
+              <SelectTrigger data-testid="agenda-user" className="w-52">
+                <SelectValue placeholder={UI.FILTERS.USER_ALL} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={FILTER_ALL}>{UI.FILTERS.USER_ALL}</SelectItem>
+                {users.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {[u.firstName, u.lastName].filter(Boolean).join(' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
 
-      <div className="ms-auto flex flex-wrap items-center gap-2">
-        {users ? (
-          <Select value={userId} onValueChange={onUserId}>
-            <SelectTrigger data-testid="agenda-user" className="w-52">
-              <SelectValue placeholder={UI.FILTERS.USER_ALL} />
+          {/* Le type ne part pas au serveur : la route ne l'accepte pas, et la
+              période entière est déjà chargée. */}
+          <Select value={type} onValueChange={onType}>
+            <SelectTrigger data-testid="agenda-type" className="w-48">
+              <SelectValue placeholder={UI.FILTERS.TYPE_ALL}>
+                {type === FILTER_ALL
+                  ? UI.FILTERS.TYPE_ALL
+                  : types.find((t) => t.key === type)?.label}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={FILTER_ALL}>{UI.FILTERS.USER_ALL}</SelectItem>
-              {users.map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {[u.firstName, u.lastName].filter(Boolean).join(' ')}
+              <SelectItem value={FILTER_ALL}>{UI.FILTERS.TYPE_ALL}</SelectItem>
+              {types.map((t) => (
+                <SelectItem key={t.key} value={t.key}>
+                  {t.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        ) : null}
 
-        {/* Le type ne part pas au serveur : la route ne l'accepte pas, et la
-            période entière est déjà chargée. */}
-        <Select value={type} onValueChange={onType}>
-          <SelectTrigger data-testid="agenda-type" className="w-48">
-            <SelectValue placeholder={UI.FILTERS.TYPE_ALL}>
-              {type === FILTER_ALL
-                ? UI.FILTERS.TYPE_ALL
-                : types.find((t) => t.key === type)?.label}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={FILTER_ALL}>{UI.FILTERS.TYPE_ALL}</SelectItem>
-            {types.map((t) => (
-              <SelectItem key={t.key} value={t.key}>
-                {t.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Segment
+            values={AGENDA_STATES}
+            labels={UI.STATES}
+            current={state}
+            onPick={onState}
+            testId="agenda-state"
+          />
+        </div>
 
-        <Segment
-          values={AGENDA_STATES}
-          labels={UI.STATES}
-          current={state}
-          onPick={onState}
-          testId="agenda-state"
-        />
-
-        <Segment
-          values={AGENDA_VIEWS}
-          labels={UI.VIEWS}
-          current={view}
-          onPick={onView}
-          testId="agenda-view"
-        />
+        <div className="ms-auto">
+          <Segment
+            values={AGENDA_VIEWS}
+            labels={UI.VIEWS}
+            current={view}
+            onPick={onView}
+            testId="agenda-view"
+          />
+        </div>
       </div>
+
+      {/* La vue Liste couvre une fenêtre glissante : le curseur n'y sert à
+          rien, et sa rangée disparaît sans deplacer celle du dessus. */}
+      {showPeriod ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={UI.PREVIOUS}
+            data-testid="agenda-prev"
+            onClick={() => onShiftMonth(-1)}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span
+            data-testid="agenda-period"
+            className="min-w-40 text-center text-sm font-medium"
+          >
+            {monthLabel(cursor)}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={UI.NEXT}
+            data-testid="agenda-next"
+            onClick={() => onShiftMonth(1)}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="agenda-today"
+            onClick={onToday}
+          >
+            {UI.TODAY}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

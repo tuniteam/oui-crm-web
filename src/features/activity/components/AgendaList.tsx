@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { toneOf } from '@/shared/constants/tone';
 import {
+  AGENDA_HORIZON_ACCENTS,
   AGENDA_HORIZON_LABELS,
   AGENDA_HORIZON_TONES,
   AGENDA_LIST_WINDOW_HINT,
@@ -10,32 +11,17 @@ import {
   AGENDA_HORIZONS,
   type AgendaHorizon,
   type AgendaItem,
+  type AgendaState,
 } from '../types/agenda';
-import { daysFromToday } from '../utils/activity-date';
+import { horizonOf } from '../utils/agenda-horizon';
 import { AgendaEventRow } from './AgendaEventRow';
 
 type Props = {
   events: AgendaItem[];
   onOpen: (event: AgendaItem) => void;
+  /* Le filtre actif : c'est lui qui decide ce que dit une liste vide. */
+  state: AgendaState;
 };
-
-/**
- * Où ranger un créneau.
- *
- * Une action **réalisée** part à l'historique quelle que soit sa date : elle
- * n'est plus à faire. Pour les autres, `isLate` vient du serveur — jamais
- * recalculé — et l'écart en jours se compare sur des chaînes de jour, jamais
- * sur des instants.
- */
-function horizonOf(event: AgendaItem): AgendaHorizon {
-  if (event.status === 'DONE') return 'done';
-  if (event.isLate) return 'late';
-  const days = daysFromToday(event.date) ?? 0;
-  if (days === 0) return 'today';
-  if (days <= 7) return 'week';
-  if (days <= 30) return 'month';
-  return 'later';
-}
 
 /**
  * La liste, groupée par urgence — L1 · US-01-09.
@@ -46,16 +32,16 @@ function horizonOf(event: AgendaItem): AgendaHorizon {
  * chaque ligne est là — et « En retard » reste dans « À faire », puisqu'une
  * action en retard est justement celle qu'il faut traiter.
  */
-export function AgendaList({ events, onOpen }: Props) {
+export function AgendaList({ events, onOpen, state }: Props) {
   if (events.length === 0) {
     return (
       <div
         data-testid="agenda-empty"
         className="rounded-lg border border-dashed border-border px-4 py-10 text-center"
       >
-        <p className="text-sm font-semibold">{AGENDA_UI.EMPTY.TITLE}</p>
+        <p className="text-sm font-semibold">{AGENDA_UI.EMPTY[state].TITLE}</p>
         <p className="mx-auto mt-1 max-w-[55ch] text-sm text-muted-foreground">
-          {AGENDA_UI.EMPTY.DESCRIPTION}
+          {AGENDA_UI.EMPTY[state].DESCRIPTION}
         </p>
       </div>
     );
@@ -90,11 +76,19 @@ export function AgendaList({ events, onOpen }: Props) {
                 appearance="outline"
                 data-testid={`agenda-group-${horizon}`}
               >
+                {/* Un compteur, pas un etat : pas de point.
+                    Voir `docs/REGLE-BADGE-VS-BOUTON.md`. */}
                 {sorted.length}
               </Badge>
             </p>
             {sorted.map((e) => (
-              <AgendaEventRow key={e.id} event={e} onOpen={onOpen} showDate />
+              <AgendaEventRow
+                key={e.id}
+                event={e}
+                onOpen={onOpen}
+                showDate
+                accent={AGENDA_HORIZON_ACCENTS[horizon]}
+              />
             ))}
           </div>
         );

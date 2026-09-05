@@ -248,7 +248,7 @@ export default function AgendaScreen() {
           onSeeDay={() => setView('list')}
         />
       ) : (
-        <AgendaList events={shown} onOpen={open} />
+        <AgendaList events={shown} onOpen={open} state={state} />
       )}
 
       <ActivityWindow

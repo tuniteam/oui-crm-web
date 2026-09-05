@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CirclePlus, Info, TriangleAlert } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -119,11 +119,13 @@ export function OrganizationContactsTab({
                   <span className="text-sm font-semibold">{fullNameOf(c)}</span>
                   {c.isPrimary ? (
                     <Badge variant="primary" appearance="outline">
+                      <BadgeDot />
                       {UI.BADGES.PRIMARY}
                     </Badge>
                   ) : null}
                   {c.optOut ? (
                     <Badge variant="destructive" appearance="outline">
+                      <BadgeDot />
                       {UI.BADGES.OPT_OUT}
                     </Badge>
                   ) : null}
@@ -165,7 +167,7 @@ export function OrganizationContactsTab({
                 ) : null}
                 {canDelete ? (
                   <Button
-                    variant="destructive"
+                    variant="destructiveOutline"
                     size="sm"
                     data-testid={`contact-delete-${c.id}`}
                     onClick={() => setDeleting(c)}

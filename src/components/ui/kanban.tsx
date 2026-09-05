@@ -40,6 +40,14 @@ interface KanbanContextProps<T> {
   setActiveId: (id: UniqueIdentifier | null) => void;
   findContainer: (id: UniqueIdentifier) => string | undefined;
   isColumn: (id: UniqueIdentifier) => boolean;
+  /**
+   * La colonne actuellement survolee par la carte saisie.
+   *
+   * `useSortable().isOver` ne suffit pas : survoler une carte designe la
+   * carte, pas sa colonne, et le repere de depot clignoterait entre les
+   * cartes. On resout donc le conteneur de l'element survole.
+   */
+  overContainer: string | null;
 }
 
 const KanbanContext = React.createContext<KanbanContextProps<any>>({
@@ -51,6 +59,7 @@ const KanbanContext = React.createContext<KanbanContextProps<any>>({
   setActiveId: () => {},
   findContainer: () => undefined,
   isColumn: () => false,
+  overContainer: null,
 });
 
 const ColumnContext = React.createContext<{
@@ -114,6 +123,7 @@ function Kanban<T>({
   const columns = value;
   const setColumns = onValueChange;
   const [activeId, setActiveId] = React.useState<UniqueIdentifier | null>(null);
+  const [overContainer, setOverContainer] = React.useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -296,8 +306,10 @@ function Kanban<T>({
       setActiveId,
       findContainer,
       isColumn,
+      overContainer,
     }),
     [
+      overContainer,
       columns,
       setColumns,
       getItemValue,
@@ -313,8 +325,22 @@ function Kanban<T>({
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
+        onDragOver={(event) => {
+          // Suivi du survol, quel que soit le mode : `handleDragOver` rend la
+          // main tot des qu'un `onMove` est fourni.
+          setOverContainer(
+            event.over ? (findContainer(event.over.id) ?? null) : null,
+          );
+          handleDragOver(event);
+        }}
+        onDragEnd={(event) => {
+          setOverContainer(null);
+          handleDragEnd(event);
+        }}
+        onDragCancel={() => {
+          setOverContainer(null);
+          setActiveId(null);
+        }}
       >
         <div
           data-slot="kanban"
@@ -373,8 +399,11 @@ function KanbanColumn({
     disabled,
   });
 
-  const { activeId, isColumn } = React.useContext(KanbanContext);
+  const { activeId, isColumn, overContainer } = React.useContext(KanbanContext);
   const isColumnDragging = activeId ? isColumn(activeId) : false;
+  /* Survolee **et** un glissement en cours : hors glissement, le survol de la
+     souris ne designe aucune cible de depot. */
+  const isOver = !!activeId && overContainer === value;
 
   const style = {
     transition,
@@ -389,6 +418,7 @@ function KanbanColumn({
         data-slot="kanban-column"
         data-value={value}
         data-dragging={isSortableDragging}
+        data-over={isOver}
         data-disabled={disabled}
         ref={setNodeRef}
         style={style}
@@ -567,6 +597,16 @@ function KanbanColumnContent({
 
 export interface KanbanOverlayProps {
   className?: string;
+  /**
+   * Animation de retour de la surimpression.
+   *
+   * Par defaut, `@dnd-kit` ramene l'element flottant vers **le noeud saisi**,
+   * c'est-a-dire sa colonne d'origine. Quand l'appelant deplace la carte
+   * lui-meme au lacher — deplacement optimiste — on voit alors la carte
+   * revenir en arriere avant de reapparaitre a sa nouvelle place. Passer
+   * `null` supprime ce retour.
+   */
+  dropAnimation?: DropAnimation | null;
   children?:
     | React.ReactNode
     | ((params: {
@@ -575,7 +615,11 @@ export interface KanbanOverlayProps {
       }) => React.ReactNode);
 }
 
-function KanbanOverlay({ children, className }: KanbanOverlayProps) {
+function KanbanOverlay({
+  children,
+  className,
+  dropAnimation = dropAnimationConfig,
+}: KanbanOverlayProps) {
   const { activeId, isColumn } = React.useContext(KanbanContext);
   const [dimensions, setDimensions] = React.useState<{
     width: number;
@@ -613,7 +657,7 @@ function KanbanOverlay({ children, className }: KanbanOverlayProps) {
   }, [activeId, children, isColumn]);
 
   return (
-    <DragOverlay dropAnimation={dropAnimationConfig}>
+    <DragOverlay dropAnimation={dropAnimation}>
       <div
         data-slot="kanban-overlay"
         data-dragging={true}

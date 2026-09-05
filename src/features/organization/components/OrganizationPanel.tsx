@@ -5,7 +5,7 @@ import { useMeStore } from '@/contexts/useMeStore';
 import { ReusableSheet } from '@/components/drawer/ReusableSheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toneOf } from '@/shared/constants/tone';
 import {
@@ -144,6 +144,7 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                 variant={toneOf(SALES_STATUS_TONES, organization.salesStatus)}
                 appearance="outline"
               >
+                <BadgeDot />
                 {SALES_STATUS_LABELS[organization.salesStatus]}
               </Badge>
               <Badge
@@ -153,6 +154,7 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                 )}
                 appearance="outline"
               >
+                <BadgeDot />
                 {CUSTOMER_STATUS_LABELS[organization.customerStatus]}
               </Badge>
               {organization.priority ? (
@@ -160,11 +162,13 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                   variant={toneOf(PRIORITY_TONES, organization.priority)}
                   appearance="outline"
                 >
+                  <BadgeDot />
                   {PRIORITY_LABELS[organization.priority]}
                 </Badge>
               ) : null}
               {(organization.tags ?? []).map((t) => (
                 <Badge key={t} variant="secondary" appearance="outline">
+                  <BadgeDot />
                   {labelOf('TAG', t) ?? t}
                 </Badge>
               ))}

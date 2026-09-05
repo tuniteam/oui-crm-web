@@ -139,6 +139,13 @@ function ScopeCard({
               {scope.description}
             </p>
           ) : null}
+          {/* La pastille reste du cote du contenu : une etiquette ne partage
+              jamais sa ligne avec des boutons.
+              Voir `docs/REGLE-BADGE-VS-BOUTON.md`. */}
+          <Badge variant="secondary" appearance="outline" className="mt-2">
+            <Users className="size-3" />
+            {CARD.USERS(scope.usersCount)}
+          </Badge>
         </div>
 
         {/* `ms-auto` : le bloc reste à droite même quand il bascule à la
@@ -146,10 +153,6 @@ function ScopeCard({
             contient qu'un élément — ce qui arrive dès qu'une description est
             longue, et pour toutes les cartes sous 1024 px. */}
         <div className="ms-auto flex shrink-0 items-center gap-2">
-          <Badge variant="secondary" appearance="outline">
-            <Users className="size-3" />
-            {CARD.USERS(scope.usersCount)}
-          </Badge>
           {onEdit ? (
             <Button
               variant="outline"
@@ -162,7 +165,7 @@ function ScopeCard({
           ) : null}
           {onDelete ? (
             <Button
-              variant="destructive"
+              variant="destructiveOutline"
               size="sm"
               data-testid={`scope-delete-${scope.id}`}
               onClick={onDelete}

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Maquette — Suivi prospection (L1 · US-01-10)</title>
+<!-- Aucune ressource externe : ce fichier doit s'ouvrir hors ligne. -->
+<style>
+  :root{
+    --azur:#0369A1; --azur-dark:#075985; --azur-soft:#E0F2FE;
+    --rose:#FF6B6B;
+    --g900:#1A1A1A; --g700:#495057; --g600:#6C757D; --g500:#ADB5BD;
+    --g300:#DEE2E6; --g200:#E9ECEF; --g100:#F1F3F5; --g50:#F8F9FA;
+    --sans:'Plus Jakarta Sans',ui-sans-serif,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g50);color:var(--g900);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:1280px;margin:0 auto;padding:32px 24px 90px}
+  h1{font-size:26px;margin:0 0 6px}
+  h2{font-size:19px;margin:46px 0 6px;padding-top:24px;border-top:1px solid var(--g300)}
+  p{margin:6px 0 14px;color:var(--g700);max-width:80ch}
+  .lead{color:var(--g600)}
+  code{font-family:var(--mono);font-size:12px;background:var(--g100);padding:1px 5px;border-radius:4px}
+  .note{background:#fff;border:1px solid var(--g300);border-left:3px solid var(--azur);
+        border-radius:8px;padding:12px 14px;margin:14px 0;max-width:80ch}
+  .note b{color:var(--azur-dark)}
+
+  .compare{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+  @media (max-width:1100px){.compare{grid-template-columns:repeat(2,1fr)}}
+  .opt{background:#fff;border:1px solid var(--g300);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+  .opt > header{padding:12px 14px 10px;border-bottom:1px solid var(--g200)}
+  .opt h3{margin:0;font-size:15px}
+  .opt .why{font-size:12px;color:var(--g600);margin:4px 0 0}
+  .opt .col{background:var(--g100);padding:10px;flex:1}
+  .stack{display:flex;flex-direction:column;gap:7px}
+  .opt footer{padding:11px 14px;border-top:1px dashed var(--g300);font-size:12px;color:var(--g700)}
+  .opt footer b{color:var(--g900)}
+  .h{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--g600);margin:0 0 7px}
+
+  .card{background:#fff;border:1px solid var(--g300);border-radius:8px;padding:8px 9px;cursor:grab}
+  .nom{font-weight:600;font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .tag{font-size:9.5px;border-radius:999px;padding:0 6px;border:1px solid var(--g300);color:var(--g700);
+       white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+  .tag.hi{background:#fff1f1;border-color:#ffc9c9;color:#b23}
+  .tag.lo{color:var(--g600)}
+  .tag.info{background:var(--azur-soft);border-color:#a5d8f3;color:var(--azur-dark)}
+  .act{font-size:11px;margin-top:5px;color:var(--g700);
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act.on{color:var(--azur-dark)}
+
+  /* La zone d'initiales, en haut à droite — commune aux quatre variantes. */
+  .top{display:flex;align-items:flex-start;gap:8px}
+  .top .grow{min-width:0;flex:1}
+  .ini{width:24px;height:24px;flex:none;border-radius:999px;background:var(--azur-soft);
+       color:var(--azur-dark);font-size:10px;font-weight:700;display:grid;place-items:center}
+  /* Fiche non affectée : une pastille neutre, jamais un vide. */
+  .ini.none{background:var(--g100);color:var(--g500);border:1px dashed var(--g300);font-weight:600}
+
+  .a .act{font-family:var(--mono)}
+  .b{border-left:3px solid var(--g300);padding-left:7px}
+  .b.hi{border-left-color:var(--rose)}
+  .c .head,.d .head{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c .head{font-family:var(--mono);font-size:10.5px;color:var(--azur-dark)}
+  .c .head.none{color:var(--g600)}
+  .d .head{font-family:var(--mono);font-size:10.5px;color:var(--azur-dark)}
+  .d .head.none{font-family:var(--sans);font-size:10.5px;color:#b8bec4;font-style:italic}
+
+  table{border-collapse:collapse;width:100%;font-size:13px;background:#fff;border:1px solid var(--g300);border-radius:8px;overflow:hidden;margin-top:8px}
+  th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--g200);vertical-align:top}
+  th{background:var(--g100);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--g600)}
+  tr:last-child td{border-bottom:0}
+  .pick{background:#fff;border:2px solid var(--azur);border-radius:10px;padding:16px 18px;margin-top:18px}
+  .pick h3{margin:0 0 8px;font-size:16px;color:var(--azur-dark)}
+  .pick ol{margin:0;padding-left:20px;color:var(--g700)}
+  .pick li{margin:5px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Suivi prospection — choix du design de carte</h1>
+<p class="lead">L1 · US-01-10. Quatre variantes, <b>rendues sur les mêmes cinq cartes réelles</b>
+du jeu de démonstration, et toutes avec <b>les initiales du commercial en haut à droite</b>.</p>
+
+<div class="note">
+  <b>Les cinq cartes.</b> Deux ont une action planifiée, trois n'en ont pas — la
+  proportion réelle est de deux sur dix. C'est le cas qui décide : une carte
+  muette n'est pas une exception, c'est la majorité.
+  <br><br>
+  Tout vient de <code>GET /organizations/board</code>, appelée en direct.
+  <b>Le département et la strate n'y sont pas</b> — la V8 les affiche, le
+  tableau ne les rend pas.
+</div>
+
+<div class="note">
+  <b>Les initiales demandent deux précautions</b>, toutes deux vérifiées contre
+  l'API. <code>salesRep.initials</code> vaut <code>null</code> sur les comptes
+  du jeu de démonstration : on les dérive alors du nom complet. Et
+  <code>salesRep</code> lui-même peut être nul — une fiche non affectée porte
+  une pastille neutre en pointillés, jamais un vide qui ferait croire à un
+  défaut d'affichage. La dernière carte de chaque colonne le montre.
+</div>
+
+<div class="note">
+  <b>Tout ce qui peut être coupé se lit au survol.</b> Une colonne fait deux
+  cent cinquante pixels : le nom d'un EPCI, une étiquette d'import comme
+  <code>COMPETITOR_RENEWAL</code> ou une ligne d'action complète y sont
+  tronqués. Chacun porte donc son texte entier en infobulle.
+  <br><br>
+  <b>La pastille d'initiales aussi</b>, et c'est le cas le plus important :
+  réduire « Fred Yolland » à « FY » fait disparaître l'information. Le survol
+  la rend — et une fiche non affectée annonce « Non affectée » plutôt qu'un
+  tiret muet.
+  <br><br>
+  Dans le code, ce sera le composant <code>Tooltip</code> du projet plutôt que
+  l'attribut <code>title</code> utilisé ici : il se pose au clavier et ne
+  dépend pas du délai du navigateur.
+</div>
+
+<div class="compare">
+
+  <div class="opt">
+    <header><h3>A — Fidèle</h3>
+      <p class="why">La V8, dans les limites de la charge utile. Tout est nommé, rien n'est deviné.</p></header>
+    <div class="col">
+      <p class="h">En cours · 5</p>
+      <div class="stack">
+        <div class="card a">
+          <div class="top"><span class="nom grow" title="CC du Pays de Château-Gontier">CC du Pays de Château-Gontier</span><span class="ini" title="Fred Yolland">FY</span></div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+          <div class="act on" title="10/09/2026 · 10:30 · Email">10/09/2026 · 10:30 · Email</div>
+        </div>
+        <div class="card a">
+          <div class="top"><span class="nom grow" title="Commune de Caen">Commune de Caen</span><span class="ini" title="Wiem Bousaid">WB</span></div>
+          <div class="tags"><span class="tag hi">Haute</span><span class="tag info" title="Étiquette : HOT">HOT</span><span class="tag info" title="Étiquette : PUBLIC_TENDER">PUBLIC_TENDER</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+        <div class="card a">
+          <div class="top"><span class="nom grow" title="Commune de Rennes">Commune de Rennes</span><span class="ini" title="Fred Yolland">FY</span></div>
+          <div class="tags"><span class="tag hi">Haute</span><span class="tag info" title="Étiquette : COMPETITOR_RENEWAL">COMPETITOR_RENEWAL</span></div>
+          <div class="act on" title="08/09/2026 · 10:30 · Démonstration">08/09/2026 · 10:30 · Démonstration</div>
+        </div>
+        <div class="card a">
+          <div class="top"><span class="nom grow" title="Commune de Bayeux">Commune de Bayeux</span><span class="ini" title="Wiem Bousaid">WB</span></div>
+          <div class="tags"><span class="tag lo">Normale</span><span class="tag info" title="Étiquette : HOT">HOT</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+        <div class="card a">
+          <div class="top"><span class="nom grow" title="Commune de Vézelay">Commune de Vézelay</span><span class="ini none" title="Non affectée">—</span></div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+      </div>
+    </div>
+    <footer><b>Pour :</b> l'œil retrouve la V8, chaque information a son libellé.
+      <b>Contre :</b> cinq cartes remplissent déjà la colonne ; à vingt fiches, on ne voit plus la répartition.</footer>
+  </div>
+
+  <div class="opt">
+    <header><h3>B — Dense</h3>
+      <p class="why">La priorité passe en filet coloré, les étiquettes disparaissent. Deux lignes utiles.</p></header>
+    <div class="col">
+      <p class="h">En cours · 5</p>
+      <div class="stack">
+        <div class="card b">
+          <div class="top"><span class="nom grow" title="CC du Pays de Château-Gontier">CC du Pays de Château-Gontier</span><span class="ini" title="Fred Yolland">FY</span></div>
+          <div class="act on" title="10/09 · 10:30 · Email">10/09 · 10:30 · Email</div>
+        </div>
+        <div class="card b hi">
+          <div class="top"><span class="nom grow" title="Commune de Caen">Commune de Caen</span><span class="ini" title="Wiem Bousaid">WB</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+        <div class="card b hi">
+          <div class="top"><span class="nom grow" title="Commune de Rennes">Commune de Rennes</span><span class="ini" title="Fred Yolland">FY</span></div>
+          <div class="act on" title="08/09 · 10:30 · Démonstration">08/09 · 10:30 · Démonstration</div>
+        </div>
+        <div class="card b">
+          <div class="top"><span class="nom grow" title="Commune de Bayeux">Commune de Bayeux</span><span class="ini" title="Wiem Bousaid">WB</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+        <div class="card b">
+          <div class="top"><span class="nom grow" title="Commune de Vézelay">Commune de Vézelay</span><span class="ini none" title="Non affectée">—</span></div>
+          <div class="act">Aucune action planifiée</div>
+        </div>
+      </div>
+    </div>
+    <footer><b>Pour :</b> deux fois plus de cartes à l'écran, la colonne se lit d'un coup.
+      <b>Contre :</b> la priorité tient dans une couleur — invisible au daltonisme — et les étiquettes disparaissent.</footer>
+  </div>
+
+  <div class="opt">
+    <header><h3>C — Action en tête</h3>
+      <p class="why">Le prochain geste au-dessus du nom. C'est la version actuellement développée.</p></header>
+    <div class="col">
+      <p class="h">En cours · 5</p>
+      <div class="stack">
+        <div class="card c">
+          <div class="top">
+            <div class="grow">
+              <div class="head" title="10/09/2026 · 10:30 · Email">10/09/2026 · 10:30 · Email</div>
+              <span class="nom" title="CC du Pays de Château-Gontier">CC du Pays de Château-Gontier</span>
+            </div>
+            <span class="ini" title="Fred Yolland">FY</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+        </div>
+        <div class="card c">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">Aucune action planifiée</div>
+              <span class="nom" title="Commune de Caen">Commune de Caen</span>
+            </div>
+            <span class="ini" title="Wiem Bousaid">WB</span>
+          </div>
+          <div class="tags"><span class="tag hi">Haute</span><span class="tag info" title="Étiquette : HOT">HOT</span></div>
+        </div>
+        <div class="card c">
+          <div class="top">
+            <div class="grow">
+              <div class="head" title="08/09/2026 · 10:30 · Démonstration">08/09/2026 · 10:30 · Démonstration</div>
+              <span class="nom" title="Commune de Rennes">Commune de Rennes</span>
+            </div>
+            <span class="ini" title="Fred Yolland">FY</span>
+          </div>
+          <div class="tags"><span class="tag hi">Haute</span></div>
+        </div>
+        <div class="card c">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">Aucune action planifiée</div>
+              <span class="nom" title="Commune de Bayeux">Commune de Bayeux</span>
+            </div>
+            <span class="ini" title="Wiem Bousaid">WB</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span><span class="tag info" title="Étiquette : HOT">HOT</span></div>
+        </div>
+        <div class="card c">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">Aucune action planifiée</div>
+              <span class="nom" title="Commune de Vézelay">Commune de Vézelay</span>
+            </div>
+            <span class="ini none" title="Non affectée">—</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+        </div>
+      </div>
+    </div>
+    <footer><b>Pour :</b> ce qui bouge saute aux yeux.
+      <b>Contre :</b> « Aucune action planifiée » occupe la ligne la plus visible de trois cartes sur cinq — beaucoup de poids pour une absence.</footer>
+  </div>
+
+  <div class="opt">
+    <header><h3>D — Action en tête, absence atténuée</h3>
+      <p class="why">La structure de C, mais le silence se tait : gris clair, italique, sans chasse fixe.</p></header>
+    <div class="col">
+      <p class="h">En cours · 5</p>
+      <div class="stack">
+        <div class="card d">
+          <div class="top">
+            <div class="grow">
+              <div class="head" title="10/09/2026 · 10:30 · Email">10/09/2026 · 10:30 · Email</div>
+              <span class="nom" title="CC du Pays de Château-Gontier">CC du Pays de Château-Gontier</span>
+            </div>
+            <span class="ini" title="Fred Yolland">FY</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+        </div>
+        <div class="card d">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">rien de planifié</div>
+              <span class="nom" title="Commune de Caen">Commune de Caen</span>
+            </div>
+            <span class="ini" title="Wiem Bousaid">WB</span>
+          </div>
+          <div class="tags"><span class="tag hi">Haute</span><span class="tag info" title="Étiquette : HOT">HOT</span></div>
+        </div>
+        <div class="card d">
+          <div class="top">
+            <div class="grow">
+              <div class="head" title="08/09/2026 · 10:30 · Démonstration">08/09/2026 · 10:30 · Démonstration</div>
+              <span class="nom" title="Commune de Rennes">Commune de Rennes</span>
+            </div>
+            <span class="ini" title="Fred Yolland">FY</span>
+          </div>
+          <div class="tags"><span class="tag hi">Haute</span></div>
+        </div>
+        <div class="card d">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">rien de planifié</div>
+              <span class="nom" title="Commune de Bayeux">Commune de Bayeux</span>
+            </div>
+            <span class="ini" title="Wiem Bousaid">WB</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span><span class="tag info" title="Étiquette : HOT">HOT</span></div>
+        </div>
+        <div class="card d">
+          <div class="top">
+            <div class="grow">
+              <div class="head none">rien de planifié</div>
+              <span class="nom" title="Commune de Vézelay">Commune de Vézelay</span>
+            </div>
+            <span class="ini none" title="Non affectée">—</span>
+          </div>
+          <div class="tags"><span class="tag lo">Normale</span></div>
+        </div>
+      </div>
+    </div>
+    <footer><b>Pour :</b> le signal de C sans son bruit — l'œil ne retient que les deux dates.
+      <b>Contre :</b> l'absence devient si discrète qu'on peut la manquer, alors qu'elle est l'information à traiter.</footer>
+  </div>
+
+</div>
+
+<h2>Ce qui les sépare vraiment</h2>
+<table>
+  <tr><th>&nbsp;</th><th>A — Fidèle</th><th>B — Dense</th><th>C — Action en tête</th><th>D — Absence atténuée</th></tr>
+  <tr><td>Cartes visibles par colonne</td><td>≈ 6</td><td><b>≈ 10</b></td><td>≈ 7</td><td>≈ 7</td></tr>
+  <tr><td>Repérer ce qui bouge</td><td>moyen</td><td>moyen</td><td><b>immédiat</b></td><td><b>immédiat</b></td></tr>
+  <tr><td>Repérer ce qui dort</td><td>faible</td><td>faible</td><td><b>immédiat</b></td><td>moyen</td></tr>
+  <tr><td>Priorité lisible sans couleur</td><td><b>oui</b></td><td>non</td><td><b>oui</b></td><td><b>oui</b></td></tr>
+  <tr><td>Étiquettes visibles</td><td><b>oui</b></td><td>non</td><td><b>oui</b></td><td><b>oui</b></td></tr>
+  <tr><td>Proche de la V8</td><td><b>oui</b></td><td>non</td><td>non</td><td>non</td></tr>
+</table>
+
+<h2>Les quatre décisions qui restent, indépendantes du design</h2>
+<table>
+  <tr><th>Point</th><th>Ce qui est développé aujourd'hui</th></tr>
+  <tr><td>Colonne « Non contacté »</td><td>Masquée, avec le nombre de fiches qui y dorment et un lien vers la liste filtrée</td></tr>
+  <tr><td>Colonne longue</td><td>« Charger la suite — 50 sur 1 240 » en pied de colonne (<code>?salesStatus=…&amp;page=2</code>)</td></tr>
+  <tr><td>Déplacement</td><td>Optimiste, rechargement sur <code>409</code> — <b>ne fonctionne pas encore, défaut ouvert</b></td></tr>
+  <tr><td>Motif</td><td>Demandé au seul passage à « Clôturé », facultatif, journalisé</td></tr>
+</table>
+
+<div class="pick">
+  <h3>Ce qu'il me faut pour reprendre</h3>
+  <ol>
+    <li><b>La variante :</b> A, B, C ou D. Les initiales en haut à droite sont acquises dans les quatre.</li>
+    <li><b>Les quatre décisions ci-dessus</b> — je les ai prises seul sur votre « go », dites-moi celles que vous changez.</li>
+  </ol>
+  <p style="margin:10px 0 0;font-size:13px">Le changement de variante se limite à <code>BoardCard.tsx</code>.
+  Le glisser-déposer est un défaut à part, que je corrige quoi qu'il arrive.</p>
+</div>
+
+</div>
+</body>
+</html>

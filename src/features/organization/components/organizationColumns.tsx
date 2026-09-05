@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeDot } from '@/components/ui/badge';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { toneOf } from '@/shared/constants/tone';
 import { cn } from '@/lib/utils';
@@ -160,12 +160,13 @@ export const organizationColumns = (
         appearance="outline"
         size="sm"
       >
+        <BadgeDot />
         {SALES_STATUS_LABELS[row.original.salesStatus]}
       </Badge>
     ),
     /* « En cours de prospection » en pastille demande un peu plus que le
-       texte nu : sous 195 la pastille est rognee par la colonne. */
-    size: 195,
+       texte nu, et son point de couleur dix pixels de plus encore. */
+    size: 215,
     enableSorting: true,
   },
   {
@@ -180,6 +181,7 @@ export const organizationColumns = (
         appearance="outline"
         size="sm"
       >
+        <BadgeDot />
         {CUSTOMER_STATUS_LABELS[row.original.customerStatus]}
       </Badge>
     ),
@@ -199,6 +201,7 @@ export const organizationColumns = (
           appearance="outline"
           size="sm"
         >
+          <BadgeDot />
           {PRIORITY_LABELS[row.original.priority]}
         </Badge>
       ) : (

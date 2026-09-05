@@ -7,12 +7,13 @@ import { campaignService } from '../services/campaign.service';
 import type { CampaignListParams, CampaignListResponse } from '../types/campaign';
 
 /** Campagnes du projet — L1 · US-01-11. */
-export function useCampaigns(params: CampaignListParams) {
+export function useCampaigns(params: CampaignListParams, enabled = true) {
   const projectId = useMeStore((s) => s.activeProjectId);
 
   const query = useQuery<CampaignListResponse>({
     queryKey: ['campaigns', 'list', projectId, params],
     queryFn: () => campaignService.getAll(params),
+    enabled,
   });
 
   useEffect(() => {
