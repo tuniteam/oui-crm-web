@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OPENING_DAYS } from '../types/organizationDetail';
 import { PRIORITY_VALUES } from '../types/organizationList';
 
 export const ZOD = {
@@ -9,6 +10,15 @@ export const ZOD = {
   DEPARTMENT: 'Département invalide (2 ou 3 caractères)',
   POSITIVE: 'Valeur invalide',
 };
+
+/**
+ * Le format d'un creneau, tel que l'API le valide.
+ *
+ * Copie du motif du contrat — verifie en direct : `9h-12h` est refuse par un
+ * `400`. Le front s'aligne dessus plutot que de laisser partir une saisie que
+ * le serveur rejettera.
+ */
+export const SLOT_PATTERN = /^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/;
 
 /** Champs texte facultatifs : la chaine vide vaut « efface ». */
 export const optionalText = (max = 200) =>
@@ -54,6 +64,27 @@ export const getOrganizationSummarySchema = () =>
 
     priority: z.enum(PRIORITY_VALUES),
     notes: z.string().max(5000, ZOD.MAX),
+
+    /*
+     * Les horaires ne se saisissent pas au clavier : la fenetre d'edition n'en
+     * produit que des valeurs deja formees. Le schema redit malgre tout les
+     * bornes du contrat — deux creneaux, sept jours, 500 caracteres — parce
+     * qu'un 400 sur ce champ ferait echouer l'enregistrement de TOUTE la
+     * fiche, y compris des champs corrects saisis a cote.
+     */
+    openingHours: z
+      .object({
+        days: z
+          .array(
+            z.object({
+              day: z.enum(OPENING_DAYS),
+              slots: z.array(z.string().regex(SLOT_PATTERN)).min(1).max(2),
+            }),
+          )
+          .max(7),
+        comment: z.string().max(500, ZOD.MAX).nullable().optional(),
+      })
+      .nullable(),
   });
 
 export type OrganizationSummarySchemaType = z.infer<

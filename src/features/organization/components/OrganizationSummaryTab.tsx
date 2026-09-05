@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { PERMISSIONS } from '@/constants';
 import { formatShortDateFr } from '@/shared/utils/date-utils';
+import { formatInteger } from '@/shared/utils/string-utils';
 import { useMeStore } from '@/contexts/useMeStore';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,11 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   CUSTOMER_STATUS_LABELS,
   PRIORITY_LABELS,
   SALES_STATUS_LABELS,
@@ -35,10 +42,13 @@ import type { OrganizationSummarySchemaType } from '../forms/organization-summar
 import type { OrganizationDetail } from '../types/organizationDetail';
 import { PRIORITY_VALUES } from '../types/organizationList';
 import { OrganizationCompletenessNotice } from './OrganizationCompletenessNotice';
+import { RegistryFillWindow } from './RegistryFillWindow';
+import { OrganizationOpeningHours } from './OrganizationOpeningHours';
+import { OpeningHoursWindow } from './OpeningHoursWindow';
 import { DeleteOrganizationWindow } from './DeleteOrganizationWindow';
 import { ORGANIZATION_DELETE_CARD } from '../constants/organizationDelete.constants';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Building2, ExternalLink } from 'lucide-react';
 
 const UI = ORGANIZATION_DETAIL_UI;
 const { LABELS, SECTIONS, HINTS, ACTIONS, EMPTY_VALUE, UNASSIGNED } = UI;
@@ -52,7 +62,7 @@ type Props = {
 /** Champs du schema rendus par un simple `<Input>`. */
 type TextFieldName = Exclude<
   keyof OrganizationSummarySchemaType,
-  'type' | 'solution' | 'services' | 'tags' | 'priority'
+  'type' | 'solution' | 'services' | 'tags' | 'priority' | 'openingHours'
 >;
 
 /** Titre de section, comme les `.section-title` de la V8. */
@@ -93,32 +103,103 @@ function ReadOnlyField({
  * demonte alors tout le sous-arbre — le champ perd le focus a chaque frappe et
  * les composants a etat interne (le selecteur Radix) se reinitialisent.
  */
+/**
+ * Ouvre le site de la commune dans un onglet.
+ *
+ * L'adresse vient du **formulaire**, pas de la fiche enregistree : le lien
+ * suit ce qui est a l'ecran, sinon il ouvrirait l'ancienne adresse juste apres
+ * qu'on l'a corrigee. Beaucoup de petites communes n'ont pas de site — rien ne
+ * s'affiche alors, l'absence n'etant pas une anomalie.
+ */
+function WebsiteLink({ url }: { url: string }) {
+  const trimmed = url.trim();
+  if (trimmed === '') return null;
+
+  /* Une adresse saisie a la main arrive souvent sans protocole ; sans lui, le
+     navigateur la lit comme un chemin relatif de l'application. */
+  const href = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <a
+          href={href}
+          target="_blank"
+          /* `noopener` coupe l'acces de la page ouverte a la notre : sans lui,
+             elle peut rediriger l'onglet du CRM. */
+          rel="noopener noreferrer"
+          aria-label={ACTIONS.OPEN_WEBSITE}
+          data-testid="organization-website-open"
+          className="text-muted-foreground transition-colors hover:text-primary"
+        >
+          <ExternalLink className="size-3.5" />
+        </a>
+      </TooltipTrigger>
+      <TooltipContent>{ACTIONS.OPEN_WEBSITE}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function TextField({
   control,
   name,
   label,
   disabled,
   type = 'text',
+  labelAction,
+  numeric = false,
 }: {
   control: Control<OrganizationSummarySchemaType>;
   name: TextFieldName;
   label: string;
   disabled: boolean;
   type?: string;
+  /** Rendu a cote de l'intitule : une action qui porte sur la valeur du champ. */
+  labelAction?: React.ReactNode;
+  /** Groupe les milliers a l'affichage. La valeur stockee reste brute. */
+  numeric?: boolean;
 }) {
+  /*
+   * Un `<input type="number">` refuse tout ce qui n'est pas un chiffre : il ne
+   * peut pas afficher « 149 695 ». D'ou un champ texte, avec `inputMode` pour
+   * garder le pave numerique sur mobile.
+   */
+  const [focused, setFocused] = useState(false);
+
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="flex items-center gap-1.5">
+            {label}
+            {labelAction}
+          </FormLabel>
           <FormControl>
             <Input
-              type={type}
+              type={numeric ? 'text' : type}
+              inputMode={numeric ? 'numeric' : undefined}
               data-testid={`organization-field-${name}`}
               disabled={disabled}
               {...field}
+              /* Groupe au repos, brut sous le curseur : les espaces qui
+                 s'inserent pendant la frappe deplacent le point d'insertion. */
+              value={
+                numeric && !focused
+                  ? formatInteger(field.value as string)
+                  : (field.value as string)
+              }
+              onChange={
+                numeric
+                  ? (e) => field.onChange(e.target.value.replace(/\D/g, ''))
+                  : field.onChange
+              }
+              onFocus={() => numeric && setFocused(true)}
+              onBlur={() => {
+                if (numeric) setFocused(false);
+                field.onBlur();
+              }}
             />
           </FormControl>
           <FormMessage />
@@ -198,6 +279,17 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
   const canUpdate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.ORGANIZATIONS.UPDATE),
   );
+  /*
+   * `search-registry` est gardee par `organizations:create`, pas par le droit
+   * de modification : un profil qui peut corriger une fiche sans en creer
+   * prendrait un 403. On masque donc sur les deux — chercher sans pouvoir
+   * enregistrer n'aurait pas de sens non plus.
+   */
+  const canSearchRegistry = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.ORGANIZATIONS.CREATE),
+  );
+  const [openRegistry, setOpenRegistry] = useState(false);
+  const [openHours, setOpenHours] = useState(false);
 
   const disabled = !canUpdate || update.loading;
   const typeOptions = optionsOf('STRUCTURE_TYPE');
@@ -213,6 +305,31 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
         onSubmit={(e) => e.preventDefault()}
       >
         <OrganizationCompletenessNotice completeness={organization.completeness} />
+
+        {/* Sous le bandeau qui constate le manque, le geste qui le comble :
+            c'est la que l'utilisateur regarde en le decouvrant. */}
+        {canUpdate && canSearchRegistry ? (
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="registry-fill-open"
+              onClick={() => setOpenRegistry(true)}
+            >
+              <Building2 className="size-4" />
+              {UI.REGISTRY_FILL.OPEN}
+            </Button>
+          </div>
+        ) : null}
+
+        <RegistryFillWindow
+          open={openRegistry}
+          onOpenChange={setOpenRegistry}
+          form={form}
+          organizationName={organization.name}
+          onFilled={(n) => toast.success(UI.REGISTRY_FILL.FILLED(n))}
+        />
 
         <SectionTitle>{SECTIONS.IDENTITY}</SectionTitle>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -259,7 +376,7 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
             value={organization.region ?? EMPTY_VALUE}
             hint={HINTS.REGION}
           />
-          <TextField control={form.control} disabled={disabled} name="population" label={LABELS.POPULATION} type="number" />
+          <TextField control={form.control} disabled={disabled} name="population" label={LABELS.POPULATION} numeric />
           <ReadOnlyField
             label={LABELS.BRACKET}
             value={organization.bracketLabel ?? EMPTY_VALUE}
@@ -268,8 +385,35 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
           <TextField control={form.control} disabled={disabled} name="epci" label={LABELS.EPCI} />
           <TextField control={form.control} disabled={disabled} name="phone" label={LABELS.PHONE} />
           <TextField control={form.control} disabled={disabled} name="email" label={LABELS.EMAIL} />
-          <TextField control={form.control} disabled={disabled} name="website" label={LABELS.WEBSITE} />
+          <TextField
+            control={form.control}
+            disabled={disabled}
+            name="website"
+            label={LABELS.WEBSITE}
+            labelAction={<WebsiteLink url={form.watch('website')} />}
+          />
         </div>
+
+        {/* A cote des coordonnees, et non dans la grille : ce sont des donnees
+            en lecture seule, que l'API refuse en ecriture. */}
+        {/* Le formulaire fait foi, pas la fiche lue : ce qu'on vient de saisir
+            doit s'afficher avant meme d'etre enregistre. */}
+        <OrganizationOpeningHours
+          openingHours={form.watch('openingHours')}
+          onEdit={disabled ? undefined : () => setOpenHours(true)}
+        />
+
+        <OpeningHoursWindow
+          open={openHours}
+          onOpenChange={setOpenHours}
+          value={form.watch('openingHours')}
+          onChange={(next) =>
+            form.setValue('openingHours', next, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
 
         <SectionTitle>{SECTIONS.ENVIRONMENT}</SectionTitle>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
