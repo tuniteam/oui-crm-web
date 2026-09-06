@@ -2,7 +2,11 @@ import { Clock, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
 import { type OpeningDay, type OpeningHours } from '../types/organizationDetail';
-import { groupOpeningHours, labelOfGroup } from '../utils/opening-hours';
+import {
+  groupOpeningHours,
+  labelOfGroup,
+  toHalfDays,
+} from '../utils/opening-hours';
 
 const UI = ORGANIZATION_DETAIL_UI.OPENING_HOURS;
 
@@ -80,26 +84,41 @@ export function OrganizationOpeningHours({
               </dt>
               <dd
                 /*
-                 * L'azur porte l'heure, pas le nom du jour : c'est l'horaire
-                 * qu'on cherche du regard. La fermeture reste grise — une
-                 * mairie fermee le dimanche n'est pas une anomalie, et le
-                 * rouge du produit est reserve au destructif.
+                 * L'heure ressort par le poids et l'alignement, jamais par
+                 * l'azur : dans cette fiche, l'azur est ce qui se clique — le
+                 * lien vers le site juste au-dessus, les boutons. Un horaire
+                 * inerte de la meme couleur promettrait une action qui
+                 * n'existe pas.
                  *
-                 * Aucun fond teinte : dans ce produit, un aplat de couleur
-                 * signale une pastille d'information, et ces lignes n'en sont
-                 * pas. Voir `docs/REGLE-BADGE-VS-BOUTON.md`.
+                 * La fermeture reste grise : une structure fermee le dimanche
+                 * n'est pas une anomalie, et le rouge du produit est reserve
+                 * au destructif. Aucun fond teinte non plus — un aplat de
+                 * couleur signale une pastille d'information, et ces lignes
+                 * n'en sont pas. Voir `docs/REGLE-BADGE-VS-BOUTON.md`.
                  */
                 className={
                   closed
                     ? 'text-muted-foreground'
-                    : 'text-end font-medium tabular-nums text-primary'
+                    : 'grid shrink-0 grid-cols-2 gap-x-6 font-medium tabular-nums text-foreground'
                 }
               >
                 {closed
                   ? UI.CLOSED
-                  : /* Deux créneaux = matin et après-midi : la virgule suffit
-                       à dire la coupure méridienne. */
-                    group.slots.map(UI.SLOT).join(', ')}
+                  : /*
+                     * Deux colonnes fixes, matin et après-midi.
+                     *
+                     * Alignés à droite, les créneaux glissaient : un samedi
+                     * ouvert le seul matin s'affichait sous la colonne de
+                     * l'après-midi, et se lisait comme une ouverture l'après-
+                     * midi. Chaque demi-journée garde sa place, vide comprise
+                     * — le matin partagé se lit alors en colonne, et la
+                     * différence d'après-midi saute aux yeux.
+                     */
+                    toHalfDays(group.slots).map((half, i) => (
+                      <span key={i} className="text-end">
+                        {half.map(UI.SLOT).join(' ')}
+                      </span>
+                    ))}
               </dd>
             </div>
           );
