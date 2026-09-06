@@ -12,10 +12,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { ReusableWindow } from '@/components/window/ReusableWindow';
 import { cn } from '@/lib/utils';
-import { CONTACT_WINDOW } from '../constants/contact.constants';
+import {
+  CIVILITIES,
+  CIVILITY_NONE,
+  CONTACT_WINDOW,
+} from '../constants/contact.constants';
 import {
   emptyContactValues,
   getContactSchema,
@@ -152,6 +157,62 @@ function TextField({
   );
 }
 
+
+/**
+ * La civilite, en boutons radio.
+ *
+ * Trois choix courts tiennent sur une ligne et se lisent d'un coup, la ou un
+ * champ texte laissait saisir n'importe quoi et un selecteur demandait deux
+ * clics. « Non precise » est indispensable : le champ est facultatif, et une
+ * paire de radios sans echappatoire ne se deselectionne pas.
+ *
+ * **Une valeur hors liste reste proposee et selectionnee.** `civility` est un
+ * champ libre au contrat, et l'import peut apporter « Dr » ou « Me » : ouvrir
+ * une fiche pour corriger un telephone ne doit pas effacer la civilite au
+ * passage. C'est le piege des listes fermees posees sur un champ libre.
+ */
+function CivilityField({ hooks }: { hooks: Hooks }) {
+  return (
+    <FormField
+      control={hooks.form.control}
+      name="civility"
+      render={({ field }) => {
+        const current = String(field.value ?? '');
+        const extra =
+          current !== CIVILITY_NONE && !CIVILITIES.includes(current as never)
+            ? [current]
+            : [];
+        return (
+          <FormItem>
+            <FormLabel>{FIELDS.CIVILITY}</FormLabel>
+            <FormControl>
+              <RadioGroup
+                value={current}
+                onValueChange={field.onChange}
+                className="flex flex-wrap items-center gap-4 pt-2"
+              >
+                {[...CIVILITIES, ...extra, CIVILITY_NONE].map((c) => (
+                  <label
+                    key={c || 'none'}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <RadioGroupItem
+                      value={c}
+                      data-testid={`contact-civility-${c || 'none'}`}
+                    />
+                    {c || FIELDS.CIVILITY_NONE}
+                  </label>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
+}
+
 /** Case a cocher, hissee pour la meme raison que `TextField`. */
 function CheckboxField({
   hooks,
@@ -203,7 +264,7 @@ function Body({ hooks, contact }: { hooks: Hooks; contact: Contact | null }) {
     <Form {...form}>
       <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
         <div className="grid gap-4 sm:grid-cols-3">
-          <TextField hooks={hooks} name="civility" label={FIELDS.CIVILITY} />
+          <CivilityField hooks={hooks} />
           <TextField hooks={hooks} name="firstName" label={FIELDS.FIRST_NAME} required />
           <TextField hooks={hooks} name="lastName" label={FIELDS.LAST_NAME} required />
         </div>
@@ -222,20 +283,6 @@ function Body({ hooks, contact }: { hooks: Hooks; contact: Contact | null }) {
           <TextField hooks={hooks} name="mobile" label={FIELDS.MOBILE} />
         </div>
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{FIELDS.NOTES}</FormLabel>
-              <FormControl>
-                <Textarea rows={3} {...field} data-testid="contact-notes" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <div className="space-y-3">
           <CheckboxField
             hooks={hooks}
@@ -250,6 +297,20 @@ function Body({ hooks, contact }: { hooks: Hooks; contact: Contact | null }) {
             hint={HINTS.OPT_OUT}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{FIELDS.NOTES}</FormLabel>
+              <FormControl>
+                <Textarea rows={3} {...field} data-testid="contact-notes" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   );

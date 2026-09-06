@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Info } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -25,6 +25,7 @@ import { ORGANIZATIONS_UI } from '../constants/organizationList.constants';
 import { ACTIVITIES_UI } from '@/features/activity/constants/activity.constants';
 import { OrganizationActivitiesTab } from '@/features/activity/components/OrganizationActivitiesTab';
 import { OrganizationContactsTab } from './OrganizationContactsTab';
+import { OrganizationSettingsTab } from './OrganizationSettingsTab';
 import { OrganizationSummaryTab } from './OrganizationSummaryTab';
 
 type Props = {
@@ -81,6 +82,7 @@ const PANEL_TABS = {
   SUMMARY: 'summary',
   CONTACTS: 'contacts',
   ACTIVITIES: 'activities',
+  SETTINGS: 'settings',
 } as const;
 
 /** Le temps de lire le message avant que le panneau ne se referme. */
@@ -90,6 +92,44 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
   const open = !!organizationId;
   const canReadContacts = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.CONTACTS.READ),
+  );
+  /* L'onglet ne porte aujourd'hui que la suppression : sans le droit, il
+     serait vide. Il paraitra pour tous quand l'archivage l'aura rejoint. */
+  const canDelete = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.ORGANIZATIONS.DELETE),
+  );
+
+  /** L'onglet ouvert : le pied du panneau n'appartient qu'a la Synthese. */
+  const [tab, setTab] = useState<string | null>(null);
+
+  /*
+   * Fermer le panneau remet son etat a zero.
+   *
+   * Sans cela, l'onglet ouvert **et** la demande d'ajout de contact
+   * survivaient a la fermeture : rouvrir une fiche la montrait sur Contacts
+   * avec la fenetre « Nouveau contact » deja ouverte, alors qu'on venait
+   * seulement de demander a voir un organisme. L'etat d'un panneau ferme n'a
+   * aucune raison d'etre conserve.
+   */
+  useEffect(() => {
+    if (open) return;
+    setTab(null);
+    setAddContactOnOpen(false);
+  }, [open]);
+  /*
+   * Le pied vit dans `ReusableSheet`, hors de la zone qui defile — c'est ce
+   * qui le colle vraiment en bas, la ou un `sticky` pose dans le contenu
+   * flotte au-dessus du reste. Mais les actions ont besoin du formulaire, qui
+   * vit dans l'onglet : le panneau expose donc le conteneur, et l'onglet y
+   * projette sa barre. Remonter le formulaire ici serait pire — il doit naitre
+   * une fois la fiche chargee, et un hook ne s'appelle pas dans un `render`.
+   */
+  const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
+  /* Vrai seulement quand la bascule vient du bandeau de completude : cliquer
+     soi-meme sur l'onglet ne doit pas ouvrir la fenetre d'ajout. */
+  const [addContactOnOpen, setAddContactOnOpen] = useState(false);
+  const canCreateContact = useMeStore((s) =>
+    s.hasPermission(PERMISSIONS.CONTACTS.CREATE),
   );
   // Le formateur n'a rien sur les actions : l'onglet disparaît.
   const canReadActivities = useMeStore((s) =>
@@ -176,6 +216,13 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
           </div>
         ) : null
       }
+      renderFooter={({ organization }) =>
+        (tab ?? PANEL_TABS.SUMMARY) === PANEL_TABS.SUMMARY &&
+        organization &&
+        organization.access !== 'RESTRICTED' ? (
+          <div ref={setFooterSlot} className="flex w-full flex-wrap items-center justify-end gap-3" />
+        ) : null
+      }
       renderBody={({ organization, loading, notFound, typeLabel }) => {
         // Fiche disparue : on le dit et on referme, plutot que de laisser un
         // squelette gris indefiniment — ou pire, un formulaire qu'aucun
@@ -206,7 +253,14 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
         // `key` : changer de fiche recree le formulaire avec les bonnes
         // valeurs initiales, plutot que de reinitialiser l'existant.
         return (
-          <Tabs key={organization.id} defaultValue={defaultTab}>
+          <Tabs
+            key={organization.id}
+            value={tab ?? defaultTab}
+            onValueChange={(next) => {
+              if (next !== PANEL_TABS.CONTACTS) setAddContactOnOpen(false);
+              setTab(next);
+            }}
+          >
             {/* Trois onglets, pas les six de la V8 : Actions a rejoint la
                 fiche avec l'US-01-08 ; Commercial, Client et Support
                 appartiennent aux lots L2/L4. Mieux vaut trois onglets qui
@@ -231,18 +285,49 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
                   {ACTIVITIES_UI.TAB}
                 </TabsTrigger>
               ) : null}
+              {canDelete ? (
+                <TabsTrigger
+                  value={PANEL_TABS.SETTINGS}
+                  data-testid="organization-tab-settings"
+                >
+                  {ORGANIZATION_DETAIL_UI.TABS.SETTINGS}
+                </TabsTrigger>
+              ) : null}
             </TabsList>
 
             <TabsContent value={PANEL_TABS.SUMMARY}>
               <OrganizationSummaryTab
                 organization={organization}
                 onClose={() => onOpenChange(false)}
+                footerSlot={footerSlot}
+                /* Le contact principal manquant se comble dans son onglet :
+                   le bandeau y emmene plutot que de le nommer sans issue. */
+                onGoToContacts={
+                  canReadContacts && canCreateContact
+                    ? () => {
+                        setAddContactOnOpen(true);
+                        setTab(PANEL_TABS.CONTACTS);
+                      }
+                    : undefined
+                }
               />
             </TabsContent>
 
             {canReadContacts ? (
               <TabsContent value={PANEL_TABS.CONTACTS}>
-                <OrganizationContactsTab organizationId={organization.id} />
+                <OrganizationContactsTab
+                  organizationId={organization.id}
+                  openAddOnMount={addContactOnOpen}
+                />
+              </TabsContent>
+            ) : null}
+
+            {canDelete ? (
+              <TabsContent value={PANEL_TABS.SETTINGS}>
+                <OrganizationSettingsTab
+                  organization={organization}
+                  onClose={() => onOpenChange(false)}
+                />
               </TabsContent>
             ) : null}
 

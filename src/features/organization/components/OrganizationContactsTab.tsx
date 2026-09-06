@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CirclePlus, Info, TriangleAlert } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -30,8 +30,17 @@ const fullNameOf = (c: Contact) =>
 
 export function OrganizationContactsTab({
   organizationId,
+  openAddOnMount = false,
 }: {
   organizationId: string;
+  /**
+   * Ouvrir la fenetre d'ajout des l'arrivee sur l'onglet.
+   *
+   * Pose par le bandeau de completude, qui promet « Ajouter un contact » : y
+   * emmener sans ouvrir la fenetre laisserait l'utilisateur chercher le
+   * bouton qu'on venait de lui proposer.
+   */
+  openAddOnMount?: boolean;
 }) {
   const { contacts, loading, forbidden } = useContacts(organizationId);
   const mutations = useContactMutations(organizationId);
@@ -50,6 +59,17 @@ export function OrganizationContactsTab({
   const [editing, setEditing] = useState<Contact | null>(null);
   const [windowOpen, setWindowOpen] = useState(false);
   const [deleting, setDeleting] = useState<Contact | null>(null);
+
+  /*
+   * Le signal n'ouvre la fenetre qu'a l'arrivee sur l'onglet.
+   *
+   * Pas de verrou supplementaire ici : c'est le panneau qui remet le signal a
+   * zero des qu'on quitte Contacts, et l'onglet se remonte a chaque bascule.
+   * Un second garde-fou ne couvrirait aucun cas que celui-la laisse passer.
+   */
+  useEffect(() => {
+    if (openAddOnMount && canCreate) setWindowOpen(true);
+  }, [openAddOnMount, canCreate]);
 
   if (loading) {
     return (

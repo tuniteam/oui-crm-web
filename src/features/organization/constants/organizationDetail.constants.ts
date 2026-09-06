@@ -11,6 +11,8 @@ export const ORGANIZATION_DETAIL_UI = {
   TABS: {
     SUMMARY: 'Synthèse',
     CONTACTS: 'Contacts',
+    /** Ce qui touche a la fiche elle-meme, non a ce qu'elle contient. */
+    SETTINGS: 'Paramètres',
   },
 
   SECTIONS: {
@@ -155,6 +157,25 @@ export const ORGANIZATION_DETAIL_UI = {
       'Sans population, aucune strate tarifaire : le devis est bloqué.',
   },
 
+  /**
+   * Ce que la recherche registre sait remplir — verifie sur la reponse reelle.
+   *
+   * `search-registry` rend neuf cles : `name, siret, siren, address,
+   * postalCode, city, inseeCode, department, isActive`. **Ni e-mail, ni
+   * telephone, ni site** : Sirene et `recherche-entreprises` sont des
+   * annuaires d'etablissements. Ces coordonnees viennent de l'import depuis
+   * l'Annuaire de l'administration, qui est un autre chemin.
+   *
+   * Proposer « Completer depuis le registre » en face d'un contact principal
+   * manquant annoncait donc un remede impossible.
+   */
+  REGISTRY_FILLS: ['SIRET', 'ADDRESS', 'POSTAL_CODE'] as readonly string[],
+
+  /** L'action qui repond au manque, quand il en existe une. */
+  MISSING_ACTIONS: {
+    ADD_CONTACT: 'Ajouter un contact',
+  },
+
   /** Intitules des criteres de completude, tels que la V8 les nomme. */
   /**
    * Coordonnees — degres decimaux WGS 84.
@@ -184,6 +205,16 @@ export const ORGANIZATION_DETAIL_UI = {
   /** Pied de la V8 : « Créée le … · modifiée le … ». */
   TIMESTAMPS: (created: string, updated: string) =>
     `Créée le ${created} · modifiée le ${updated}`,
+
+  /**
+   * L'etat du formulaire, dans la barre d'actions.
+   *
+   * Un formulaire long se fait oublier : sans ce compte, on quitte la fiche en
+   * croyant avoir enregistre. Il remplace les dates de creation, qui ne sont
+   * pas une action et descendent en pied de Synthese.
+   */
+  DIRTY: (n: number) =>
+    `${n} modification${n > 1 ? 's' : ''} non enregistrée${n > 1 ? 's' : ''}`,
 
   ACTIONS: {
     /**

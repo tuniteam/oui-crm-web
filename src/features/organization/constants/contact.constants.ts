@@ -39,12 +39,26 @@ export const CONTACTS_UI = {
     'Les coordonnées des contacts ne sont visibles que sur les fiches de votre périmètre.',
 } as const;
 
+/**
+ * Les civilites proposees — reprises de la maquette V8 (`['', 'Mme', 'M.']`).
+ *
+ * `civility` est un **champ libre** au contrat, pas une enumeration : l'import
+ * Excel peut en apporter d'autres (« Dr », « Me »). La liste ci-dessous est
+ * donc une commodite de saisie, jamais une contrainte — une valeur venue
+ * d'ailleurs doit rester choisie et non retomber sur « Non precise ».
+ */
+export const CIVILITIES = ['Mme', 'M.'] as const;
+
+/** L'absence de civilite : le champ est facultatif, on doit pouvoir y revenir. */
+export const CIVILITY_NONE = '';
+
 export const CONTACT_WINDOW = {
   CREATE_TITLE: 'Nouveau contact',
   EDIT_TITLE: 'Modifier le contact',
 
   FIELDS: {
     CIVILITY: 'Civilité',
+    CIVILITY_NONE: 'Non précisé',
     FIRST_NAME: 'Prénom',
     LAST_NAME: 'Nom',
     ROLE: 'Fonction',

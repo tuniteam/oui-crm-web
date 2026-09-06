@@ -34,15 +34,22 @@ export const optionalNumber = z
   .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) >= 0), ZOD.POSITIVE);
 
 /**
+ * Un decimal saisi au clavier, pret a devenir un nombre.
+ *
+ * Un clavier francais donne la virgule, et refuser la saisie qu'il produit
+ * serait absurde. La regle vit ici, en un seul endroit : le schema la lit pour
+ * valider et le formulaire pour construire le corps — ecrite deux fois, elle
+ * finirait par accepter a la saisie ce que l'envoi ne sait plus convertir.
+ */
+export const toDecimal = (raw: string) => raw.trim().replace(',', '.');
+
+/**
  * Une coordonnee facultative, saisie en texte.
  *
  * Bornes reprises du serveur, **eprouvees en direct** : `latitude: 91` et
  * `longitude: -181` sont refuses par un `400`. Les redire ici evite un
  * aller-retour, et surtout evite qu'un seul champ hors bornes fasse echouer
  * l'enregistrement de toute la fiche.
- *
- * Le point decimal ou la virgule : un clavier francais donne la virgule, et
- * refuser la saisie qu'il produit serait absurde.
  */
 const optionalCoordinate = (bound: number, message: string) =>
   z
@@ -50,7 +57,7 @@ const optionalCoordinate = (bound: number, message: string) =>
     .trim()
     .refine((v) => {
       if (v === '') return true;
-      const n = Number(v.replace(',', '.'));
+      const n = Number(toDecimal(v));
       return Number.isFinite(n) && Math.abs(n) <= bound;
     }, message);
 

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
 import {
   getOrganizationSummarySchema,
+  toDecimal,
   type OrganizationSummarySchemaType,
 } from '../forms/organization-summary-schema';
 import type {
@@ -117,15 +118,13 @@ export function useOrganizationSummaryForm(organization: OrganizationDetail) {
 
     /*
      * Les coordonnees partent en **nombres**, jamais en chaines : le contrat
-     * les stocke en `Float`. La virgule d'un clavier francais devient un
-     * point, faute de quoi `Number('47,81')` vaut `NaN` et la fiche partirait
+     * les stocke en `Float`. `toDecimal` est la meme conversion que celle du
+     * schema — sans elle, `Number('47,81')` vaut `NaN` et la fiche partirait
      * sans sa position.
      */
     const coordinates = ['latitude', 'longitude'] as const;
     for (const field of coordinates) {
-      if (v[field] === initial[field]) continue;
-      const raw = v[field].trim().replace(',', '.');
-      payload[field] = raw === '' ? null : Number(raw);
+      if (v[field] !== initial[field]) payload[field] = number(toDecimal(v[field]));
     }
 
     if (v.solution !== initial.solution) payload.solution = text(v.solution);
