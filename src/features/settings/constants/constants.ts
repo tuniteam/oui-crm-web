@@ -7,6 +7,7 @@ export const SETTINGS_TABS = {
   DOCUMENTS: 'documents',
   REFERENCES: 'references',
   SCOPES: 'scopes',
+  PRICING: 'pricing',
 } as const;
 
 export type SettingsTab = (typeof SETTINGS_TABS)[keyof typeof SETTINGS_TABS];
@@ -25,6 +26,7 @@ export const SETTINGS_UI = {
     DOCUMENTS: 'Gabarits, cachet et formats de numérotation',
     REFERENCES: 'Valeurs des listes déroulantes de l’application',
     SCOPES: 'Ce que chaque utilisateur voit dans la base d’organismes',
+    PRICING: 'Strates, formules et prix — une version datée à la fois',
   },
 
   ITEMS: {
@@ -33,6 +35,7 @@ export const SETTINGS_UI = {
     DOCUMENTS: 'Documents et numérotation',
     REFERENCES: 'Référentiels',
     SCOPES: 'Périmètres',
+    PRICING: 'Grille tarifaire',
   },
 } as const;
 

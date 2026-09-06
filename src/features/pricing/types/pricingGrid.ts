@@ -34,5 +34,22 @@ export type PricingGrid = {
   createdAt: string;
   /** Devis figes sur cette version : au-dela de 0, c'est une archive. */
   quotesCount: number;
+  /**
+   * De quelle version celle-ci derive — ajoute le 06/09 a la demande du front.
+   *
+   * `null` pour la version du seed et pour une grille ecrite de zero. C'est ce
+   * qui permet d'afficher « v6 · derivee de la v1 », et ce sur quoi le serveur
+   * refuse d'activer une version preparee sur une grille perimee
+   * (`409 PRICING_GRID_BASE_OUTDATED`).
+   */
+  basedOnVersion: number | null;
   content: PricingGridContent;
+};
+
+/** `GET /pricing-grids` — la liste, **sans** `content`. */
+export type PricingGridSummary = Omit<PricingGrid, 'content'>;
+
+export type PricingGridListResponse = {
+  data: PricingGridSummary[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
 };
