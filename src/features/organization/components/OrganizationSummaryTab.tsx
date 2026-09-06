@@ -549,6 +549,25 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
           )}
         />
 
+        {/* En fin de formulaire : la position ne se saisit pas au quotidien,
+            elle vient de l'import et se corrige a la marge. */}
+        <SectionTitle>{SECTIONS.GEO}</SectionTitle>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextField
+            control={form.control}
+            disabled={disabled}
+            name="latitude"
+            label={LABELS.LATITUDE}
+          />
+          <TextField
+            control={form.control}
+            disabled={disabled}
+            name="longitude"
+            label={LABELS.LONGITUDE}
+          />
+        </div>
+        <p className="-mt-2 text-xs text-muted-foreground">{UI.GEO_HINT}</p>
+
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
           {/* Dates de la V8, a gauche des actions. Rendues seulement si le
               serveur les envoie : elles sont facultatives au contrat. */}
@@ -613,6 +632,7 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
         ) : null}
 
         <DeleteOrganizationWindow
+          counts={organization.counts}
           open={confirmDelete}
           onOpenChange={setConfirmDelete}
           organizationId={organization.id}

@@ -9,6 +9,8 @@ export const ZOD = {
   SIRET: 'Le SIRET comporte 14 chiffres',
   DEPARTMENT: 'Département invalide (2 ou 3 caractères)',
   POSITIVE: 'Valeur invalide',
+  LATITUDE: 'Latitude attendue entre -90 et 90',
+  LONGITUDE: 'Longitude attendue entre -180 et 180',
 };
 
 /**
@@ -30,6 +32,27 @@ export const optionalNumber = z
   .string()
   .trim()
   .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) >= 0), ZOD.POSITIVE);
+
+/**
+ * Une coordonnee facultative, saisie en texte.
+ *
+ * Bornes reprises du serveur, **eprouvees en direct** : `latitude: 91` et
+ * `longitude: -181` sont refuses par un `400`. Les redire ici evite un
+ * aller-retour, et surtout evite qu'un seul champ hors bornes fasse echouer
+ * l'enregistrement de toute la fiche.
+ *
+ * Le point decimal ou la virgule : un clavier francais donne la virgule, et
+ * refuser la saisie qu'il produit serait absurde.
+ */
+const optionalCoordinate = (bound: number, message: string) =>
+  z
+    .string()
+    .trim()
+    .refine((v) => {
+      if (v === '') return true;
+      const n = Number(v.replace(',', '.'));
+      return Number.isFinite(n) && Math.abs(n) <= bound;
+    }, message);
 
 export const getOrganizationSummarySchema = () =>
   z.object({
@@ -53,6 +76,9 @@ export const getOrganizationSummarySchema = () =>
     phone: optionalText(40),
     email: z.string().trim().email(ZOD.EMAIL).or(z.literal('')),
     website: optionalText(),
+
+    latitude: optionalCoordinate(90, ZOD.LATITUDE),
+    longitude: optionalCoordinate(180, ZOD.LONGITUDE),
 
     population: optionalNumber,
     schoolCount: optionalNumber,

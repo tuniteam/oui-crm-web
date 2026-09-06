@@ -17,6 +17,7 @@ export const ORGANIZATION_DETAIL_UI = {
     IDENTITY: 'Identité',
     ENVIRONMENT: 'Environnement périscolaire',
     FOLLOW_UP: 'Suivi',
+    GEO: 'Données géographiques',
   },
 
   /**
@@ -113,6 +114,8 @@ export const ORGANIZATION_DETAIL_UI = {
     PHONE: 'Téléphone',
     EMAIL: 'Email',
     WEBSITE: 'Site internet',
+    LATITUDE: 'Latitude',
+    LONGITUDE: 'Longitude',
 
     SOLUTION: 'Solution en place',
     SCHOOL_COUNT: 'Nombre d’écoles',
@@ -153,6 +156,16 @@ export const ORGANIZATION_DETAIL_UI = {
   },
 
   /** Intitules des criteres de completude, tels que la V8 les nomme. */
+  /**
+   * Coordonnees — degres decimaux WGS 84.
+   *
+   * Le point est celui de la mairie, avec repli sur le centroide de la
+   * commune. Le dire evite qu'on croie a une adresse approximative, et evite
+   * surtout qu'on les ressaisisse « mieux ».
+   */
+  GEO_HINT:
+    'Degrés décimaux (WGS 84). Point de la mairie, à défaut le centre de la commune.',
+
   MISSING_LABELS: {
     SIRET: 'le SIRET',
     ADDRESS: 'l’adresse',

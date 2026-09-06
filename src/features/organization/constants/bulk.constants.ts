@@ -76,9 +76,13 @@ export const BULK_FIELDS: Record<
  * La fenêtre d'une action groupée.
  *
  * Une action, une fenêtre : c'est là qu'on choisit la valeur, qu'on rappelle
- * l'étendue et qu'on confirme. Ne rien promettre que le serveur n'applique
- * pas — `409 ORGANIZATION_HAS_CONTRACTS` est annoncé **au lot L3**, aucune
- * fiche n'est protégée aujourd'hui.
+ * l'étendue et qu'on confirme.
+ *
+ * Depuis le 06/09/2026, des fiches **sont** protégées : celles qui portent un
+ * devis, un contrat, une opportunité ou un document reviennent dans `skipped`
+ * avec le motif `HAS_ENGAGEMENTS`. La fenêtre le dit avant le clic, et le
+ * compte rendu le redit après — `processed` peut être inférieur à la sélection
+ * alors même que tout était dans le périmètre.
  */
 export const BULK_WINDOW = {
   /** L'étendue en chiffres, jamais « la sélection ». */
@@ -87,9 +91,9 @@ export const BULK_WINDOW = {
   SCOPE_ALL: (n: number) =>
     `L'action portera sur les ${n} fiches correspondant aux filtres, y compris celles que cet écran n'affiche pas.`,
   DELETE_WARNING:
-    'L’action est sans retour depuis cet écran. Les contacts et les actions rattachés partent avec les fiches.',
+    'La suppression est définitive. Les contacts et les rendez-vous rattachés — passés comme à venir — partent avec les fiches. Celles qui portent un devis, un contrat ou un document seront conservées.',
   DELETE_WARNING_ALL:
-    'L’action est sans retour, et cet écran ne peut pas énumérer les fiches qui partiront.',
+    'La suppression est définitive, et cet écran ne peut pas énumérer les fiches qui partiront. Celles qui portent un devis, un contrat ou un document seront conservées.',
   CONFIRM: 'Appliquer',
   CANCEL: 'Annuler',
   /** Un champ qui repete son intitule n'apprend rien : l'invite dit le geste. */
@@ -143,6 +147,8 @@ export const BULK_UI = {
   SKIP_REASONS: {
     OUT_OF_SCOPE: 'hors de votre périmètre',
     NOT_FOUND: 'introuvable ou supprimée',
+    /* Devis, contrat, opportunité ou document : la fiche est retenue. */
+    HAS_ENGAGEMENTS: 'retenue par un devis, un contrat ou un document',
   } satisfies Record<BulkSkipReason, string> as Record<string, string>,
 
   /** Le détail, groupé par motif : « 2 hors de votre périmètre ». */

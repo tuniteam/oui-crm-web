@@ -54,7 +54,20 @@ export type BulkRequest = {
 };
 
 /** Pourquoi une fiche n'a pas ete traitee. */
-export const BULK_SKIP_REASONS = ['NOT_FOUND', 'OUT_OF_SCOPE'] as const;
+/**
+ * Pourquoi une fiche n'a pas suivi une action groupee.
+ *
+ * `HAS_ENGAGEMENTS` est arrive le 06/09/2026 avec la suppression definitive :
+ * une fiche portant un devis, un contrat, une opportunite ou un document n'est
+ * plus supprimable. `processed` peut donc etre inferieur a la selection **alors
+ * meme que tout etait dans le perimetre** — sans lire `skipped`, l'utilisateur
+ * croira que tout est parti.
+ */
+export const BULK_SKIP_REASONS = [
+  'NOT_FOUND',
+  'OUT_OF_SCOPE',
+  'HAS_ENGAGEMENTS',
+] as const;
 export type BulkSkipReason = (typeof BULK_SKIP_REASONS)[number];
 
 /**
