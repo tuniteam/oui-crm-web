@@ -43,6 +43,18 @@ export type PricingGrid = {
    * (`409 PRICING_GRID_BASE_OUTDATED`).
    */
   basedOnVersion: number | null;
+  /**
+   * Ce que le serveur autorise — SPEC-18, 07/09/2026.
+   *
+   * `reason` vaut `null`, `ALREADY_ACTIVE` ou `BASE_OUTDATED`. **Le front
+   * grise le bouton et affiche la raison ; il ne recalcule pas la regle**, qui
+   * vit cote serveur, une seule fois.
+   */
+  activation: {
+    allowed: boolean;
+    reason: 'ALREADY_ACTIVE' | 'BASE_OUTDATED' | null;
+    activeVersion: number | null;
+  };
   content: PricingGridContent;
 };
 

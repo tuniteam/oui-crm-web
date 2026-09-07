@@ -654,11 +654,15 @@ export default function OrganizationsTable() {
            * jeton. L'azur est deja, dans le composant partage, le signal
            * « un filtre est actif » — le bouton Filtres s'y teinte.
            *
+           * `--primary-soft`, le fond pastel de la charte, et non une opacite
+           * choisie a la main : une teinte inventee sort du theme et derive au
+           * premier changement de charte. Voir `docs/REVUE-THEME-COULEUR.md`.
+           *
            * Aucune confusion avec la barre de selection groupee, qui partage
            * la famille mais pas la forme : elle est une carte encadree et
            * arrondie, posee en retrait ; cette bande file d'un bord a l'autre.
            */
-          className="flex items-center gap-2 border-y border-primary/20 bg-primary/5 px-5 py-2"
+          className="flex items-center gap-2 border-y border-border bg-primary-soft px-5 py-2"
         >
           {/* `py-1` laisse passer l'anneau de focus, que le defilement
               rognerait sinon. */}

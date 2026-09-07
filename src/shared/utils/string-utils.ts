@@ -43,3 +43,22 @@ export function formatInteger(value: number | string | null | undefined): string
     ? ''
     : integerFr.format(Number(digits)).replace(NARROW_NBSP, NBSP);
 }
+
+/**
+ * Un montant en euros — « 19,90 € », jamais « 20 € ».
+ *
+ * `formatInteger` ne convient pas a de l'argent : il arrondit et perd les
+ * centimes. Un abonnement a 19,90 € s'affichait 20 €, ce qu'un commercial
+ * annonce ensuite a son prospect.
+ *
+ * Deux decimales toujours, comme sur un devis : 129 € s'ecrit « 129,00 € ».
+ */
+const currencyFr = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+});
+
+export function formatPrice(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '';
+  return currencyFr.format(value).replace(/ /g, ' ');
+}

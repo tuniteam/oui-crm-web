@@ -153,6 +153,106 @@ Distinguer toujours :
    tableau qui n'afficherait que le vert donnerait une fausse assurance.
 8. **Committer**, en disant ce qui a été vérifié et ce qui ne l'a pas été.
 
+## « Révise tout » — les quatre contrôles
+
+Quand la demande est **« révise tout »**, « revise all » ou toute variante, ce
+n'est pas une relecture libre : ce sont quatre contrôles nommés, à passer dans
+cet ordre sur tout ce qui a été écrit depuis la dernière revue. Chacun se
+conclut par un constat, pas par une impression.
+
+### 1. Le pattern est-il respecté ?
+
+L'architecture est feature-based : `types/`, `constants/`, `services/`,
+`hooks/`, `components/`, `utils/`, `forms/`. Un fichier au mauvais étage est un
+défaut même s'il fonctionne.
+
+- **Les chaînes d'interface vivent dans `constants/`**, jamais dans un
+  composant ni dans un `utils/`. Un utilitaire rend une **cause**
+  (`'BACKWARDS'`), l'écran la traduit — c'est aussi ce qui le rend éprouvable
+  sans rien afficher.
+- **Un service n'enveloppe pas l'erreur dans un `Error` nu** dès que l'appelant
+  a besoin du code ou de `messages.meta`. Le vérifier route par route : c'est
+  la régression la plus fréquente du projet.
+- **Les clés de référentiel se traduisent** par `labelOf`. Des MAJUSCULES_UNDERSCORE
+  à l'écran sont un défaut, jamais un raccourci.
+- **Pastille contre bouton** : relire `docs/REGLE-BADGE-VS-BOUTON.md`. Un
+  `onClick` sur un `Badge` est interdit, sans exception.
+
+### 1 bis. Les règles d'écran du projet sont-elles tenues ?
+
+Trois documents font loi, et se relisent avant de dessiner un écran, pas après.
+
+**`docs/REVUE-THEME-COULEUR.md` — on n'invente ni couleur ni charte.**
+
+- Toute teinte vient d'un **jeton du thème** : `--primary`, `--primary-soft`,
+  `--success-soft`, `--warning-soft`, `--muted`, `--border`, `--card`… Ils sont
+  exposés à Tailwind (`bg-primary-soft`, `border-border`).
+- **Une opacité choisie à la main est une couleur inventée.** `bg-primary/5`
+  produit une teinte qui n'existe nulle part dans la charte, dérive au premier
+  changement de marque, et diverge des autres écrans qui auront choisi `/8` ou
+  `/10`. Un fond pastel a son jeton : `-soft`.
+- Jamais de valeur hexadécimale dans un composant, jamais la palette de la
+  maquette V8 — elle est en violet Periscolia, la charte est en azur.
+- La couleur porte le **vocabulaire métier** ; elle ne remplace pas la forme
+  pour distinguer une information d'une action.
+
+**`docs/REGLE-BADGE-VS-BOUTON.md` — la forme dit la nature.**
+
+Pilule pour une information, rectangle arrondi pour une action. Jamais de
+`onClick` sur un `Badge`, jamais de fond pastel sur un bouton au repos. Les
+compteurs sont hors périmètre et ne prennent pas de point.
+
+**`docs/REGLE-OUVRIR-UNE-LIGNE.md` — une liste s'ouvre par sa colonne Actions.**
+
+Dernière colonne, en-tête centré, bouton-icône œil avec infobulle. Jamais un
+libellé cliquable dans une cellule, jamais une ligne entière cliquable. Vaut
+pour **toute liste tabulaire**, y compris celles qui n'utilisent pas
+`ReusableTable` ; les listes de cartes sont hors périmètre.
+
+Le contrôle se fait **sur la capture de `npm run probe`, sans passer la
+souris** : chaque élément coloré est-il classable en un coup d'œil, et
+peut-on ouvrir une ligne autrement que par sa colonne Actions ?
+
+### 2. Y a-t-il du code en dur ?
+
+- Aucun nombre nu dans un composant : un plafond, un pas, une limite portent un
+  nom et une raison — et la raison vient du **contrat**, pas d'un choix
+  arbitraire.
+- Aucune liste écrite à la main quand l'API la rend : référentiels, strates,
+  régions, utilisateurs appartiennent au projet et se lisent depuis la réponse.
+- Aucune règle métier recopiée du serveur sans l'avoir éprouvée en direct.
+
+### 3. Y a-t-il des doublons ?
+
+Chercher activement, pas au fil de la lecture :
+
+- deux fonctions qui font la même chose sous deux noms — un `grep` sur les
+  motifs (`Intl.NumberFormat`, `replace(',', '.')`, une fonction vide passée en
+  `useHooks`) en trouve plus qu'une relecture ;
+- **une même règle écrite à deux endroits** : c'est le doublon coûteux, parce
+  qu'il diverge en silence. Une conversion validée d'un côté et refaite de
+  l'autre finit par accepter à la saisie ce que l'envoi ne sait plus traiter ;
+- des blocs de rendu quasi identiques : les décrire en données plutôt qu'en
+  JSX répété.
+
+### 4. KISS est-il respecté ?
+
+- Ce qui a été écrit répond-il **exactement** à la demande ? Ce qui dépasse se
+  signale, ne s'applique pas.
+- Y a-t-il un état dérivable d'un autre, une abstraction pour un seul appelant,
+  un cas particulier là où le mécanisme sous-jacent devait être généralisé ?
+- Un garde-fou ajouté « au cas où » sans cas connu est du poids mort : le
+  retirer, ou nommer le cas.
+
+### Ce que la revue rend
+
+Ce qui a été **corrigé**, ce qui a été **trouvé et volontairement laissé** —
+avec la raison —, et ce qui n'a **pas pu être vérifié**. Une revue qui ne
+signale rien n'a pas cherché : elle nomme au minimum ce qu'elle a inspecté.
+
+Finir par `npm run build` et `npm run lint`, et **ne jamais lancer la recette
+BDD** à cette occasion : elle ne se lance que sur demande explicite.
+
 ## Après chaque développement
 
 Mettre à jour **`docs/RECETTE-BDD-FRONT.md`**, le document unique de recette

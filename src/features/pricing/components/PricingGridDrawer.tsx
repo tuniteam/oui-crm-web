@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -13,16 +14,54 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatInteger } from '@/shared/utils/string-utils';
+import { formatInteger, formatPrice } from '@/shared/utils/string-utils';
 import { PRICING_UI } from '../constants/pricing.constants';
 import { usePricingGrid } from '../hooks/usePricingGrids';
 import type { PricingGridContent } from '../types/pricingGrid';
+import type { LabelCell, PriceCell } from '../hooks/usePricingDraft';
 
 const UI = PRICING_UI.DRAWER;
 const SECTIONS = PRICING_UI.DRAWER.SECTIONS;
 
-/** Un prix, jamais recalculé — le moteur tarifaire est la seule autorité. */
-const price = (n: number) => `${formatInteger(Math.round(n))} €`;
+/**
+ * Un prix, jamais recalculé — le moteur tarifaire est la seule autorité.
+ *
+ * Et jamais arrondi : `formatInteger` affichait « 20 € » pour un abonnement à
+ * 19,90 €. Les centimes sont le prix lui-même, pas un détail de présentation.
+ */
+const price = (n: number) => formatPrice(n);
+
+/**
+ * Une case de prix : lue, ou saisie.
+ *
+ * En édition, la valeur part dans le brouillon **en mémoire** — jamais au
+ * serveur. Le pas de `0,1` suit la V8 : les abonnements se chiffrent au dixième
+ * d'euro, les frais à l'euro.
+ */
+function PriceCellInput({
+  value,
+  editing,
+  onChange,
+  testId,
+}: {
+  value: number;
+  editing: boolean;
+  onChange: (v: number) => void;
+  testId: string;
+}) {
+  if (!editing) return <>{price(value)}</>;
+  return (
+    <Input
+      type="number"
+      step="0.1"
+      min="0"
+      data-testid={testId}
+      value={String(value)}
+      onChange={(e) => onChange(Number(e.target.value) || 0)}
+      className="h-8 w-24 text-end tabular-nums"
+    />
+  );
+}
 
 /**
  * Un tableau large défile **dans son propre conteneur**.
@@ -74,8 +113,20 @@ function Section({
  * implémentation du chiffrage ; cet écran ne fait qu'afficher ce que la version
  * porte.
  */
-export function PricingGridBody({ gridId }: { gridId: string | null }) {
+export function PricingGridBody({
+  gridId,
+  draft,
+  setPrice,
+  setLabel,
+}: {
+  gridId: string | null;
+  /** Le brouillon quand on modifie, `null` en lecture. */
+  draft?: PricingGridContent | null;
+  setPrice?: (cell: PriceCell, value: number) => void;
+  setLabel?: (cell: LabelCell, value: string) => void;
+}) {
   const { grid, loading } = usePricingGrid(gridId);
+  const editing = !!draft;
 
   if (loading || !grid) {
     return (
@@ -86,7 +137,9 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
     );
   }
 
-  const c: PricingGridContent = grid.content;
+  /* Le brouillon fait foi dès qu'il existe : ce qu'on vient de saisir doit
+     s'afficher, pas la version telle qu'elle est enregistrée. */
+  const c: PricingGridContent = draft ?? grid.content;
   const n = (v: number, [one, many]: readonly [string, string]) =>
     UI.COUNT(v, one, many);
   const setupKeys = Object.keys(c.setupFees ?? {});
@@ -113,9 +166,25 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {c.brackets.map((b) => (
-                <TableRow key={b.label}>
-                  <TableCell className="font-medium">{b.label}</TableCell>
+              {c.brackets.map((b, i) => (
+                <TableRow key={`${b.min}-${b.max}`}>
+                  <TableCell className="font-medium">
+                    {editing ? (
+                      <Input
+                        data-testid={`pricing-bracket-label-${i}`}
+                        value={b.label}
+                        onChange={(e) =>
+                          setLabel?.(
+                            { kind: 'bracket', index: i, field: 'label' },
+                            e.target.value,
+                          )
+                        }
+                        className="h-8"
+                      />
+                    ) : (
+                      b.label
+                    )}
+                  </TableCell>
                   <TableCell className="text-end tabular-nums">
                     {formatInteger(b.min)}
                   </TableCell>
@@ -154,7 +223,14 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
                   <TableCell className="font-medium">{p}</TableCell>
                   {(c.subscription[p] ?? []).map((v, i) => (
                     <TableCell key={i} className="text-end tabular-nums">
-                      {price(v)}
+                      <PriceCellInput
+                        value={v}
+                        editing={editing}
+                        testId={`pricing-sub-${p}-${i}`}
+                        onChange={(nv) =>
+                          setPrice?.({ kind: 'subscription', plan: p, bracket: i }, nv)
+                        }
+                      />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -195,7 +271,14 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
                     </TableCell>
                     {o.unitPrice.map((v, i) => (
                       <TableCell key={i} className="text-end tabular-nums">
-                        {price(v)}
+                        <PriceCellInput
+                          value={v}
+                          editing={editing}
+                          testId={`pricing-opt-${o.id}-${i}`}
+                          onChange={(nv) =>
+                            setPrice?.({ kind: 'option', id: o.id, bracket: i }, nv)
+                          }
+                        />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -246,7 +329,17 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
                       {((c.setupFees?.[key]?.[p] as number[]) ?? []).map(
                         (v, i) => (
                           <TableCell key={i} className="text-end tabular-nums">
-                            {price(v)}
+                            <PriceCellInput
+                              value={v}
+                              editing={editing}
+                              testId={`pricing-setup-${key}-${p}-${i}`}
+                              onChange={(nv) =>
+                                setPrice?.(
+                                  { kind: 'setup', key, plan: p, bracket: i },
+                                  nv,
+                                )
+                              }
+                            />
                           </TableCell>
                         ),
                       )}
@@ -279,7 +372,12 @@ export function PricingGridBody({ gridId }: { gridId: string | null }) {
                 <TableRow key={e.id}>
                   <TableCell className="font-medium">{e.name}</TableCell>
                   <TableCell className="text-end tabular-nums">
-                    {price(e.unitPrice)}
+                    <PriceCellInput
+                      value={e.unitPrice}
+                      editing={editing}
+                      testId={`pricing-extra-${e.id}`}
+                      onChange={(nv) => setPrice?.({ kind: 'extra', id: e.id }, nv)}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
