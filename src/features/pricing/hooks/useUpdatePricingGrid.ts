@@ -8,6 +8,7 @@ import {
 } from '@/shared/utils/api-error';
 import {
   PRICING_HAS_QUOTES,
+  PRICING_ITEM_IN_USE,
   PRICING_UI,
 } from '../constants/pricing.constants';
 import { pricingService } from '../services/pricing.service';
@@ -43,9 +44,32 @@ export function useUpdatePricingGrid() {
     },
 
     onError: (err) => {
-      if (getApiErrorCode(err) === PRICING_HAS_QUOTES) {
+      const code = getApiErrorCode(err);
+      if (code === PRICING_HAS_QUOTES) {
         const n = Number(getApiErrorMeta(err)?.quotes ?? 0);
         toast.error(PRICING_UI.EDIT.HAS_QUOTES(n));
+        return;
+      }
+      /*
+       * Un element retire qu'un **brouillon** retient encore — SPEC-19.
+       *
+       * `meta.items` nomme les elements, `meta.quotes` les devis : l'ecran
+       * les liste sans analyser une phrase. Le serveur bloque plutot que de
+       * laisser filer, car un brouillon se recalcule a chaque lecture : sans
+       * sa formule il deviendrait illisible, et sans son option une ligne
+       * tomberait sans un mot.
+       */
+      if (code === PRICING_ITEM_IN_USE) {
+        const meta = getApiErrorMeta(err);
+        const items = Array.isArray(meta?.items) ? (meta.items as string[]) : [];
+        const quotes = Array.isArray(meta?.quotes)
+          ? (meta.quotes as string[])
+          : [];
+        toast.error(
+          items.length && quotes.length
+            ? PRICING_UI.ERRORS.IN_USE(items, quotes)
+            : PRICING_UI.ERRORS.IN_USE_FALLBACK,
+        );
         return;
       }
       /*

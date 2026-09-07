@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { PricingGridContent } from '../types/pricingGrid';
+import * as edit from '../utils/grid-edit';
+import type { PricingGridContent, SetupFeeNature } from '../types/pricingGrid';
 
 /**
  * Ou poser une valeur dans le contenu — un chemin, jamais un index nu.
@@ -15,6 +16,28 @@ export type PriceCell =
   | { kind: 'option'; index: number; bracket: number }
   | { kind: 'setup'; key: string; plan: string; bracket: number }
   | { kind: 'extra'; index: number };
+
+/**
+ * Les gestes d'ajout et de retrait, tels que l'écran les consomme.
+ *
+ * Déclarés à part pour que le tiroir les reçoive en un seul objet plutôt qu'en
+ * douze props : ils vont toujours ensemble, et ils sont tous absents en
+ * lecture.
+ */
+export type GridOps = {
+  addBracket: (index: number) => void;
+  removeBracket: (index: number) => void;
+  setBracketBound: (index: number, max: number | null) => void;
+  addPlan: (name: string) => void;
+  removePlan: (name: string) => void;
+  addOption: () => void;
+  removeOption: (index: number) => void;
+  addExtra: () => void;
+  removeExtra: (index: number) => void;
+  addSetupFee: (label: string, nature: SetupFeeNature) => void;
+  removeSetupFee: (key: string) => void;
+  setSetupNature: (key: string, nature: SetupFeeNature) => void;
+};
 
 /** Un libellé modifiable : ceux qui s'impriment sur le devis. */
 export type LabelCell =
@@ -51,14 +74,26 @@ export function usePricingDraft(source: PricingGridContent | null) {
   const dirtyCount = useMemo(() => {
     if (!draft || !source) return 0;
     let n = 0;
+    /*
+     * Les deux structures n'ont plus forcement la meme forme.
+     *
+     * Tant qu'on ne faisait que changer des valeurs, `draft` et `source`
+     * avaient exactement les memes cles. Depuis qu'on ajoute et qu'on retire
+     * des elements, une strate de plus donne `source.brackets[6] ===
+     * undefined` : descendre dedans lisait `undefined.max` et faisait tomber
+     * l'ecran. Un cote qui n'est pas un objet arrete la descente et compte
+     * pour une modification — ce qu'un element ajoute ou retire est.
+     */
     const walk = (a: unknown, b: unknown) => {
-      if (typeof a !== 'object' || a === null || b === null) {
+      const bothObjects =
+        typeof a === 'object' && a !== null && typeof b === 'object' && b !== null;
+      if (!bothObjects) {
         if (a !== b) n += 1;
         return;
       }
       const keys = new Set([
         ...Object.keys(a as object),
-        ...Object.keys((b ?? {}) as object),
+        ...Object.keys(b as object),
       ]);
       for (const k of keys) {
         walk(
@@ -109,9 +144,9 @@ export function usePricingDraft(source: PricingGridContent | null) {
         if (o) o.name = value;
       } else if (cell.kind === 'setup') {
         const post = next.setupFees?.[cell.key];
-        /* On écrit `label`, **jamais la clé**. Elle est reconnue par le serveur
-           pour ventiler le une-fois sur le devis : la régénérer depuis le
-           libellé ferait retomber la ventilation formation à zéro. */
+        /* On écrit `label`, **jamais la clé**. Depuis SPEC-19 c'est `nature`
+           qui porte la ventilation, mais la clé reste l'adresse du poste :
+           la régénérer depuis le libellé déplacerait ses prix. */
         if (post) post.label = value;
       } else {
         const e = next.extras?.[cell.index];
@@ -121,5 +156,53 @@ export function usePricingDraft(source: PricingGridContent | null) {
     });
   }, []);
 
-  return { draft, editing: draft !== null, dirtyCount, start, stop, setPrice, setLabel };
+  /**
+   * Ajouter et retirer — SPEC-19.
+   *
+   * Le hook ne fait que **poser** les opérations sur le brouillon : les
+   * invariants vivent dans `grid-edit`, pur et éprouvé sans rendu. Le compte
+   * de modifications les suit sans rien de particulier, puisqu'il se mesure
+   * sur le contenu.
+   */
+  const apply = useCallback(
+    (op: (c: PricingGridContent) => PricingGridContent) =>
+      setDraft((prev) => (prev ? op(clone(prev)) : prev)),
+    [],
+  );
+
+  const ops: GridOps = useMemo(
+    () => ({
+      addBracket: (index: number) => apply((c) => edit.addBracket(c, index)),
+      removeBracket: (index: number) => apply((c) => edit.removeBracket(c, index)),
+      setBracketBound: (index: number, max: number | null) =>
+        apply((c) => edit.setBracketBound(c, index, max)),
+      addPlan: (name: string) => apply((c) => edit.addPlan(c, name)),
+      removePlan: (name: string) => apply((c) => edit.removePlan(c, name)),
+      addOption: () => apply(edit.addOption),
+      removeOption: (index: number) => apply((c) => edit.removeOption(c, index)),
+      addExtra: () => apply(edit.addExtra),
+      removeExtra: (index: number) => apply((c) => edit.removeExtra(c, index)),
+      addSetupFee: (label: string, nature: SetupFeeNature) =>
+        apply((c) => edit.addSetupFee(c, label, nature)),
+      removeSetupFee: (key: string) => apply((c) => edit.removeSetupFee(c, key)),
+      setSetupNature: (key: string, nature: SetupFeeNature) =>
+        apply((c) => {
+          const post = c.setupFees?.[key];
+          if (post) post.nature = nature;
+          return c;
+        }),
+    }),
+    [apply],
+  );
+
+  return {
+    draft,
+    editing: draft !== null,
+    dirtyCount,
+    start,
+    stop,
+    setPrice,
+    setLabel,
+    ...ops,
+  };
 }

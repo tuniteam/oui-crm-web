@@ -123,6 +123,82 @@ export const PRICING_UI = {
 
   /** Le tiroir : les cinq tableaux de la V8, replies en accordeon. */
   DRAWER: {
+    /**
+     * Ajouter et retirer — SPEC-19.
+     *
+     * Le `content` se poste en entier : ajouter un element, c'est envoyer le
+     * document avec un element de plus. Aucune route par element, donc aucun
+     * enregistrement a l'unite — tout part au meme moment que les prix.
+     */
+    ACTIONS: 'Actions',
+    ADD: {
+      BRACKET: 'Ajouter une strate',
+      PLAN: 'Ajouter une formule',
+      OPTION: 'Ajouter une option',
+      SETUP: 'Ajouter un poste',
+      EXTRA: 'Ajouter une prestation',
+    },
+    REMOVE: {
+      BRACKET: 'Retirer cette strate',
+      PLAN: 'Retirer cette formule',
+      OPTION: 'Retirer cette option',
+      SETUP: 'Retirer ce poste',
+      EXTRA: 'Retirer cette prestation',
+    },
+    /** Le plafond, dit avant le clic plutot qu'apres un refus. */
+    AT_MOST: (n: number, what: string) =>
+      `Une grille ne peut pas dépasser ${n} ${what}.`,
+    FAMILIES: {
+      brackets: 'strates',
+      plans: 'formules',
+      options: 'options',
+      setupFees: 'postes de frais',
+      extras: 'prestations',
+    },
+    /** Retirer le dernier element d'une famille qui ne peut pas etre vide. */
+    LAST_ONE: {
+      BRACKET: 'Une grille garde au moins une strate.',
+      PLAN: 'Une grille garde au moins une formule.',
+    },
+    /**
+     * Ce qu'ajouter et retirer une strate font vraiment.
+     *
+     * Dit avant le geste : la couverture `[0, +∞[` doit rester entiere, donc
+     * ajouter **coupe** la strate visee et retirer **rend sa plage** a la
+     * voisine. Sans cette phrase, l'utilisateur croit inserer une ligne et
+     * s'etonne que les bornes voisines bougent.
+     */
+    BRACKET_HINT:
+      'Ajouter coupe la strate en deux ; retirer rend sa plage à la strate voisine. Les tailles de commune restent couvertes de bout en bout.',
+    SETUP_WINDOW: {
+      TITLE: 'Ajouter un poste de frais',
+      LABEL: 'Libellé',
+      LABEL_HINT:
+        'Il s’imprime sur le devis, et doit rester distinct des autres postes : un devis déjà émis reventile ses lignes par libellé.',
+      NATURE: 'Nature',
+      NATURE_HINT:
+        'Ce choix répartit le montant entre « formation » et « mise en place » dans le récapitulatif pluriannuel.',
+      CONFIRM: 'Ajouter',
+      CANCEL: 'Annuler',
+      DUPLICATE: 'Un autre poste porte déjà ce libellé.',
+      EMPTY: 'Donnez un libellé à ce poste.',
+    },
+    PLAN_WINDOW: {
+      TITLE: 'Ajouter une formule',
+      NAME: 'Nom de la formule',
+      NAME_HINT:
+        'Il apparaît sur le devis. La formule naît avec un prix à zéro sur chaque strate et sur chaque poste de frais.',
+      CONFIRM: 'Ajouter',
+      CANCEL: 'Annuler',
+      EMPTY: 'Donnez un nom à cette formule.',
+      RESERVED: '« label » et « nature » sont réservés : ce sont les attributs d’un poste de frais.',
+      DUPLICATE: 'Une formule porte déjà ce nom.',
+    },
+    /** Retirer une formule retire aussi ses prix — le dire avant. */
+    REMOVE_PLAN_HINT: (plan: string, posts: number) =>
+      posts > 0
+        ? `Retirer « ${plan} » efface son prix d’abonnement sur chaque strate, et ses prix sur les ${posts} postes de frais.`
+        : `Retirer « ${plan} » efface son prix d’abonnement sur chaque strate.`,
   /**
    * Ce qu'un poste de frais est, en un mot — SPEC-19.
    *

@@ -4,6 +4,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -18,11 +25,114 @@ import {
 import { formatInteger, formatPrice } from '@/shared/utils/string-utils';
 import { PRICING_UI } from '../constants/pricing.constants';
 import { usePricingGrid } from '../hooks/usePricingGrids';
+import { canAdd } from '../utils/grid-edit';
+import { PRICING_LIMITS } from '../types/pricingGrid';
 import type { PricingGridContent } from '../types/pricingGrid';
+import type { GridOps } from '../hooks/usePricingDraft';
 import type { LabelCell, PriceCell } from '../hooks/usePricingDraft';
 
 const UI = PRICING_UI.DRAWER;
 const SECTIONS = PRICING_UI.DRAWER.SECTIONS;
+
+/**
+ * Le bouton d'ajout d'une section, plafond compris.
+ *
+ * Le plafond se dit **avant** le clic : le serveur le refuserait par un
+ * `at most 20 brackets` en anglais, découvert après avoir saisi la ligne.
+ */
+function AddRow({
+  content,
+  family,
+  label,
+  onAdd,
+  testId,
+}: {
+  content: PricingGridContent;
+  family: 'brackets' | 'plans' | 'options' | 'setupFees' | 'extras';
+  label: string;
+  onAdd: () => void;
+  testId: string;
+}) {
+  const room = canAdd(content, family);
+  const button = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={!room}
+      data-testid={testId}
+      onClick={onAdd}
+    >
+      <Plus />
+      {label}
+    </Button>
+  );
+
+  if (room) return <div className="mt-3">{button}</div>;
+  return (
+    <div className="mt-3">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {/* Un bouton désactivé ne reçoit pas d'événement de pointeur : le
+              `span` porte le focus pour que la raison s'affiche. */}
+          <span tabIndex={0}>{button}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {UI.AT_MOST(PRICING_LIMITS[family], UI.FAMILIES[family])}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+/**
+ * La cellule de retrait d'une ligne.
+ *
+ * Dernière colonne, en-tête centré, bouton-icône avec infobulle : le patron de
+ * `docs/REGLE-OUVRIR-UNE-LIGNE.md`, qui vaut pour toutes les actions d'une
+ * ligne, pas seulement pour l'ouverture.
+ */
+function RemoveCell({
+  label,
+  blocked,
+  onRemove,
+  testId,
+  rowSpan,
+}: {
+  label: string;
+  /** La raison quand le retrait n'est pas possible, `null` sinon. */
+  blocked: string | null;
+  onRemove: () => void;
+  testId: string;
+  /** Un poste de frais occupe une ligne par formule : sa cellule les enjambe. */
+  rowSpan?: number;
+}) {
+  const button = (
+    <Button
+      mode="icon"
+      variant="ghost"
+      disabled={blocked !== null}
+      aria-label={label}
+      data-testid={testId}
+      onClick={onRemove}
+    >
+      <Trash2 />
+    </Button>
+  );
+
+  return (
+    <TableCell rowSpan={rowSpan} className="align-top">
+      <div className="flex items-center justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {blocked ? <span tabIndex={0}>{button}</span> : button}
+          </TooltipTrigger>
+          <TooltipContent>{blocked ?? label}</TooltipContent>
+        </Tooltip>
+      </div>
+    </TableCell>
+  );
+}
 
 /**
  * Un prix, jamais recalculé — le moteur tarifaire est la seule autorité.
@@ -119,12 +229,21 @@ export function PricingGridBody({
   draft,
   setPrice,
   setLabel,
+  ops,
+  onAddPlan,
+  onAddSetupFee,
 }: {
   gridId: string | null;
   /** Le brouillon quand on modifie, `null` en lecture. */
   draft?: PricingGridContent | null;
   setPrice?: (cell: PriceCell, value: number) => void;
   setLabel?: (cell: LabelCell, value: string) => void;
+  /** Les gestes d'ajout et de retrait, absents en lecture. */
+  ops?: GridOps;
+  /* Ajouter une formule ou un poste demande une saisie : ces deux-la passent
+     par une fenetre, que le parent porte. */
+  onAddPlan?: () => void;
+  onAddSetupFee?: () => void;
 }) {
   const { grid, loading } = usePricingGrid(gridId);
   const editing = !!draft;
@@ -167,6 +286,9 @@ export function PricingGridBody({
                 <TableHead>{UI.LABEL}</TableHead>
                 <TableHead className="text-end">{UI.FROM}</TableHead>
                 <TableHead className="text-end">{UI.TO}</TableHead>
+                {ops ? (
+                  <TableHead className="text-center">{UI.ACTIONS}</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -197,11 +319,42 @@ export function PricingGridBody({
                         grille : « et plus », jamais un nombre inventé. */}
                     {b.max === null ? UI.OPEN_ENDED : formatInteger(b.max)}
                   </TableCell>
+                  {ops ? (
+                    <RemoveCell
+                      label={UI.REMOVE.BRACKET}
+                      /* Une grille sans strate ne chiffre plus rien : le
+                         serveur le refuse, l'écran ne le propose pas. */
+                      blocked={
+                        c.brackets.length <= 1 ? UI.LAST_ONE.BRACKET : null
+                      }
+                      testId={`pricing-bracket-remove-${i}`}
+                      onRemove={() => ops.removeBracket(i)}
+                    />
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Wide>
+        {ops ? (
+          <>
+            {/* Ce que le geste fait vraiment : ajouter coupe, retirer rend la
+                plage. Sans le dire, l'utilisateur croit insérer une ligne et
+                s'étonne que les bornes voisines bougent. */}
+            <p className="mt-3 text-xs text-muted-foreground">
+              {UI.BRACKET_HINT}
+            </p>
+            <AddRow
+              content={c}
+              family="brackets"
+              label={UI.ADD.BRACKET}
+              testId="pricing-bracket-add"
+              /* On coupe la dernière strate, celle qui est ouverte : c'est
+                 celle qui a toujours de la place. */
+              onAdd={() => ops.addBracket(c.brackets.length - 1)}
+            />
+          </>
+        ) : null}
       </Section>
 
       <Section
@@ -219,6 +372,9 @@ export function PricingGridBody({
                     {b.label}
                   </TableHead>
                 ))}
+                {ops ? (
+                  <TableHead className="text-center">{UI.ACTIONS}</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,11 +393,33 @@ export function PricingGridBody({
                       />
                     </TableCell>
                   ))}
+                  {ops ? (
+                    <RemoveCell
+                      label={UI.REMOVE.PLAN}
+                      blocked={c.plans.length <= 1 ? UI.LAST_ONE.PLAN : null}
+                      testId={`pricing-plan-remove-${p}`}
+                      /* Retirer la formule emporte **toutes** ses tables de
+                         prix — l'abonnement et chaque poste de frais. Le
+                         serveur refuse un prix orphelin plutôt que de
+                         l'ignorer : il ressusciterait d'anciens tarifs le jour
+                         où le nom revient. */
+                      onRemove={() => ops.removePlan(p)}
+                    />
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Wide>
+        {ops ? (
+          <AddRow
+            content={c}
+            family="plans"
+            label={UI.ADD.PLAN}
+            testId="pricing-plan-add"
+            onAdd={() => onAddPlan?.()}
+          />
+        ) : null}
       </Section>
 
       <Section
@@ -260,13 +438,33 @@ export function PricingGridBody({
                       {b.label}
                     </TableHead>
                   ))}
+                  {ops ? (
+                    <TableHead className="text-center">{UI.ACTIONS}</TableHead>
+                  ) : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {c.options.map((o, oi) => (
-                  <TableRow key={o.id}>
+                  /* Le rang, non l'`id` : un élément neuf n'en a pas encore,
+                     le serveur le lui donne à l'enregistrement. */
+                  <TableRow key={`option-${oi}`}>
                     <TableCell>
-                      <span className="font-medium">{o.name}</span>
+                      {/* Le nom se saisit : une option ajoutée arrive nommée
+                          « Nouvelle option », et `options[].name` est requis —
+                          un champ vide serait refusé en anglais au moment
+                          d'enregistrer toute la grille. */}
+                      {editing ? (
+                        <Input
+                          data-testid={`pricing-opt-name-${oi}`}
+                          value={o.name}
+                          onChange={(e) =>
+                            setLabel?.({ kind: 'option', index: oi }, e.target.value)
+                          }
+                          className="h-8 min-w-48"
+                        />
+                      ) : (
+                        <span className="font-medium">{o.name}</span>
+                      )}
                       {o.included ? (
                         <span className="block text-xs text-muted-foreground">
                           {UI.INCLUDED(o.included)}
@@ -288,6 +486,14 @@ export function PricingGridBody({
                         />
                       </TableCell>
                     ))}
+                    {ops ? (
+                      <RemoveCell
+                        label={UI.REMOVE.OPTION}
+                        blocked={null}
+                        testId={`pricing-opt-remove-${oi}`}
+                        onRemove={() => ops.removeOption(oi)}
+                      />
+                    ) : null}
                   </TableRow>
                 ))}
               </TableBody>
@@ -296,6 +502,15 @@ export function PricingGridBody({
         ) : (
           <p className="text-sm text-muted-foreground">{UI.NO_OPTIONS}</p>
         )}
+        {ops ? (
+          <AddRow
+            content={c}
+            family="options"
+            label={UI.ADD.OPTION}
+            testId="pricing-opt-add"
+            onAdd={ops.addOption}
+          />
+        ) : null}
       </Section>
 
       <Section
@@ -315,6 +530,9 @@ export function PricingGridBody({
                       {b.label}
                     </TableHead>
                   ))}
+                  {ops ? (
+                    <TableHead className="text-center">{UI.ACTIONS}</TableHead>
+                  ) : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -362,6 +580,15 @@ export function PricingGridBody({
                           </TableCell>
                         ),
                       )}
+                      {ops && pi === 0 ? (
+                        <RemoveCell
+                          label={UI.REMOVE.SETUP}
+                          blocked={null}
+                          testId={`pricing-setup-remove-${key}`}
+                          rowSpan={c.plans.length}
+                          onRemove={() => ops.removeSetupFee(key)}
+                        />
+                      ) : null}
                     </TableRow>
                   )),
                 )}
@@ -371,6 +598,15 @@ export function PricingGridBody({
         ) : (
           <p className="text-sm text-muted-foreground">{UI.NO_SETUP}</p>
         )}
+        {ops ? (
+          <AddRow
+            content={c}
+            family="setupFees"
+            label={UI.ADD.SETUP}
+            testId="pricing-setup-add"
+            onAdd={() => onAddSetupFee?.()}
+          />
+        ) : null}
       </Section>
 
       <Section
@@ -384,12 +620,29 @@ export function PricingGridBody({
               <TableRow>
                 <TableHead>{UI.LABEL}</TableHead>
                 <TableHead className="text-end">{UI.UNIT_PRICE}</TableHead>
+                {ops ? (
+                  <TableHead className="text-center">{UI.ACTIONS}</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
               {c.extras.map((e, ei) => (
-                <TableRow key={e.id}>
-                  <TableCell className="font-medium">{e.name}</TableCell>
+                /* Le rang, non l'`id` : un élément neuf n'en a pas encore. */
+                <TableRow key={`extra-${ei}`}>
+                  <TableCell className="font-medium">
+                    {editing ? (
+                      <Input
+                        data-testid={`pricing-extra-name-${ei}`}
+                        value={e.name}
+                        onChange={(ev) =>
+                          setLabel?.({ kind: 'extra', index: ei }, ev.target.value)
+                        }
+                        className="h-8 min-w-48"
+                      />
+                    ) : (
+                      e.name
+                    )}
+                  </TableCell>
                   <TableCell className="text-end tabular-nums">
                     <PriceCellInput
                       value={e.unitPrice}
@@ -398,6 +651,14 @@ export function PricingGridBody({
                       onChange={(nv) => setPrice?.({ kind: 'extra', index: ei }, nv)}
                     />
                   </TableCell>
+                  {ops ? (
+                    <RemoveCell
+                      label={UI.REMOVE.EXTRA}
+                      blocked={null}
+                      testId={`pricing-extra-remove-${ei}`}
+                      onRemove={() => ops.removeExtra(ei)}
+                    />
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>
@@ -405,6 +666,15 @@ export function PricingGridBody({
         ) : (
           <p className="text-sm text-muted-foreground">{UI.NO_EXTRAS}</p>
         )}
+        {ops ? (
+          <AddRow
+            content={c}
+            family="extras"
+            label={UI.ADD.EXTRA}
+            testId="pricing-extra-add"
+            onAdd={ops.addExtra}
+          />
+        ) : null}
       </Section>
     </Accordion>
   );

@@ -35,6 +35,8 @@ import {
   PRICING_BASE_OUTDATED,
   PRICING_HAS_QUOTES,
 } from '../constants/pricing.constants';
+import { AddPlanWindow } from './AddPlanWindow';
+import { AddSetupFeeWindow } from './AddSetupFeeWindow';
 import { PricingIssuesPane } from './PricingIssuesPane';
 import { SavePricingGridWindow } from './SavePricingGridWindow';
 import { ActivatePricingGridWindow } from './ActivatePricingGridWindow';
@@ -199,8 +201,16 @@ export function PricingGridsPane() {
   );
 
   const { grid } = usePricingGrid(openedId);
-  const { draft, editing, dirtyCount, start, stop, setPrice, setLabel } =
-    usePricingDraft(grid?.content ?? null);
+  const {
+    draft,
+    editing,
+    dirtyCount,
+    start,
+    stop,
+    setPrice,
+    setLabel,
+    ...ops
+  } = usePricingDraft(grid?.content ?? null);
   const { saving, create } = useCreatePricingGrid();
   const { saving: fixing, update } = useUpdatePricingGrid();
   const { activating, activate } = useActivatePricingGrid();
@@ -209,6 +219,10 @@ export function PricingGridsPane() {
   /* Ce que le serveur a refuse au dernier envoi, garde brut : la traduction
      vit dans `PricingIssuesPane`, qui sait devant quel champ la poser. */
   const [issues, setIssues] = useState<string[]>([]);
+  /* Ajouter une formule ou un poste demande une saisie, et un controle avant
+     l'envoi : les deux passent par une fenetre. */
+  const [addPlan, setAddPlan] = useState(false);
+  const [addSetup, setAddSetup] = useState(false);
 
   /* Activer et supprimer se font depuis la liste, sur une ligne qui n'est pas
      forcement celle du tiroir : chacun garde donc sa cible. */
@@ -398,6 +412,11 @@ export function PricingGridsPane() {
               draft={draft}
               setPrice={setPrice}
               setLabel={setLabel}
+              /* Les gestes n'existent qu'en modification : en lecture, le
+                 tiroir ne montre ni corbeille ni bouton d'ajout. */
+              ops={editing ? ops : undefined}
+              onAddPlan={() => setAddPlan(true)}
+              onAddSetupFee={() => setAddSetup(true)}
             />
           </div>
         )}
@@ -510,6 +529,26 @@ export function PricingGridsPane() {
             /* La version supprimee pouvait etre celle du tiroir. */
             if (openedId === toDelete.id) close();
           }
+        }}
+      />
+
+      <AddPlanWindow
+        open={addPlan}
+        onOpenChange={setAddPlan}
+        content={draft}
+        onConfirm={(name) => {
+          ops.addPlan(name);
+          setAddPlan(false);
+        }}
+      />
+
+      <AddSetupFeeWindow
+        open={addSetup}
+        onOpenChange={setAddSetup}
+        content={draft}
+        onConfirm={(label, nature) => {
+          ops.addSetupFee(label, nature);
+          setAddSetup(false);
         }}
       />
 
