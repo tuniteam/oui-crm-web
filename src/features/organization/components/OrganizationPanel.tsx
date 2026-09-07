@@ -384,8 +384,9 @@ function PanelBadges({
           variant="secondary"
           appearance="outline"
           /* Un tag libre peut etre long : il se coupe, la ou un statut, qui
-             vient d'une liste fermee, ne le fait jamais. */
-          className="max-w-32 truncate"
+             vient d'une liste fermee, ne le fait jamais. Un `max-w-*` suffit,
+             la coupe par la fin est la regle du composant. */
+          className="max-w-32"
         >
           <BadgeDot />
           {label}
