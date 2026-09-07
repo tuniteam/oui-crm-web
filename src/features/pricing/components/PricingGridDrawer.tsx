@@ -145,9 +145,12 @@ export function PricingGridBody({
   const setupKeys = Object.keys(c.setupFees ?? {});
 
   return (
+    /* **Tout replie a l'ouverture.** Le tiroir s'ouvre alors sur la carte des
+       cinq groupes et leurs decomptes — 6 strates, 3 formules, 6 options — et
+       on deplie ce qu'on est venu voir. Ouvrir une section d'office rendait la
+       liste des groupes invisible en dessous, donc ce qui est disponible. */
     <Accordion
       type="multiple"
-      defaultValue={['brackets']}
       className="w-full"
       data-testid="pricing-grid-body"
     >
