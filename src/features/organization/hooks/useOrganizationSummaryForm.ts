@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ORGANIZATION_DETAIL_UI } from '../constants/organizationDetail.constants';
 import {
   getOrganizationSummarySchema,
+  toDecimal,
   type OrganizationSummarySchemaType,
 } from '../forms/organization-summary-schema';
 import type {
@@ -34,6 +35,10 @@ function toFormValues(o: OrganizationDetail): OrganizationSummarySchemaType {
     phone: o.phone ?? '',
     email: o.email ?? '',
     website: o.website ?? '',
+    /* Une coordonnee se lit telle quelle : la reformater lui ferait perdre
+       des decimales, et une decimale de latitude vaut onze metres. */
+    latitude: o.latitude != null ? String(o.latitude) : '',
+    longitude: o.longitude != null ? String(o.longitude) : '',
     population: o.population != null ? String(o.population) : '',
     schoolCount: o.schoolCount != null ? String(o.schoolCount) : '',
     childCount: o.childCount != null ? String(o.childCount) : '',
@@ -109,6 +114,17 @@ export function useOrganizationSummaryForm(organization: OrganizationDetail) {
     const numbers = ['population', 'schoolCount', 'childCount'] as const;
     for (const field of numbers) {
       if (v[field] !== initial[field]) payload[field] = number(v[field]);
+    }
+
+    /*
+     * Les coordonnees partent en **nombres**, jamais en chaines : le contrat
+     * les stocke en `Float`. `toDecimal` est la meme conversion que celle du
+     * schema — sans elle, `Number('47,81')` vaut `NaN` et la fiche partirait
+     * sans sa position.
+     */
+    const coordinates = ['latitude', 'longitude'] as const;
+    for (const field of coordinates) {
+      if (v[field] !== initial[field]) payload[field] = number(toDecimal(v[field]));
     }
 
     if (v.solution !== initial.solution) payload.solution = text(v.solution);

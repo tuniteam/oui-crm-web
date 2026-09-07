@@ -105,8 +105,17 @@ export function ReusableSheet<THooks>({
           if (preventClose) e.preventDefault();
         }}
       >
-        <SheetHeader className="shrink-0 space-y-2 border-b border-border px-6 py-4">
-          <SheetTitle className="truncate pe-10 text-xl">{title}</SheetTitle>
+        {/*
+         * La gouttiere de la croix est reservee sur **tout** l'entete.
+         *
+         * `OVERLAY_CLOSE_CLASS` la pose en `absolute end-2 top-2` sur 44 px :
+         * elle recouvre donc les deux premieres lignes, pas seulement le
+         * titre. Seul celui-ci portait un `pe-10`, si bien que la ligne
+         * suivante — sous-titre, pastilles, tout ce que `renderHeaderExtra`
+         * rend — passait dessous. La reserve appartient a l'entete.
+         */}
+        <SheetHeader className="shrink-0 space-y-2 border-b border-border ps-6 pe-16 py-4">
+          <SheetTitle className="truncate text-xl">{title}</SheetTitle>
           {description ? (
             <SheetDescription>{description}</SheetDescription>
           ) : null}

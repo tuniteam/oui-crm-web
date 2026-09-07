@@ -8,15 +8,42 @@ export const ORGANIZATION_DETAIL_UI = {
   /** Fiche disparue depuis l'ouverture, ou identifiant périmé dans l'URL. */
   NOT_FOUND: 'Fiche introuvable',
 
+  /**
+   * L'entete, tenu sur deux lignes.
+   *
+   * Le nom, puis le sous-titre et les pastilles cote a cote. Sans plafond,
+   * une fiche a cinq tags poussait l'entete a quatre lignes et le formulaire
+   * d'autant plus bas : ce qu'on vient lire descendait sous la ligne de
+   * flottaison a cause d'une information secondaire.
+   */
+  HEADER: {
+    /**
+     * Longueur du nom sur la ligne d'entete.
+     *
+     * Une limite en **caracteres**, non en pixels : le nom partage sa ligne
+     * avec les pastilles, dont la largeur ne se devine pas. Un `truncate` CSS
+     * laisserait la ligne se decider a l'execution, et le nom finirait coupe
+     * differemment selon les statuts portes par la fiche.
+     */
+    MAX_NAME: 25,
+    /** Au-dela, les tags se resument — les trois statuts, eux, restent. */
+    MAX_TAGS: 2,
+    MORE_TAGS: (n: number) => `+${n}`,
+    MORE_TAGS_TITLE: (labels: string[]) => labels.join(' · '),
+  },
+
   TABS: {
     SUMMARY: 'Synthèse',
     CONTACTS: 'Contacts',
+    /** Ce qui touche a la fiche elle-meme, non a ce qu'elle contient. */
+    SETTINGS: 'Paramètres',
   },
 
   SECTIONS: {
     IDENTITY: 'Identité',
     ENVIRONMENT: 'Environnement périscolaire',
     FOLLOW_UP: 'Suivi',
+    GEO: 'Données géographiques',
   },
 
   /**
@@ -113,6 +140,8 @@ export const ORGANIZATION_DETAIL_UI = {
     PHONE: 'Téléphone',
     EMAIL: 'Email',
     WEBSITE: 'Site internet',
+    LATITUDE: 'Latitude',
+    LONGITUDE: 'Longitude',
 
     SOLUTION: 'Solution en place',
     SCHOOL_COUNT: 'Nombre d’écoles',
@@ -152,7 +181,36 @@ export const ORGANIZATION_DETAIL_UI = {
       'Sans population, aucune strate tarifaire : le devis est bloqué.',
   },
 
+  /**
+   * Ce que la recherche registre sait remplir — verifie sur la reponse reelle.
+   *
+   * `search-registry` rend neuf cles : `name, siret, siren, address,
+   * postalCode, city, inseeCode, department, isActive`. **Ni e-mail, ni
+   * telephone, ni site** : Sirene et `recherche-entreprises` sont des
+   * annuaires d'etablissements. Ces coordonnees viennent de l'import depuis
+   * l'Annuaire de l'administration, qui est un autre chemin.
+   *
+   * Proposer « Completer depuis le registre » en face d'un contact principal
+   * manquant annoncait donc un remede impossible.
+   */
+  REGISTRY_FILLS: ['SIRET', 'ADDRESS', 'POSTAL_CODE'] as readonly string[],
+
+  /** L'action qui repond au manque, quand il en existe une. */
+  MISSING_ACTIONS: {
+    ADD_CONTACT: 'Ajouter un contact',
+  },
+
   /** Intitules des criteres de completude, tels que la V8 les nomme. */
+  /**
+   * Coordonnees — degres decimaux WGS 84.
+   *
+   * Le point est celui de la mairie, avec repli sur le centroide de la
+   * commune. Le dire evite qu'on croie a une adresse approximative, et evite
+   * surtout qu'on les ressaisisse « mieux ».
+   */
+  GEO_HINT:
+    'Degrés décimaux (WGS 84). Point de la mairie, à défaut le centre de la commune.',
+
   MISSING_LABELS: {
     SIRET: 'le SIRET',
     ADDRESS: 'l’adresse',
@@ -171,6 +229,16 @@ export const ORGANIZATION_DETAIL_UI = {
   /** Pied de la V8 : « Créée le … · modifiée le … ». */
   TIMESTAMPS: (created: string, updated: string) =>
     `Créée le ${created} · modifiée le ${updated}`,
+
+  /**
+   * L'etat du formulaire, dans la barre d'actions.
+   *
+   * Un formulaire long se fait oublier : sans ce compte, on quitte la fiche en
+   * croyant avoir enregistre. Il remplace les dates de creation, qui ne sont
+   * pas une action et descendent en pied de Synthese.
+   */
+  DIRTY: (n: number) =>
+    `${n} modification${n > 1 ? 's' : ''} non enregistrée${n > 1 ? 's' : ''}`,
 
   ACTIONS: {
     /**

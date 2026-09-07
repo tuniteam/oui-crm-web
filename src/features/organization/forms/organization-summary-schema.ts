@@ -9,6 +9,8 @@ export const ZOD = {
   SIRET: 'Le SIRET comporte 14 chiffres',
   DEPARTMENT: 'Département invalide (2 ou 3 caractères)',
   POSITIVE: 'Valeur invalide',
+  LATITUDE: 'Latitude attendue entre -90 et 90',
+  LONGITUDE: 'Longitude attendue entre -180 et 180',
 };
 
 /**
@@ -30,6 +32,34 @@ export const optionalNumber = z
   .string()
   .trim()
   .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) >= 0), ZOD.POSITIVE);
+
+/**
+ * Un decimal saisi au clavier, pret a devenir un nombre.
+ *
+ * Un clavier francais donne la virgule, et refuser la saisie qu'il produit
+ * serait absurde. La regle vit ici, en un seul endroit : le schema la lit pour
+ * valider et le formulaire pour construire le corps — ecrite deux fois, elle
+ * finirait par accepter a la saisie ce que l'envoi ne sait plus convertir.
+ */
+export const toDecimal = (raw: string) => raw.trim().replace(',', '.');
+
+/**
+ * Une coordonnee facultative, saisie en texte.
+ *
+ * Bornes reprises du serveur, **eprouvees en direct** : `latitude: 91` et
+ * `longitude: -181` sont refuses par un `400`. Les redire ici evite un
+ * aller-retour, et surtout evite qu'un seul champ hors bornes fasse echouer
+ * l'enregistrement de toute la fiche.
+ */
+const optionalCoordinate = (bound: number, message: string) =>
+  z
+    .string()
+    .trim()
+    .refine((v) => {
+      if (v === '') return true;
+      const n = Number(toDecimal(v));
+      return Number.isFinite(n) && Math.abs(n) <= bound;
+    }, message);
 
 export const getOrganizationSummarySchema = () =>
   z.object({
@@ -53,6 +83,9 @@ export const getOrganizationSummarySchema = () =>
     phone: optionalText(40),
     email: z.string().trim().email(ZOD.EMAIL).or(z.literal('')),
     website: optionalText(),
+
+    latitude: optionalCoordinate(90, ZOD.LATITUDE),
+    longitude: optionalCoordinate(180, ZOD.LONGITUDE),
 
     population: optionalNumber,
     schoolCount: optionalNumber,

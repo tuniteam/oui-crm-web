@@ -22,7 +22,20 @@ export interface BadgeButtonProps
 export type BadgeDotProps = React.HTMLAttributes<HTMLSpanElement>;
 
 const badgeVariants = cva(
-  'inline-flex items-center justify-center border border-transparent font-medium focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 [&_svg]:-ms-px [&_svg]:shrink-0',
+  /*
+   * `min-w-0` et `[&>span]:truncate` : une pastille plafonnee coupe son texte
+   * **par la fin**.
+   *
+   * Elle est en `justify-center` : un `truncate` pose sur elle centre le
+   * texte puis rogne les deux bords — on lisait « nouvellement concurr » pour
+   * « Renouvellement concurrent ». La coupe appartient donc au texte, et le
+   * composant l'applique lui-meme : un appelant qui plafonne la largeur n'a
+   * rien d'autre a faire que poser un `max-w-*`.
+   *
+   * `min-w-0` est indispensable : sans lui, un enfant flex refuse de
+   * retrecir sous sa largeur de contenu et rien ne se coupe.
+   */
+  'inline-flex min-w-0 items-center justify-center border border-transparent font-medium focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 [&_svg]:-ms-px [&_svg]:shrink-0 [&>span:not([data-slot=badge-dot])]:truncate',
   {
     variants: {
       variant: {
@@ -212,6 +225,24 @@ function Badge({
   VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
   const Comp = asChild ? SlotPrimitive.Slot : 'span';
 
+  /*
+   * Le texte nu est enveloppe dans un `span`.
+   *
+   * Un noeud de texte pose dans un conteneur flex devient un item anonyme,
+   * que ni CSS ni `text-overflow` ne savent viser : sans cette enveloppe, la
+   * regle de troncature ci-dessus n'aurait aucune prise. `asChild` en est
+   * exclu — l'appelant fournit alors son propre element.
+   */
+  const children = asChild
+    ? props.children
+    : React.Children.map(props.children, (child) =>
+        typeof child === 'string' || typeof child === 'number' ? (
+          <span>{child}</span>
+        ) : (
+          child
+        ),
+      );
+
   return (
     <Comp
       data-slot="badge"
@@ -220,7 +251,9 @@ function Badge({
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   );
 }
 

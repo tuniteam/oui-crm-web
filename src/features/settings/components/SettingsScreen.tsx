@@ -8,6 +8,7 @@ import {
   ListChecks,
   SlidersHorizontal,
   type LucideIcon,
+  Receipt,
 } from 'lucide-react';
 import { useMeStore } from '@/contexts/useMeStore';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ import { BusinessRulesPane } from './panes/BusinessRulesPane';
 import { CompanyPane } from './panes/CompanyPane';
 import { DocumentsPane } from './panes/DocumentsPane';
 import { ReferenceItemsPane } from './panes/ReferenceItemsPane';
+import { PricingGridsPane } from '@/features/pricing/components/PricingGridsPane';
 import { ScopesPane } from './panes/ScopesPane';
 
 type NavItem = {
@@ -81,6 +83,15 @@ const NAV: NavItem[] = [
     description: D.SCOPES,
     icon: Globe2,
     permission: PERMISSIONS.SCOPES.READ,
+  },
+  {
+    key: T.PRICING,
+    label: I.PRICING,
+    description: D.PRICING,
+    icon: Receipt,
+    /* `pricing:read`, que **les commerciaux ont** : la grille se consulte,
+       elle ne se modifie qu'avec `pricing:update`. */
+    permission: PERMISSIONS.PRICING.READ,
   },
 ];
 
@@ -141,6 +152,10 @@ export function SettingsScreen() {
     // seul l'admin de projet ecrit.
     // Les perimetres ont leur propre permission : `scopes:read` pour lire,
     // que le commercial n'a pas.
+    if (tab === T.PRICING) {
+      return <PricingGridsPane />;
+    }
+
     if (tab === T.SCOPES) {
       return <ScopesPane />;
     }

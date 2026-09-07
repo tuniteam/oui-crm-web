@@ -1,4 +1,5 @@
 import type { PaginationMeta } from '@/components/table/reusable-table';
+import type { OpeningDay } from './organizationDetail';
 
 /**
  * Organismes — `GET /organizations` (US-01-01, lot L1).
@@ -121,6 +122,18 @@ export type OrganizationListParams = {
   leadSource?: string;
   /** Inclusif. `99` = le compteur « fiches incompletes » de la V8. */
   completenessMax?: number;
+  /**
+   * Strate de la grille **active**, par son libelle — traduite en intervalle
+   * de population cote serveur. Le libelle porte un tiret demi-cadratin :
+   * « 0 – 500 hab. » doit etre encode, ce qu'une URL concatenee a la main ne
+   * fait pas. Une fiche sans population n'apparait sous aucune strate.
+   */
+  bracket?: string;
+  /**
+   * Jour d'ouverture declare — SPEC-16, 06/09/2026. Les fiches sans horaires
+   * n'apparaissent sous aucun jour : le filtre restreint deux fois.
+   */
+  openOn?: OpeningDay;
   sort?: OrganizationSort;
   order?: 'asc' | 'desc';
 };

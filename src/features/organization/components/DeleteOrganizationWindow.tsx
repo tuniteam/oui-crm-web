@@ -11,6 +11,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   organizationId: string;
   organizationName: string;
+  /** Ce que la fiche emporte — `counts` du detail, deja charge. */
+  counts?: { contacts: number; activities: number };
   /** Ferme le panneau : la fiche supprimée n'a plus rien à montrer. */
   onDeleted: () => void;
 };
@@ -23,8 +25,11 @@ export function DeleteOrganizationWindow({
   onOpenChange,
   organizationId,
   organizationName,
+  counts,
   onDeleted,
 }: Props) {
+  const carried = UI.CARRIES(counts?.contacts ?? 0, counts?.activities ?? 0);
+
   return (
     <ReusableWindow<Hooks>
       open={open}
@@ -47,6 +52,15 @@ export function DeleteOrganizationWindow({
                 <li key={b}>{b}</li>
               ))}
             </ul>
+
+            {/* Un rendez-vous passe est un historique commercial : c'est ce
+                qu'on ne pense pas a perdre. Annonce avant le clic, pas
+                constate apres. */}
+            {carried ? (
+              <p data-testid="organization-delete-carries" className="text-sm font-medium">
+                {carried}
+              </p>
+            ) : null}
           </div>
         </div>
       )}

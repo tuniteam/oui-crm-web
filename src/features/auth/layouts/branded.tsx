@@ -31,13 +31,19 @@ export function BrandedLayout() {
           </Card>
         </div>
 
-        {/* Illustration (lg+) */}
+        {/*
+          * Illustration (lg+).
+          *
+          * `bg-contain`, jamais `bg-cover` : l'heritage soft-m portait une
+          * photo, qu'on rognait sans dommage. Un dessin au trait rogne mal —
+          * la tete du personnage sortait du cadre.
+          */}
         <div
           className="
             hidden lg:block
             lg:rounded-xl lg:border lg:border-border lg:m-5
             order-1 lg:order-2
-            bg-top xxl:bg-center xl:bg-cover bg-no-repeat
+            bg-center bg-contain bg-no-repeat p-12
             branded-bg
           "
         />

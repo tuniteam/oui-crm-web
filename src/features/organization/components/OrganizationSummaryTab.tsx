@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import { PERMISSIONS } from '@/constants';
 import { formatShortDateFr } from '@/shared/utils/date-utils';
@@ -45,18 +46,26 @@ import { OrganizationCompletenessNotice } from './OrganizationCompletenessNotice
 import { RegistryFillWindow } from './RegistryFillWindow';
 import { OrganizationOpeningHours } from './OrganizationOpeningHours';
 import { OpeningHoursWindow } from './OpeningHoursWindow';
-import { DeleteOrganizationWindow } from './DeleteOrganizationWindow';
-import { ORGANIZATION_DELETE_CARD } from '../constants/organizationDelete.constants';
-import { Card, CardContent } from '@/components/ui/card';
-import { Trash2, Building2, ExternalLink } from 'lucide-react';
+import { Building2, ExternalLink, UserPlus } from 'lucide-react';
 
 const UI = ORGANIZATION_DETAIL_UI;
 const { LABELS, SECTIONS, HINTS, ACTIONS, EMPTY_VALUE, UNASSIGNED } = UI;
 
 type Props = {
   organization: OrganizationDetail;
+  /** Bascule sur l'onglet Contacts : le seul geste qui comble un contact manquant. */
+  onGoToContacts?: () => void;
   /** Ferme le panneau : c'est ce que fait « Annuler ». */
   onClose: () => void;
+  /**
+   * Le pied du panneau, fourni par `ReusableSheet` via `OrganizationPanel`.
+   *
+   * Les actions y sont **projetees** plutot que rendues dans le formulaire :
+   * le pied du composant partage vit hors de la zone qui defile, donc il est
+   * reellement colle en bas. Un `sticky` pose dans le contenu flottait
+   * au-dessus du reste, avec du formulaire visible en dessous.
+   */
+  footerSlot?: HTMLElement | null;
 };
 
 /** Champs du schema rendus par un simple `<Input>`. */
@@ -258,9 +267,13 @@ function CheckboxGroup({
   );
 }
 
-export function OrganizationSummaryTab({ organization, onClose }: Props) {
+export function OrganizationSummaryTab({
+  organization,
+  onClose,
+  footerSlot,
+  onGoToContacts,
+}: Props) {
   const { form, update, submit } = useOrganizationSummaryForm(organization);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const { optionsOf, labelOf, metaOf } = useReferenceLabels();
 
   /** Libelle de l'editeur d'une solution, ou `null` s'il n'y en a pas.
@@ -273,9 +286,6 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
     }
     return labelOf('VENDOR', vendor);
   };
-  const canDelete = useMeStore((s) =>
-    s.hasPermission(PERMISSIONS.ORGANIZATIONS.DELETE),
-  );
   const canUpdate = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.ORGANIZATIONS.UPDATE),
   );
@@ -292,6 +302,55 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
   const [openHours, setOpenHours] = useState(false);
 
   const disabled = !canUpdate || update.loading;
+  /*
+   * Ce que react-hook-form sait deja : les champs touches ET differents de
+   * leur valeur initiale. Recompter nous-memes ferait diverger le compte du
+   * corps reellement envoye.
+   */
+  const dirtyCount = Object.keys(form.formState.dirtyFields).length;
+
+  /*
+   * L'action du bandeau suit ce qui manque.
+   *
+   * Trois criteres sur six sont dans le champ du registre ; le contact
+   * principal se saisit dans son onglet ; la population et l'e-mail se
+   * remplissent dans le formulaire, juste dessous, et n'appellent aucun
+   * bouton.
+   *
+   * **Une fiche complete n'a pas d'action.** Le bandeau vert annonce qu'il
+   * n'y a plus rien a completer : un bouton « Completer depuis le registre »
+   * a cote se contredit avec lui. Un SIRET a corriger se saisit dans le
+   * formulaire, juste dessous.
+   */
+  const missing = organization.completeness?.missing ?? [];
+  const registryHelps = missing.some((m) => UI.REGISTRY_FILLS.includes(m));
+  const onlyContactMissing =
+    missing.length === 1 && missing[0] === 'PRIMARY_CONTACT';
+
+  const completenessAction =
+    canUpdate && canSearchRegistry && registryHelps ? (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        data-testid="registry-fill-open"
+        onClick={() => setOpenRegistry(true)}
+      >
+        <Building2 />
+        {UI.REGISTRY_FILL.OPEN}
+      </Button>
+    ) : onlyContactMissing && onGoToContacts ? (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        data-testid="completeness-add-contact"
+        onClick={onGoToContacts}
+      >
+        <UserPlus />
+        {UI.MISSING_ACTIONS.ADD_CONTACT}
+      </Button>
+    ) : null;
   const typeOptions = optionsOf('STRUCTURE_TYPE');
   const solutionOptions = optionsOf('SOLUTION');
   const serviceOptions = optionsOf('SERVICE');
@@ -304,24 +363,19 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
         autoComplete="off"
         onSubmit={(e) => e.preventDefault()}
       >
-        <OrganizationCompletenessNotice completeness={organization.completeness} />
-
-        {/* Sous le bandeau qui constate le manque, le geste qui le comble :
-            c'est la que l'utilisateur regarde en le decouvrant. */}
-        {canUpdate && canSearchRegistry ? (
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="registry-fill-open"
-              onClick={() => setOpenRegistry(true)}
-            >
-              <Building2 className="size-4" />
-              {UI.REGISTRY_FILL.OPEN}
-            </Button>
-          </div>
-        ) : null}
+        {/*
+          * Le constat et son remede sur la meme bande — mais **le remede qui
+          * correspond au manque**.
+          *
+          * Le registre ne rend ni contact, ni e-mail : le proposer face a un
+          * contact principal manquant annoncait un secours impossible. Quand
+          * il ne peut rien, on offre le geste qui debloque, ou rien du tout —
+          * un bouton qui n'aide pas est pire que pas de bouton.
+          */}
+        <OrganizationCompletenessNotice
+          completeness={organization.completeness}
+          action={completenessAction}
+        />
 
         <RegistryFillWindow
           open={openRegistry}
@@ -549,76 +603,75 @@ export function OrganizationSummaryTab({ organization, onClose }: Props) {
           )}
         />
 
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
-          {/* Dates de la V8, a gauche des actions. Rendues seulement si le
-              serveur les envoie : elles sont facultatives au contrat. */}
-          {organization.createdAt && organization.updatedAt ? (
-            <span
-              data-testid="organization-timestamps"
-              className="me-auto text-xs text-muted-foreground"
-            >
-              {UI.TIMESTAMPS(
-                formatShortDateFr(organization.createdAt),
-                formatShortDateFr(organization.updatedAt),
-              )}
-            </span>
-          ) : null}
-
-          {canUpdate ? (
-            <>
-            <Button
-              type="button"
-              variant="outline"
-              data-testid="organization-cancel"
-              onClick={onClose}
-              disabled={update.loading}
-            >
-              {ACTIONS.CANCEL}
-            </Button>
-              <Button
-                type="button"
-                data-testid="organization-save"
-                onClick={submit}
-                disabled={update.loading}
-              >
-                {ACTIONS.SAVE}
-              </Button>
-            </>
-          ) : null}
+        {/* En fin de formulaire : la position ne se saisit pas au quotidien,
+            elle vient de l'import et se corrige a la marge. */}
+        <SectionTitle>{SECTIONS.GEO}</SectionTitle>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextField
+            control={form.control}
+            disabled={disabled}
+            name="latitude"
+            label={LABELS.LATITUDE}
+          />
+          <TextField
+            control={form.control}
+            disabled={disabled}
+            name="longitude"
+            label={LABELS.LONGITUDE}
+          />
         </div>
+        <p className="-mt-2 text-xs text-muted-foreground">{UI.GEO_HINT}</p>
 
-        {/* Action destructrice, tenue a l'ecart des actions du formulaire. */}
-        {canDelete ? (
-          <Card>
-            <CardContent className="flex items-center justify-between gap-3 py-4">
-              <div>
-                <div className="text-sm font-semibold">
-                  {ORGANIZATION_DELETE_CARD.TITLE}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {ORGANIZATION_DELETE_CARD.DESCRIPTION}
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="destructive"
-                data-testid="organization-delete"
-                onClick={() => setConfirmDelete(true)}
-              >
-                <Trash2 className="size-4" />
-                {ORGANIZATION_DELETE_CARD.TITLE}
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Dates de la V8. Elles quittent la barre d'actions : une date n'est
+            pas une action, et la barre doit rester lisible d'un coup d'oeil. */}
+        {organization.createdAt && organization.updatedAt ? (
+          <p className="text-xs text-muted-foreground">
+            {UI.TIMESTAMPS(
+              formatShortDateFr(organization.createdAt),
+              formatShortDateFr(organization.updatedAt),
+            )}
+          </p>
         ) : null}
 
-        <DeleteOrganizationWindow
-          open={confirmDelete}
-          onOpenChange={setConfirmDelete}
-          organizationId={organization.id}
-          organizationName={organization.name}
-          onDeleted={onClose}
-        />
+        {/* Rendue dans le pied du panneau, hors de la zone qui defile. */}
+        {footerSlot
+          ? createPortal(
+              <>
+            {dirtyCount > 0 ? (
+              <span
+                data-testid="organization-dirty"
+                className="me-auto text-xs font-medium text-warning"
+              >
+                {UI.DIRTY(dirtyCount)}
+              </span>
+            ) : null}
+  
+            {canUpdate ? (
+              <>
+              <Button
+                type="button"
+                variant="outline"
+                data-testid="organization-cancel"
+                onClick={onClose}
+                disabled={update.loading}
+              >
+                {ACTIONS.CANCEL}
+              </Button>
+                <Button
+                  type="button"
+                  data-testid="organization-save"
+                  onClick={submit}
+                  disabled={update.loading}
+                >
+                  {ACTIONS.SAVE}
+                </Button>
+              </>
+            ) : null}
+              </>,
+              footerSlot,
+            )
+          : null}
+
       </form>
     </Form>
   );

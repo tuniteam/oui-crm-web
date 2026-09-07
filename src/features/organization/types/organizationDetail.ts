@@ -51,6 +51,21 @@ export type OrganizationDetail = {
    */
   openingHours?: OpeningHours | null;
 
+  /**
+   * Coordonnees de la mairie — degres decimaux WGS 84.
+   *
+   * Le systeme attendu par Leaflet, Mapbox, l'IGN et OpenStreetMap : **aucune
+   * conversion** cote front. Le point est celui de la mairie, avec repli sur
+   * le centroide de la commune — coherent avec l'adresse stockee, donc la
+   * punaise tombe sur le batiment ou le commercial se rend.
+   *
+   * Des **nombres**, jamais des chaines : `Float` cote serveur, une coordonnee
+   * n'etant pas un montant. `null` quand elles sont inconnues, ce qui est le
+   * cas de tout le jeu de demonstration aujourd'hui.
+   */
+  latitude?: number | null;
+  longitude?: number | null;
+
   population?: number | null;
   /** Strate tarifaire de la grille active du projet. Calculee par l'API. */
   bracketLabel?: string | null;
@@ -109,6 +124,9 @@ export type UpdateOrganizationPayload = {
   website?: string | null;
   /** `null` efface les horaires ; `days: []` serait accepte et **stocke**. */
   openingHours?: OpeningHours | null;
+  /** Degres decimaux WGS 84. `null` efface. */
+  latitude?: number | null;
+  longitude?: number | null;
   solution?: string | null;
   schoolCount?: number | null;
   childCount?: number | null;

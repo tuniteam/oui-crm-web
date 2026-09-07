@@ -68,10 +68,10 @@
       la colonne <b>Front</b> si un service l'appelle.
     </p>
     <div class="kpi">
-      <div><b>166</b><span>routes inventoriées</span></div>
-      <div><b>62</b><span>consommées par le front</span></div>
-      <div><b>104</b><span>non consommées</span></div>
-      <div><b>37%</b><span>de couverture</span></div>
+      <div><b>169</b><span>routes inventoriées</span></div>
+      <div><b>64</b><span>consommées par le front</span></div>
+      <div><b>105</b><span>non consommées</span></div>
+      <div><b>38%</b><span>de couverture</span></div>
     </div>
   </header>
 
@@ -735,7 +735,7 @@
     </article>
 </section>
 <section>
-  <h2>Base commerciale <span class="count">23 / 34 routes côté front · 14 US</span></h2>
+  <h2>Base commerciale <span class="count">25 / 34 routes côté front · 14 US</span></h2>
     <article class="us">
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
@@ -968,7 +968,7 @@
         <span class="us-id">L1 · US-01-10</span>
         <span class="us-title">Kanban de prospection</span>
         <span class="api-state">Livrée 02/09</span>
-        <span class="tag no">0 / 2 côté front</span>
+        <span class="tag yes">2 / 2 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
@@ -978,16 +978,16 @@
           <td class="u">/organizations/board</td>
           <td class="p">organizations:read [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="BOARD_API">BOARD_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         <tr>
           <td><span class="m POST">POST</span></td>
           <td class="u">/organizations/:id/sales-status</td>
           <td class="p">organizations:update [P]</td>
           <td class="s">livrée</td>
-          <td class="f"><span class="tag no">absente du front</span></td>
-          <td class="how"><span class="none">—</span></td>
+          <td class="f"><span class="tag yes">déclarée</span><span class="src" title="SALES_STATUS_API">SALES_STATUS_API</span></td>
+          <td class="how"><span class="tag no">parcours à documenter</span></td>
         </tr>
         </tbody>
       </table></div>
@@ -1206,7 +1206,7 @@
     </article>
 </section>
 <section>
-  <h2>Cycle de vente <span class="count">0 / 27 routes côté front · 10 US</span></h2>
+  <h2>Cycle de vente <span class="count">0 / 30 routes côté front · 10 US</span></h2>
     <article class="us">
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
@@ -1342,7 +1342,7 @@
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
         <span class="us-id">L2 · US-02-04</span>
         <span class="us-title">Soumettre un devis</span>
-        <span class="api-state">À faire</span>
+        <span class="api-state">Livrée 04/09</span>
         <span class="tag no">0 / 1 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1352,7 +1352,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/quotes/:id/submit</td>
           <td class="p">quotes:submit [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1364,7 +1364,7 @@
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
         <span class="us-id">L2 · US-02-05</span>
         <span class="us-title">Valider ou refuser un devis en attente</span>
-        <span class="api-state">À faire</span>
+        <span class="api-state">Livrée 04/09</span>
         <span class="tag no">0 / 2 côté front</span>
       </h3>
       <div class="wrap"><table>
@@ -1374,7 +1374,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/quotes/:id/validate</td>
           <td class="p">quotes:validate [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1382,7 +1382,7 @@
           <td><span class="m POST">POST</span></td>
           <td class="u">/quotes/:id/reject</td>
           <td class="p">quotes:validate [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>
@@ -1393,18 +1393,42 @@
       <h3>
         <!-- Le lot devant l US : les numeros se repetent d un lot a l autre. -->
         <span class="us-id">L2 · US-02-06</span>
-        <span class="us-title">Suivre la vie d'un devis</span>
-        <span class="api-state">À faire</span>
-        <span class="tag no">0 / 1 côté front</span>
+        <span class="us-title">Suivre la vie d’un devis</span>
+        <span class="api-state">Livrée 04/09</span>
+        <span class="tag no">0 / 4 côté front</span>
       </h3>
       <div class="wrap"><table>
         <thead><tr><th>Méthode</th><th>Route</th><th>Accès</th><th>API</th><th>Front</th><th>Parcours dans le front</th></tr></thead>
         <tbody>
         <tr>
           <td><span class="m POST">POST</span></td>
-          <td class="u">/quotes/:id/follow-up · /negotiate · /decline · /reopen</td>
+          <td class="u">/quotes/:id/follow-up</td>
           <td class="p">quotes:update [P]</td>
-          <td class="s">à faire</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/negotiate</td>
+          <td class="p">quotes:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/decline</td>
+          <td class="p">quotes:update [P]</td>
+          <td class="s">livrée</td>
+          <td class="f"><span class="tag no">absente du front</span></td>
+          <td class="how"><span class="none">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="m POST">POST</span></td>
+          <td class="u">/quotes/:id/reopen</td>
+          <td class="p">quotes:create [P]</td>
+          <td class="s">livrée</td>
           <td class="f"><span class="tag no">absente du front</span></td>
           <td class="how"><span class="none">—</span></td>
         </tr>

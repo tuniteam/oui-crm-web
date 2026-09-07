@@ -27,8 +27,53 @@ export function formatFileSize(bytes: number): string {
  */
 const integerFr = new Intl.NumberFormat('fr-FR');
 
+/**
+ * `Intl` rend une espace **fine** insecable (U+202F), presque invisible a la
+ * taille d'un tableau. Les libelles que l'API renvoie — « 5 000 – 10 000 hab. »
+ * — portent une espace ordinaire : cote a cote, nos nombres paraissaient ne pas
+ * etre separes du tout. On garde l'insecable, mais de largeur normale.
+ */
+const NARROW_NBSP = / /g;
+const NBSP = ' ';
+
 export function formatInteger(value: number | string | null | undefined): string {
   if (value === null || value === undefined || value === '') return '';
   const digits = String(value).replace(/\D/g, '');
-  return digits === '' ? '' : integerFr.format(Number(digits));
+  return digits === ''
+    ? ''
+    : integerFr.format(Number(digits)).replace(NARROW_NBSP, NBSP);
+}
+
+/**
+ * Un montant en euros — « 19,90 € », jamais « 20 € ».
+ *
+ * `formatInteger` ne convient pas a de l'argent : il arrondit et perd les
+ * centimes. Un abonnement a 19,90 € s'affichait 20 €, ce qu'un commercial
+ * annonce ensuite a son prospect.
+ *
+ * Deux decimales toujours, comme sur un devis : 129 € s'ecrit « 129,00 € ».
+ */
+const currencyFr = new Intl.NumberFormat('fr-FR', {
+  style: 'currency',
+  currency: 'EUR',
+});
+
+export function formatPrice(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '';
+  return currencyFr.format(value).replace(/ /g, ' ');
+}
+
+/**
+ * Coupe un texte a `max` caracteres, ellipse comprise.
+ *
+ * L'ellipse est le caractere unique U+2026, jamais trois points : elle compte
+ * pour un, et les moteurs de recherche comme les lecteurs d'ecran la
+ * reconnaissent comme une troncature.
+ *
+ * A preferer a `truncate` CSS quand la limite doit etre la **meme partout**
+ * — un nom d'organisme tient sur 25 caracteres dans l'entete de fiche comme
+ * ailleurs, quelle que soit la largeur reelle du panneau.
+ */
+export function truncateText(value: string, max: number): string {
+  return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
 }

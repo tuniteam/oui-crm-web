@@ -70,13 +70,14 @@ export const organizationService = {
   },
 
   /** Suppression logique : la fiche disparait des lectures, la ligne demeure. */
-  remove: async (id: string): Promise<void> => {
-    try {
-      await api.delete(ORGANIZATION_ROUTES.ORGANIZATION_API(id));
-    } catch (err) {
-      throw new Error(getApiErrorMessage(err));
-    }
-  },
+  /**
+   * Non enveloppee dans un `Error` nu : l'appelant a besoin du code brut pour
+   * distinguer un refus `409 ORGANIZATION_HAS_ENGAGEMENTS` — qui se raconte,
+   * chiffres a l'appui — d'un echec technique, et du `meta` qui nomme ce qui
+   * retient la fiche.
+   */
+  remove: (id: string): Promise<void> =>
+    api.delete(ORGANIZATION_ROUTES.ORGANIZATION_API(id)).then(() => undefined),
 
   update: async (
     id: string,

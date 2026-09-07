@@ -188,3 +188,34 @@ export function toOpeningHours(
   const trimmed = comment.trim();
   return { days, ...(trimmed ? { comment: trimmed } : {}) };
 }
+
+/**
+ * L'heure a partir de laquelle un creneau est un apres-midi.
+ *
+ * Le contrat plafonne a deux creneaux mais **ne dit pas** que le premier soit
+ * un matin : une structure ouverte 14:00 – 18:00 n'en a qu'un, et c'est un
+ * apres-midi. Placer par le rang le ferait tomber dans la colonne du matin.
+ */
+const AFTERNOON_FROM = '13:00';
+
+/**
+ * Range les creneaux d'une journee en deux colonnes, matin et apres-midi.
+ *
+ * Aligner simplement a droite ferait glisser un unique creneau du matin sous
+ * la colonne de l'apres-midi : une mairie ouverte le samedi matin paraitrait
+ * ouverte le samedi apres-midi. Le decoupage se fait donc sur l'heure de
+ * debut, jamais sur le rang.
+ *
+ * Rend deux cases, `null` quand la demi-journee est vide. Deux creneaux du
+ * meme cote — cas non observe, mais rien ne l'interdit au contrat — restent
+ * cote a cote dans leur colonne plutot que d'etre perdus.
+ */
+export function toHalfDays(slots: string[]): [string[], string[]] {
+  const morning: string[] = [];
+  const afternoon: string[] = [];
+  for (const slot of slots) {
+    // Comparaison de chaines « HH:mm » : l'ordre lexical y est l'ordre horaire.
+    (slot.slice(0, 5) < AFTERNOON_FROM ? morning : afternoon).push(slot);
+  }
+  return [morning, afternoon];
+}

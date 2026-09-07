@@ -17,3 +17,12 @@ export const FILTER_ALL = 'ALL';
 
 /** Delai avant de relancer la requete quand un filtre change. */
 export const FILTER_DEBOUNCE_MS = 500;
+
+/**
+ * Combien d'options un menu de filtre charge d'un coup.
+ *
+ * Le contrat plafonne les listes a 100. Au-dela, un menu tronque en silence
+ * ferait chercher un commercial qui existe — mieux vaut le plafond du contrat
+ * qu'un nombre choisi au hasard.
+ */
+export const FILTER_OPTIONS_LIMIT = 100;

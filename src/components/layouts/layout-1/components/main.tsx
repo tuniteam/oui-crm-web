@@ -54,7 +54,16 @@ export function Main() {
         {/* Header */}
         <Header />
         {/* Main content */}
-        <main className="grow flex flex-col px-5 overflow-auto pt-(--header-height)">
+        {/*
+          * `relative` n'est pas decoratif : sans lui, `main` n'est pas le bloc
+          * conteneur de ses descendants en `position: absolute`, qui se
+          * rattachent alors au document et **echappent a son `overflow-auto`**.
+          * Deux `span.sr-only` — hauts d'un pixel, invisibles — se posaient
+          * ainsi 155 px sous la fenetre et faisaient defiler la page entiere,
+          * en plus de `main` : deux ascenseurs superposes sur tous les ecrans
+          * assez courts.
+          */}
+        <main className="relative grow flex flex-col px-5 overflow-auto pt-(--header-height)">
           {has500Error ? (
             <Error500 />
           ) : (
