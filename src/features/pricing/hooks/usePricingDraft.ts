@@ -39,6 +39,14 @@ export type GridOps = {
   removeExtra: (index: number) => void;
   addSetupFee: (label: string, nature: SetupFeeNature) => void;
   removeSetupFee: (key: string) => void;
+  /**
+   * La nature d'un poste, apres sa creation.
+   *
+   * Elle commande la ventilation `oneShot` du devis : un poste cree en
+   * « mise en place » alors qu'il finance de la formation fausse le
+   * recapitulatif pluriannuel, et rien a l'ecran ne le rattrape.
+   */
+  setSetupNature: (key: string, nature: SetupFeeNature) => void;
 };
 
 /** Un libellé modifiable : ceux qui s'impriment sur le devis. */
@@ -198,6 +206,12 @@ export function usePricingDraft(source: PricingGridContent | null) {
       addSetupFee: (label: string, nature: SetupFeeNature) =>
         apply((c) => edit.addSetupFee(c, label, nature)),
       removeSetupFee: (key: string) => apply((c) => edit.removeSetupFee(c, key)),
+      setSetupNature: (key: string, nature: SetupFeeNature) =>
+        apply((c) => {
+          const post = c.setupFees?.[key];
+          if (post) post.nature = nature;
+          return c;
+        }),
     }),
     [apply],
   );

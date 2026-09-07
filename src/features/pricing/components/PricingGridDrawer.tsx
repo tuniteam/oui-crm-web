@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -35,12 +36,17 @@ import { PRICING_UI } from '../constants/pricing.constants';
 import { usePricingGrid } from '../hooks/usePricingGrids';
 import { canAdd } from '../utils/grid-edit';
 import { PRICING_LIMITS } from '../types/pricingGrid';
-import type { PricingGridContent } from '../types/pricingGrid';
+import type {
+  PricingGridContent,
+  SetupFeeNature,
+} from '../types/pricingGrid';
 import type { GridOps } from '../hooks/usePricingDraft';
 import type { LabelCell, PriceCell } from '../hooks/usePricingDraft';
 
 const UI = PRICING_UI.DRAWER;
 const SECTIONS = PRICING_UI.DRAWER.SECTIONS;
+/** Les deux natures, dans l'ordre ou l'ecran les propose. */
+const NATURES: SetupFeeNature[] = ['SETUP', 'TRAINING'];
 
 /**
  * Le bouton d'ajout d'une section, plafond compris.
@@ -683,17 +689,64 @@ export function PricingGridBody({
                               ventilation du une-fois, plus la clé : deux
                               postes identiques à l'œil peuvent ventiler
                               différemment, l'écran doit donc le dire. */}
-                          <span className="block">
-                            {c.setupFees?.[key]?.label ?? key}
-                          </span>
-                          <Badge
-                            variant="secondary"
-                            appearance="outline"
-                            size="sm"
-                            className="mt-1 font-normal"
-                          >
-                            {UI.NATURE[c.setupFees?.[key]?.nature ?? 'SETUP']}
-                          </Badge>
+                          {editing ? (
+                            <Input
+                              data-testid={`pricing-setup-label-${key}`}
+                              value={c.setupFees?.[key]?.label ?? key}
+                              onChange={(e) =>
+                                setLabel?.({ kind: 'setup', key }, e.target.value)
+                              }
+                              className={`${QUIET_FIELD} w-full min-w-44 font-medium`}
+                            />
+                          ) : (
+                            <span className="block">
+                              {c.setupFees?.[key]?.label ?? key}
+                            </span>
+                          )}
+                          {/*
+                            * La nature se change après coup.
+                            *
+                            * Deux choix seulement, donc des boutons radio et
+                            * non une liste déroulante — même règle que la
+                            * civilité d'un contact. Et un vrai enjeu : un
+                            * poste créé en « mise en place » alors qu'il
+                            * finance de la formation fausse le récapitulatif
+                            * pluriannuel, sans que rien ne le signale.
+                            */}
+                          {editing && ops ? (
+                            <RadioGroup
+                              value={c.setupFees?.[key]?.nature ?? 'SETUP'}
+                              onValueChange={(v) =>
+                                ops.setSetupNature(key, v as SetupFeeNature)
+                              }
+                              className="mt-1.5 flex gap-3"
+                            >
+                              {NATURES.map((n) => (
+                                <span key={n} className="flex items-center gap-1.5">
+                                  <RadioGroupItem
+                                    value={n}
+                                    id={`pricing-nature-${key}-${n}`}
+                                    data-testid={`pricing-nature-${key}-${n}`}
+                                  />
+                                  <label
+                                    htmlFor={`pricing-nature-${key}-${n}`}
+                                    className="cursor-pointer whitespace-nowrap text-xs font-normal text-muted-foreground"
+                                  >
+                                    {UI.NATURE[n]}
+                                  </label>
+                                </span>
+                              ))}
+                            </RadioGroup>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              appearance="outline"
+                              size="sm"
+                              className="mt-1 font-normal"
+                            >
+                              {UI.NATURE[c.setupFees?.[key]?.nature ?? 'SETUP']}
+                            </Badge>
+                          )}
                         </TableCell>
                       ) : null}
                       <TableCell>{p}</TableCell>
