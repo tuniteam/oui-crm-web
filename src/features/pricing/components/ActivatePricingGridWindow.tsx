@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import {
   noWindowHooks,
   ReusableWindow,
 } from '@/components/window/ReusableWindow';
-import {
-  formatDateStringToDate,
-  formatDateToValue,
-} from '@/shared/utils/date-utils';
 import { PRICING_UI } from '../constants/pricing.constants';
+import { InlineCalendar } from './InlineCalendar';
 import type { PricingGridSummary } from '../types/pricingGrid';
 
 const UI = PRICING_UI.ACTIVATE_WINDOW;
@@ -102,23 +98,11 @@ export function ActivatePricingGridWindow({
 
           <div className="space-y-1.5">
             <Label>{UI.DATE}</Label>
-            {/* Calendrier posé dans la fenêtre, comme à l'enregistrement :
-                un `Popover` n'a place ni dessus ni dessous d'une boîte
-                courte. Mêmes conversions `YYYY-MM-DD` que le composant
-                partagé — jamais `<input type="date">`. */}
-            <div
-              data-testid="pricing-activate-date"
-              className="w-fit rounded-lg border border-border p-2"
-            >
-              <Calendar
-                mode="single"
-                captionLayout="dropdown"
-                startMonth={new Date(new Date().getFullYear() - 1, 0)}
-                endMonth={new Date(new Date().getFullYear() + 5, 11)}
-                selected={formatDateStringToDate(date) ?? undefined}
-                onSelect={(d) => setDate(formatDateToValue(d))}
-              />
-            </div>
+            <InlineCalendar
+              value={date}
+              onChange={setDate}
+              testId="pricing-activate-date"
+            />
             <p className="text-xs text-muted-foreground">{UI.DATE_HINT}</p>
           </div>
         </div>

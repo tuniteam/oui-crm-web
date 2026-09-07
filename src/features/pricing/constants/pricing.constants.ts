@@ -1,3 +1,5 @@
+import { formatInteger } from '@/shared/utils/string-utils';
+import type { IssueCode } from '../utils/grid-issues';
 /** Grille tarifaire — L2 · US-02-01. Routes scopees projet. */
 export const PRICING_ROUTES = {
   PRICING_GRIDS_API: '/pricing-grids',
@@ -65,6 +67,18 @@ export const PRICING_ITEM_IN_USE = 'PRICING_GRID_ITEM_IN_USE';
  */
 export const PRICING_PAGE_SIZE = 20;
 
+/**
+ * Les bornes du calendrier des dates d'effet.
+ *
+ * Elles ne viennent pas du contrat, qui n'en pose aucune : c'est un confort
+ * de saisie. Un an en arriere pour relire une version passee, cinq ans en
+ * avant parce qu'une grille se prepare a l'annee, pas a la decennie.
+ */
+export const PRICING_CALENDAR = {
+  YEARS_BACK: 1,
+  YEARS_AHEAD: 5,
+} as const;
+
 export const PRICING_UI = {
   TITLE: 'Grille tarifaire',
   DESCRIPTION: 'Strates, formules et prix — une version datée à la fois',
@@ -123,6 +137,17 @@ export const PRICING_UI = {
 
   /** Le tiroir : les cinq tableaux de la V8, replies en accordeon. */
   DRAWER: {
+    /**
+     * Le nom d'un élément qu'on vient d'ajouter.
+     *
+     * Jamais vide : le serveur exige `name` et `label`, et les refuse en
+     * anglais à l'enregistrement de toute la grille. Un nom par défaut se
+     * relit et se remplace ; un champ vide se perd de vue.
+     */
+    NEW_NAMES: {
+      OPTION: 'Nouvelle option',
+      EXTRA: 'Nouvelle prestation',
+    },
     /**
      * Ajouter et retirer — SPEC-19.
      *
@@ -450,3 +475,82 @@ export const PRICING_UI = {
     INVALID: 'La grille est refusée : ',
   },
 } as const;
+
+/**
+ * Ce que le serveur refuse, dit en français — SPEC-19.
+ *
+ * `grid-issues.ts` rend une **cause** et des paramètres ; la phrase vit ici,
+ * avec le reste de l'interface. C'est le patron du projet, et c'est ce qui
+ * rend l'utilitaire éprouvable sans rien afficher.
+ *
+ * Un `params` vide est normal : la plupart des causes se disent d'un trait.
+ */
+export const PRICING_ISSUE_TEXT: Record<
+  IssueCode,
+  (p: Record<string, string | number>) => string
+> = {
+  BRACKETS_REQUIRED: () => 'Définissez au moins une strate.',
+  BRACKET_FIRST_AT_ZERO: () =>
+    'La première strate doit commencer à 0 habitant.',
+  BRACKET_LAST_OPEN: () =>
+    'La dernière strate doit rester ouverte (« et plus »).',
+  BRACKET_OVERLAP: (p) => `La strate « ${p.name} » empiète sur la précédente.`,
+  /* La plage n'est nommée que si l'écran a le contenu fautif sous les yeux. */
+  BRACKET_GAP: (p) =>
+    p.from === undefined
+      ? 'Il manque des tailles de commune : certaines ne pourraient pas être chiffrées.'
+      : `Il manque les tailles entre ${formatInteger(Number(p.from))} et ${formatInteger(Number(p.to))} habitants : aucune commune de cette taille ne pourrait être chiffrée.`,
+  BRACKET_MAX_BELOW_MIN: () => 'Le maximum est inférieur au minimum.',
+  BRACKET_LABEL_REQUIRED: () => 'Donnez un nom à cette strate.',
+  BRACKETS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} strates.`,
+
+  PLAN_RESERVED: (p) =>
+    `« ${p.plan} » est un nom réservé : c’est un attribut des postes de frais, qui partagent leur objet avec les prix par formule.`,
+  PLAN_DUPLICATE: () => 'Deux formules portent le même nom.',
+  PLAN_NAME_REQUIRED: () => 'Une formule ne peut pas être sans nom.',
+  PLANS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} formules.`,
+
+  SUBSCRIPTION_MISSING_PRICE: (p) =>
+    `Formule « ${p.plan} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  SUBSCRIPTION_EXTRA_PRICE: (p) =>
+    `Formule « ${p.plan} » : il y a plus de prix que de strates.`,
+  /* Le serveur refuse plutôt que d'ignorer : un prix laissé derrière une
+     formule supprimée ressusciterait d'anciens tarifs le jour où le nom
+     revient. */
+  SUBSCRIPTION_NO_SUCH_PLAN: (p) =>
+    `Des prix d’abonnement subsistent pour la formule « ${p.plan} », qui n’existe plus.`,
+
+  OPTION_MISSING_PRICE: (p) =>
+    `Option « ${p.option} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  OPTION_NAME_REQUIRED: () => 'Donnez un nom à cette option.',
+  OPTION_INCLUDED_INVALID: (p) =>
+    `Option « ${p.option} » : la quantité comprise doit être un nombre positif ou nul.`,
+  OPTION_DUPLICATE_ID: () => 'Deux options portent le même identifiant.',
+  OPTIONS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} options.`,
+
+  SETUP_LABEL_REQUIRED: () => 'Donnez un libellé à ce poste.',
+  SETUP_NATURE_REQUIRED: (p) =>
+    `Le poste « ${p.post} » est-il de la formation ou de la mise en place ? C’est ce choix qui répartit le montant dans le récapitulatif pluriannuel.`,
+  SETUP_NO_SUCH_PLAN: (p) =>
+    `Le poste « ${p.post} » garde des prix pour la formule « ${p.plan} », qui n’existe plus.`,
+  SETUP_MISSING_TABLE: (p) =>
+    `Le poste « ${p.post} » n’a pas de prix pour la formule « ${p.plan} ».`,
+  SETUP_MISSING_PRICE: (p) =>
+    `Poste « ${p.post} », formule « ${p.plan} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  /* L'unicité n'est pas cosmétique : un devis figé reventile ses lignes
+     stockées par libellé, et deux postes homonymes y seraient indiscernables. */
+  SETUP_DUPLICATE_LABEL: () =>
+    'Deux postes de frais portent le même libellé : un devis déjà émis ne saurait plus les distinguer.',
+  SETUP_AT_MOST: (p) =>
+    `Une grille ne peut pas dépasser ${p.max} postes de frais.`,
+
+  EXTRA_PRICE_INVALID: (p) =>
+    `Prestation « ${p.extra} » : le prix doit être un nombre positif ou nul.`,
+  EXTRA_NAME_REQUIRED: () => 'Donnez un nom à cette prestation.',
+  EXTRAS_AT_MOST: (p) =>
+    `Une grille ne peut pas dépasser ${p.max} prestations.`,
+
+  /* Jamais affiché : l'écran compte ces anomalies dans son repli et montre
+     leur chaîne d'origine dans le détail dépliable. */
+  UNKNOWN: () => '',
+};

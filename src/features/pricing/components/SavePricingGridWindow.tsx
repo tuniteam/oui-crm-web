@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import {
   noWindowHooks,
   ReusableWindow,
 } from '@/components/window/ReusableWindow';
-import {
-  formatDateStringToDate,
-  formatDateToValue,
-} from '@/shared/utils/date-utils';
 import { PRICING_UI } from '../constants/pricing.constants';
+import { InlineCalendar } from './InlineCalendar';
 
 const UI = PRICING_UI.SAVE_WINDOW;
 
@@ -66,39 +62,11 @@ export function SavePricingGridWindow({
 
           <div className="space-y-1.5">
             <Label htmlFor="pricing-effective-date">{UI.EFFECTIVE_DATE}</Label>
-            {/*
-              * Le calendrier est **pose dans la fenetre**, non dans une
-              * surcouche.
-              *
-              * `FormDatePicker` ouvre un `Popover` : dans une boite de
-              * dialogue courte, il n'a la place ni dessous — il deborde — ni
-              * dessus — il recouvre le titre. Le probleme n'est pas le
-              * composant, qui va bien partout ailleurs, mais l'endroit : cette
-              * fenetre n'a qu'un seul champ, et c'est une date. Autant la
-              * montrer.
-              *
-              * Meme calendrier de la charte, memes conversions `YYYY-MM-DD`
-              * que le composant partage — jamais `<input type="date">`, dont
-              * le navigateur impose l'apparence.
-              */}
-            {/* `w-fit` : le cadre epouse le calendrier. Etale sur toute la
-                largeur, les listes de mois se centraient sur le cadre pendant
-                que la grille restait a gauche — deux alignements pour un seul
-                objet. */}
-            <div
-              data-testid="pricing-effective-date"
-              className="w-fit rounded-lg border border-border p-2"
-            >
-              <Calendar
-                mode="single"
-                captionLayout="dropdown"
-                startMonth={new Date(new Date().getFullYear() - 1, 0)}
-                endMonth={new Date(new Date().getFullYear() + 5, 11)}
-                defaultMonth={formatDateStringToDate(date) ?? undefined}
-                selected={formatDateStringToDate(date) ?? undefined}
-                onSelect={(d) => setDate(formatDateToValue(d))}
-              />
-            </div>
+            <InlineCalendar
+              value={date}
+              onChange={setDate}
+              testId="pricing-effective-date"
+            />
             <p className="text-xs text-muted-foreground">
               {UI.EFFECTIVE_HINT}
             </p>

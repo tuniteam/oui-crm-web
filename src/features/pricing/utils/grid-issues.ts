@@ -1,4 +1,3 @@
-import { formatInteger } from '@/shared/utils/string-utils';
 import type { PricingGridContent } from '../types/pricingGrid';
 
 /**
@@ -22,7 +21,46 @@ import type { PricingGridContent } from '../types/pricingGrid';
  * connu se traduit devant son champ, et **tout le reste tombe dans un repli
  * générique**. Sans ce repli, une règle ajoutée côté serveur produirait un
  * écran muet — pire qu'un message technique.
+ *
+ * **Cet utilitaire rend une cause et des paramètres, jamais une phrase.**
+ * C'est le patron du projet — `opening-hours.ts` rend `'BACKWARDS'` — et c'est
+ * ce qui le rend éprouvable sans rien afficher : le français vit dans
+ * `constants/`, avec le reste de l'interface.
  */
+
+/** La cause, telle que l'écran la traduira. */
+export type IssueCode =
+  | 'BRACKETS_REQUIRED'
+  | 'BRACKET_FIRST_AT_ZERO'
+  | 'BRACKET_LAST_OPEN'
+  | 'BRACKET_OVERLAP'
+  | 'BRACKET_GAP'
+  | 'BRACKET_MAX_BELOW_MIN'
+  | 'BRACKET_LABEL_REQUIRED'
+  | 'BRACKETS_AT_MOST'
+  | 'PLAN_RESERVED'
+  | 'PLAN_DUPLICATE'
+  | 'PLAN_NAME_REQUIRED'
+  | 'PLANS_AT_MOST'
+  | 'SUBSCRIPTION_MISSING_PRICE'
+  | 'SUBSCRIPTION_EXTRA_PRICE'
+  | 'SUBSCRIPTION_NO_SUCH_PLAN'
+  | 'OPTION_MISSING_PRICE'
+  | 'OPTION_NAME_REQUIRED'
+  | 'OPTION_INCLUDED_INVALID'
+  | 'OPTION_DUPLICATE_ID'
+  | 'OPTIONS_AT_MOST'
+  | 'SETUP_LABEL_REQUIRED'
+  | 'SETUP_NATURE_REQUIRED'
+  | 'SETUP_NO_SUCH_PLAN'
+  | 'SETUP_MISSING_TABLE'
+  | 'SETUP_MISSING_PRICE'
+  | 'SETUP_DUPLICATE_LABEL'
+  | 'SETUP_AT_MOST'
+  | 'EXTRA_PRICE_INVALID'
+  | 'EXTRA_NAME_REQUIRED'
+  | 'EXTRAS_AT_MOST'
+  | 'UNKNOWN';
 
 /** Où poser le message : de quoi viser un champ, ou une section entière. */
 export type IssueAnchor =
@@ -36,8 +74,9 @@ export type IssueAnchor =
 
 export type GridIssue = {
   anchor: IssueAnchor;
-  /** Le message en français, devant le champ. */
-  text: string;
+  code: IssueCode;
+  /** De quoi composer la phrase : noms d'éléments, bornes, décomptes. */
+  params: Record<string, string | number>;
   /** La chaîne d'origine, gardée pour le détail dépliable et le support. */
   raw: string;
 };
@@ -64,35 +103,39 @@ const RULES: {
   build: (
     m: RegExpMatchArray,
     c: PricingGridContent | null,
-  ) => { anchor: IssueAnchor; text: string };
+  ) => Omit<GridIssue, 'raw'>;
 }[] = [
   // ── Strates
   {
     test: /^brackets: at least one bracket is required$/,
     build: () => ({
       anchor: { family: 'brackets' },
-      text: 'Définissez au moins une strate.',
+      code: 'BRACKETS_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^brackets\[0\]\.min: the first bracket must start at 0$/,
     build: () => ({
       anchor: { family: 'brackets', index: 0 },
-      text: 'La première strate doit commencer à 0 habitant.',
+      code: 'BRACKET_FIRST_AT_ZERO',
+      params: {},
     }),
   },
   {
     test: /^brackets: the last bracket must be open-ended$/,
     build: (_m, c) => ({
       anchor: { family: 'brackets', index: (c?.brackets.length ?? 1) - 1 },
-      text: 'La dernière strate doit rester ouverte (« et plus »).',
+      code: 'BRACKET_LAST_OPEN',
+      params: {},
     }),
   },
   {
     test: /^brackets\[(\d+)\]: overlaps the previous bracket$/,
     build: (m, c) => ({
       anchor: { family: 'brackets', index: Number(m[1]) },
-      text: `La strate « ${bracketName(c, Number(m[1]))} » empiète sur la précédente.`,
+      code: 'BRACKET_OVERLAP',
+      params: { name: bracketName(c, Number(m[1])) },
     }),
   },
   {
@@ -109,12 +152,12 @@ const RULES: {
          donneraient alors « entre 501 et 500 habitants ». */
       const named =
         typeof from === 'number' && typeof to === 'number' && to - 1 >= from + 1;
-      const between = named
-        ? ` entre ${formatInteger((from as number) + 1)} et ${formatInteger((to as number) - 1)} habitants`
-        : '';
       return {
         anchor: { family: 'brackets', index: i },
-        text: `Il manque les tailles${between} : aucune commune de cette taille ne pourrait être chiffrée.`,
+        code: 'BRACKET_GAP',
+        params: (named
+          ? { from: (from as number) + 1, to: (to as number) - 1 }
+          : {}) as Record<string, string | number>,
       };
     },
   },
@@ -122,21 +165,24 @@ const RULES: {
     test: /^brackets\[(\d+)\]: max is below min$/,
     build: (m) => ({
       anchor: { family: 'brackets', index: Number(m[1]) },
-      text: 'Le maximum est inférieur au minimum.',
+      code: 'BRACKET_MAX_BELOW_MIN',
+      params: {},
     }),
   },
   {
     test: /^brackets\[(\d+)\]\.label: required$/,
     build: (m) => ({
       anchor: { family: 'brackets', index: Number(m[1]) },
-      text: 'Donnez un nom à cette strate.',
+      code: 'BRACKET_LABEL_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^brackets: at most (\d+) brackets$/,
     build: (m) => ({
       anchor: { family: 'brackets' },
-      text: `Une grille ne peut pas dépasser ${m[1]} strates.`,
+      code: 'BRACKETS_AT_MOST',
+      params: { max: Number(m[1]) },
     }),
   },
 
@@ -145,44 +191,46 @@ const RULES: {
     test: /^plans: "([^"]+)" is a reserved name$/,
     build: (m) => ({
       anchor: { family: 'plans', plan: m[1] },
-      text: `« ${m[1]} » est un nom réservé : c'est un attribut des postes de frais, qui partagent leur objet avec les prix par formule.`,
+      code: 'PLAN_RESERVED',
+      params: { plan: m[1] },
     }),
   },
   {
     test: /^plans: duplicate name/,
     build: () => ({
       anchor: { family: 'plans' },
-      text: 'Deux formules portent le même nom.',
+      code: 'PLAN_DUPLICATE',
+      params: {},
     }),
   },
   {
     test: /^plans: names? (are|is) required/,
     build: () => ({
       anchor: { family: 'plans' },
-      text: 'Une formule ne peut pas être sans nom.',
+      code: 'PLAN_NAME_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^plans: at most (\d+)/,
     build: (m) => ({
       anchor: { family: 'plans' },
-      text: `Une grille ne peut pas dépasser ${m[1]} formules.`,
+      code: 'PLANS_AT_MOST',
+      params: { max: Number(m[1]) },
     }),
   },
 
   // ── Abonnement
   {
     test: /^subscription\.([^:]+): (\d+) prices for (\d+) brackets$/,
-    build: (m, c) => {
-      const missing = bracketName(c, Number(m[2]));
-      return {
-        anchor: { family: 'subscription', plan: m[1], bracket: Number(m[2]) },
-        text:
-          Number(m[2]) < Number(m[3])
-            ? `Formule « ${m[1]} » : il manque un prix à partir de la strate « ${missing} ».`
-            : `Formule « ${m[1]} » : il y a plus de prix que de strates.`,
-      };
-    },
+    build: (m, c) => ({
+      anchor: { family: 'subscription', plan: m[1], bracket: Number(m[2]) },
+      code:
+        Number(m[2]) < Number(m[3])
+          ? 'SUBSCRIPTION_MISSING_PRICE'
+          : 'SUBSCRIPTION_EXTRA_PRICE',
+      params: { plan: m[1], bracket: bracketName(c, Number(m[2])) },
+    }),
   },
   {
     test: /^subscription\.([^:]+): no such plan$/,
@@ -191,7 +239,8 @@ const RULES: {
       /* Le serveur refuse plutôt que d'ignorer : un prix laissé derrière une
          formule supprimée ressusciterait d'anciens tarifs le jour où le nom
          revient. Cet écran nettoie donc en supprimant la formule. */
-      text: `Des prix d'abonnement subsistent pour la formule « ${m[1]} », qui n'existe plus.`,
+      code: 'SUBSCRIPTION_NO_SUCH_PLAN',
+      params: { plan: m[1] },
     }),
   },
 
@@ -200,35 +249,43 @@ const RULES: {
     test: /^options\[(\d+)\]\.unitPrice: (\d+) prices for (\d+) brackets$/,
     build: (m, c) => ({
       anchor: { family: 'options', index: Number(m[1]) },
-      text: `Option « ${optionName(c, Number(m[1]))} » : il manque un prix à partir de la strate « ${bracketName(c, Number(m[2]))} ».`,
+      code: 'OPTION_MISSING_PRICE',
+      params: {
+        option: optionName(c, Number(m[1])),
+        bracket: bracketName(c, Number(m[2])),
+      },
     }),
   },
   {
     test: /^options\[(\d+)\]\.name: required$/,
     build: (m) => ({
       anchor: { family: 'options', index: Number(m[1]) },
-      text: 'Donnez un nom à cette option.',
+      code: 'OPTION_NAME_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^options\[(\d+)\]\.included: must be a number/,
     build: (m, c) => ({
       anchor: { family: 'options', index: Number(m[1]) },
-      text: `Option « ${optionName(c, Number(m[1]))} » : le quota inclus doit être un nombre positif ou nul.`,
+      code: 'OPTION_INCLUDED_INVALID',
+      params: { option: optionName(c, Number(m[1])) },
     }),
   },
   {
     test: /^options: duplicate id$/,
     build: () => ({
       anchor: { family: 'options' },
-      text: 'Deux options portent le même identifiant.',
+      code: 'OPTION_DUPLICATE_ID',
+      params: {},
     }),
   },
   {
     test: /^options: at most (\d+)/,
     build: (m) => ({
       anchor: { family: 'options' },
-      text: `Une grille ne peut pas dépasser ${m[1]} options.`,
+      code: 'OPTIONS_AT_MOST',
+      params: { max: Number(m[1]) },
     }),
   },
 
@@ -237,35 +294,44 @@ const RULES: {
     test: /^setupFees\.([^.]+)\.label: required$/,
     build: (m) => ({
       anchor: { family: 'setupFees', key: m[1] },
-      text: 'Donnez un libellé à ce poste.',
+      code: 'SETUP_LABEL_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^setupFees\.([^.]+)\.nature: TRAINING or SETUP required$/,
     build: (m, c) => ({
       anchor: { family: 'setupFees', key: m[1] },
-      text: `Le poste « ${postName(c, m[1])} » est-il de la formation ou de la mise en place ? C'est ce choix qui répartit le montant dans le récapitulatif pluriannuel.`,
+      code: 'SETUP_NATURE_REQUIRED',
+      params: { post: postName(c, m[1]) },
     }),
   },
   {
     test: /^setupFees\.([^.]+)\.([^:]+): no such plan$/,
     build: (m, c) => ({
       anchor: { family: 'setupFees', key: m[1], plan: m[2] },
-      text: `Le poste « ${postName(c, m[1])} » garde des prix pour la formule « ${m[2]} », qui n'existe plus.`,
+      code: 'SETUP_NO_SUCH_PLAN',
+      params: { post: postName(c, m[1]), plan: m[2] },
     }),
   },
   {
     test: /^setupFees\.([^.]+)\.([^:]+): missing price table$/,
     build: (m, c) => ({
       anchor: { family: 'setupFees', key: m[1], plan: m[2] },
-      text: `Le poste « ${postName(c, m[1])} » n'a pas de prix pour la formule « ${m[2]} ».`,
+      code: 'SETUP_MISSING_TABLE',
+      params: { post: postName(c, m[1]), plan: m[2] },
     }),
   },
   {
     test: /^setupFees\.([^.]+)\.([^:]+): (\d+) prices for (\d+) brackets$/,
     build: (m, c) => ({
       anchor: { family: 'setupFees', key: m[1], plan: m[2] },
-      text: `Poste « ${postName(c, m[1])} », formule « ${m[2]} » : il manque un prix à partir de la strate « ${bracketName(c, Number(m[3]))} ».`,
+      code: 'SETUP_MISSING_PRICE',
+      params: {
+        post: postName(c, m[1]),
+        plan: m[2],
+        bracket: bracketName(c, Number(m[3])),
+      },
     }),
   },
   {
@@ -275,14 +341,16 @@ const RULES: {
       /* L'unicité n'est pas cosmétique : un devis figé reventile ses lignes
          stockées par libellé, et deux postes homonymes y seraient
          indiscernables. */
-      text: 'Deux postes de frais portent le même libellé : un devis déjà émis ne saurait plus les distinguer.',
+      code: 'SETUP_DUPLICATE_LABEL',
+      params: {},
     }),
   },
   {
     test: /^setupFees: at most (\d+)/,
     build: (m) => ({
       anchor: { family: 'setupFees' },
-      text: `Une grille ne peut pas dépasser ${m[1]} postes de frais.`,
+      code: 'SETUP_AT_MOST',
+      params: { max: Number(m[1]) },
     }),
   },
 
@@ -291,21 +359,24 @@ const RULES: {
     test: /^extras\[(\d+)\]\.unitPrice: must be a number/,
     build: (m, c) => ({
       anchor: { family: 'extras', index: Number(m[1]) },
-      text: `Prestation « ${extraName(c, Number(m[1]))} » : le prix doit être un nombre positif ou nul.`,
+      code: 'EXTRA_PRICE_INVALID',
+      params: { extra: extraName(c, Number(m[1])) },
     }),
   },
   {
     test: /^extras\[(\d+)\]\.name: required$/,
     build: (m) => ({
       anchor: { family: 'extras', index: Number(m[1]) },
-      text: 'Donnez un nom à cette prestation.',
+      code: 'EXTRA_NAME_REQUIRED',
+      params: {},
     }),
   },
   {
     test: /^extras: at most (\d+)/,
     build: (m) => ({
       anchor: { family: 'extras' },
-      text: `Une grille ne peut pas dépasser ${m[1]} prestations.`,
+      code: 'EXTRAS_AT_MOST',
+      params: { max: Number(m[1]) },
     }),
   },
 ];
@@ -317,7 +388,7 @@ const RULES: {
  * compte dans son repli générique et le montre dans le détail dépliable, au
  * lieu de se taire.
  */
-export function translateDetails(
+export function readDetails(
   details: string[] | null | undefined,
   content: PricingGridContent | null = null,
 ): GridIssue[] {
@@ -326,11 +397,11 @@ export function translateDetails(
       const m = raw.match(rule.test);
       if (m) return { ...rule.build(m, content), raw };
     }
-    return { anchor: { family: 'unknown' } as IssueAnchor, text: '', raw };
+    return { anchor: { family: 'unknown' }, code: 'UNKNOWN', params: {}, raw };
   });
 }
 
 /** Combien de ces anomalies l'écran ne sait pas nommer. */
 export function unknownCount(issues: GridIssue[]): number {
-  return issues.filter((i) => i.anchor.family === 'unknown').length;
+  return issues.filter((i) => i.code === 'UNKNOWN').length;
 }

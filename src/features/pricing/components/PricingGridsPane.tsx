@@ -390,7 +390,7 @@ export function PricingGridsPane() {
             {editing && opened?.active ? (
               <p
                 data-testid="pricing-active-warning"
-                className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-sm"
+                className="rounded-lg border border-warning bg-warning-soft p-3 text-sm"
               >
                 {UI.EDIT.ACTIVE_WARNING}
               </p>
@@ -399,7 +399,7 @@ export function PricingGridsPane() {
             {editing && opened && activeVersion !== null && !opened.active ? (
               <p
                 data-testid="pricing-not-active-warning"
-                className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-sm"
+                className="rounded-lg border border-warning bg-warning-soft p-3 text-sm"
               >
                 {UI.EDIT.NOT_ACTIVE(opened.version, activeVersion)}
               </p>

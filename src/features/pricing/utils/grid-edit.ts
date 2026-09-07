@@ -35,18 +35,6 @@ export function bracketLabel(min: number, max: number | null): string {
     : `${formatInteger(min)} – ${formatInteger(max)} hab.`;
 }
 
-/**
- * Le nom d'un element qu'on vient d'ajouter.
- *
- * Jamais vide : le serveur exige `name` et `label`, et les refuse en anglais
- * a l'enregistrement. Un nom par defaut se relit et se remplace ; un champ
- * vide se perd de vue et fait echouer la sauvegarde de toute la grille.
- */
-const NEW_NAMES = {
-  OPTION: 'Nouvelle option',
-  EXTRA: 'Nouvelle prestation',
-} as const;
-
 /** Toutes les valeurs par strate d'un contenu, en un seul endroit. */
 function eachPriceRow(
   c: PricingGridContent,
@@ -256,12 +244,16 @@ export function removePlan(
  * (`options[6].name: required`, constate en direct), et un champ laisse vide
  * ne serait refuse qu'a l'enregistrement, en anglais.
  */
-export function addOption(c: PricingGridContent): PricingGridContent {
+export function addOption(
+  c: PricingGridContent,
+  /* Le nom vient de l'ecran : un utilitaire ne porte pas d'interface. */
+  name: string,
+): PricingGridContent {
   return {
     ...c,
     options: [
       ...(c.options ?? []),
-      { name: NEW_NAMES.OPTION, unitPrice: c.brackets.map(() => 0) },
+      { name, unitPrice: c.brackets.map(() => 0) },
     ],
   };
 }
@@ -273,10 +265,13 @@ export function removeOption(
   return { ...c, options: (c.options ?? []).filter((_, i) => i !== index) };
 }
 
-export function addExtra(c: PricingGridContent): PricingGridContent {
+export function addExtra(
+  c: PricingGridContent,
+  name: string,
+): PricingGridContent {
   return {
     ...c,
-    extras: [...(c.extras ?? []), { name: NEW_NAMES.EXTRA, unitPrice: 0 }],
+    extras: [...(c.extras ?? []), { name, unitPrice: 0 }],
   };
 }
 

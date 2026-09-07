@@ -170,7 +170,7 @@ const price = (n: number) => formatPrice(n);
  */
 const QUIET_FIELD =
   'h-8 rounded-md border border-transparent bg-transparent px-2 shadow-none ' +
-  'hover:border-border hover:bg-accent/40 ' +
+  'hover:border-border hover:bg-accent ' +
   'focus-visible:border-primary focus-visible:bg-background';
 
 function PriceCellInput({
@@ -359,7 +359,7 @@ export function PricingGridBody({
                         value={b.label}
                         onChange={(e) =>
                           setLabel?.(
-                            { kind: 'bracket', index: i, field: 'label' },
+                            { kind: 'bracket', index: i },
                             e.target.value,
                           )
                         }
@@ -373,9 +373,35 @@ export function PricingGridBody({
                     {formatInteger(b.min)}
                   </TableCell>
                   <TableCell className="text-end tabular-nums">
-                    {/* La strate ouverte porte `max: null` et clôt toujours la
-                        grille : « et plus », jamais un nombre inventé. */}
-                    {b.max === null ? UI.OPEN_ENDED : formatInteger(b.max)}
+                    {/*
+                      * La borne haute se saisit, et elle seule.
+                      *
+                      * `max` d'une strate et `min` de la suivante sont **la même
+                      * borne**, vue des deux côtés : les laisser saisir
+                      * séparément produit un trou ou un chevauchement dès la
+                      * première frappe. `setBracketBound` recoud la voisine.
+                      *
+                      * La strate ouverte porte `max: null` et clôt toujours la
+                      * grille : « et plus », jamais un nombre inventé — donc pas
+                      * de champ non plus.
+                      */}
+                    {b.max === null ? (
+                      UI.OPEN_ENDED
+                    ) : ops ? (
+                      <Input
+                        type="number"
+                        min={b.min}
+                        step={1}
+                        data-testid={`pricing-bracket-max-${i}`}
+                        value={String(b.max)}
+                        onChange={(e) =>
+                          ops.setBracketBound(i, Number(e.target.value) || 0)
+                        }
+                        className={`${QUIET_FIELD} w-24 text-end tabular-nums`}
+                      />
+                    ) : (
+                      formatInteger(b.max)
+                    )}
                   </TableCell>
                   {ops ? (
                     <RemoveCell

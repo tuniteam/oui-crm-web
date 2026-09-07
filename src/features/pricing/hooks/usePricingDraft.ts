@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import * as edit from '../utils/grid-edit';
+import { PRICING_UI } from '../constants/pricing.constants';
 import type { PricingGridContent, SetupFeeNature } from '../types/pricingGrid';
 
 /**
@@ -38,15 +39,20 @@ export type GridOps = {
   removeExtra: (index: number) => void;
   addSetupFee: (label: string, nature: SetupFeeNature) => void;
   removeSetupFee: (key: string) => void;
-  setSetupNature: (key: string, nature: SetupFeeNature) => void;
 };
 
 /** Un libellé modifiable : ceux qui s'impriment sur le devis. */
 export type LabelCell =
-  | { kind: 'bracket'; index: number; field: 'label' | 'min' | 'max' }
+  /* Le libellé seul : les bornes passent par `setBracketBound`, qui recoud
+     la strate voisine dans le même geste. Deux écrivains pour une même
+     règle, dont un sans garde-fou, finissaient par diverger. */
+  | { kind: 'bracket'; index: number }
   | { kind: 'option'; index: number }
   | { kind: 'setup'; key: string }
   | { kind: 'extra'; index: number };
+
+/** Le nom d'un element neuf : de l'interface, donc pas dans `utils/`. */
+const NEW = PRICING_UI.DRAWER.NEW_NAMES;
 
 const clone = (c: PricingGridContent): PricingGridContent =>
   JSON.parse(JSON.stringify(c)) as PricingGridContent;
@@ -136,11 +142,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
       const next = clone(prev);
       if (cell.kind === 'bracket') {
         const b = next.brackets[cell.index];
-        if (cell.field === 'label') b.label = value;
-        else if (cell.field === 'min') b.min = Number(value) || 0;
-        /* La strate ouverte garde `max: null` : vider le champ la rouvre,
-           plutôt que d'y écrire un plafond inventé. */
-        else b.max = value.trim() === '' ? null : Number(value) || 0;
+        if (b) b.label = value;
       } else if (cell.kind === 'option') {
         const o = next.options?.[cell.index];
         if (o) o.name = value;
@@ -180,7 +182,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
         apply((c) => edit.setBracketBound(c, index, max)),
       addPlan: (name: string) => apply((c) => edit.addPlan(c, name)),
       removePlan: (name: string) => apply((c) => edit.removePlan(c, name)),
-      addOption: () => apply(edit.addOption),
+      addOption: () => apply((c) => edit.addOption(c, NEW.OPTION)),
       setOptionIncluded: (index: number, value: number) =>
         apply((c) => {
           const o = c.options?.[index];
@@ -191,17 +193,11 @@ export function usePricingDraft(source: PricingGridContent | null) {
           return c;
         }),
       removeOption: (index: number) => apply((c) => edit.removeOption(c, index)),
-      addExtra: () => apply(edit.addExtra),
+      addExtra: () => apply((c) => edit.addExtra(c, NEW.EXTRA)),
       removeExtra: (index: number) => apply((c) => edit.removeExtra(c, index)),
       addSetupFee: (label: string, nature: SetupFeeNature) =>
         apply((c) => edit.addSetupFee(c, label, nature)),
       removeSetupFee: (key: string) => apply((c) => edit.removeSetupFee(c, key)),
-      setSetupNature: (key: string, nature: SetupFeeNature) =>
-        apply((c) => {
-          const post = c.setupFees?.[key];
-          if (post) post.nature = nature;
-          return c;
-        }),
     }),
     [apply],
   );

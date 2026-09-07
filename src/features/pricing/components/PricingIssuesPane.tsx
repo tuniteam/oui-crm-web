@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PRICING_UI } from '../constants/pricing.constants';
-import { translateDetails, unknownCount } from '../utils/grid-issues';
+import {
+  PRICING_ISSUE_TEXT,
+  PRICING_UI,
+} from '../constants/pricing.constants';
+import { readDetails, unknownCount } from '../utils/grid-issues';
+import type { GridIssue } from '../utils/grid-issues';
 import type { PricingGridContent } from '../types/pricingGrid';
 
 const UI = PRICING_UI.ERRORS;
@@ -30,8 +34,9 @@ export function PricingIssuesPane({
   const [open, setOpen] = useState(false);
   if (details.length === 0) return null;
 
-  const issues = translateDetails(details, content);
-  const named = issues.filter((i) => i.anchor.family !== 'unknown');
+  const issues = readDetails(details, content);
+  /* La cause devient une phrase ici : l'utilitaire n'en porte aucune. */
+  const named = issues.filter((i: GridIssue) => i.code !== 'UNKNOWN');
   const unknown = unknownCount(issues);
 
   return (
@@ -46,8 +51,8 @@ export function PricingIssuesPane({
 
       {named.length > 0 ? (
         <ul className="mt-2 ms-6 list-disc space-y-1">
-          {named.map((i) => (
-            <li key={i.raw}>{i.text}</li>
+          {named.map((i: GridIssue) => (
+            <li key={i.raw}>{PRICING_ISSUE_TEXT[i.code](i.params)}</li>
           ))}
         </ul>
       ) : null}
@@ -55,7 +60,7 @@ export function PricingIssuesPane({
       {/* Le détail technique existe pour le support et pour les chemins que la
           table ne connaît pas encore. Replié : il ne s'adresse pas au
           commercial qui lit la ligne du dessus. */}
-      {unknown > 0 || named.length < issues.length ? (
+      {unknown > 0 ? (
         <Button
           type="button"
           variant="ghost"
@@ -74,7 +79,7 @@ export function PricingIssuesPane({
             {UI.INVALID_RAW}
           </p>
           <ul className="mt-1 space-y-0.5 font-mono text-xs text-muted-foreground">
-            {issues.map((i) => (
+            {issues.map((i: GridIssue) => (
               <li key={`raw-${i.raw}`}>{i.raw}</li>
             ))}
           </ul>
