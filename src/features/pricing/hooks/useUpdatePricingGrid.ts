@@ -48,10 +48,18 @@ export function useUpdatePricingGrid() {
         toast.error(PRICING_UI.EDIT.HAS_QUOTES(n));
         return;
       }
+      /*
+       * `details[]` n'est **jamais** affiche brut.
+       *
+       * Ce sont des cles de correspondance — `subscription.ESSENTIEL: 1
+       * prices for 2 brackets` — pensees pour etre mappees sur un champ. Le
+       * toast n'en donne que le compte ; la traduction se fait a l'ecran, qui
+       * sait devant quel champ poser chaque message.
+       */
       const details = getApiErrorDetails(err);
       toast.error(
         details?.length
-          ? PRICING_UI.ERRORS.INVALID + details.join(' · ')
+          ? PRICING_UI.ERRORS.INVALID_SUMMARY(details.length)
           : getApiErrorMessage(err) || PRICING_UI.ERRORS.SAVE,
       );
     },
@@ -65,12 +73,20 @@ export function useUpdatePricingGrid() {
       id: string;
       content?: PricingGridContent;
       effectiveDate?: string;
-    }): Promise<{ ok: boolean; code: string | null }> => {
+    }): Promise<{
+      ok: boolean;
+      code: string | null;
+      details: string[];
+    }> => {
       try {
         await mutation.mutateAsync(payload);
-        return { ok: true, code: null };
+        return { ok: true, code: null, details: [] };
       } catch (err) {
-        return { ok: false, code: getApiErrorCode(err) };
+        return {
+          ok: false,
+          code: getApiErrorCode(err),
+          details: getApiErrorDetails(err) ?? [],
+        };
       }
     },
   };

@@ -1,19 +1,27 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { PricingGridContent } from '../types/pricingGrid';
 
-/** Où poser une valeur dans le contenu — un chemin, jamais un index nu. */
+/**
+ * Ou poser une valeur dans le contenu — un chemin, jamais un index nu.
+ *
+ * Les options et les prestations sont adressees par leur **rang dans le
+ * tableau**, non par leur `id` : depuis SPEC-19 un element nouveau n'en a pas
+ * encore, le serveur le lui donnant a l'enregistrement. Le rang n'a de sens
+ * qu'ici, dans un brouillon qui ne bouge pas sous nos pieds ; sur le fil,
+ * c'est `id` qui identifie, et lui seul.
+ */
 export type PriceCell =
   | { kind: 'subscription'; plan: string; bracket: number }
-  | { kind: 'option'; id: number; bracket: number }
+  | { kind: 'option'; index: number; bracket: number }
   | { kind: 'setup'; key: string; plan: string; bracket: number }
-  | { kind: 'extra'; id: number };
+  | { kind: 'extra'; index: number };
 
 /** Un libellé modifiable : ceux qui s'impriment sur le devis. */
 export type LabelCell =
   | { kind: 'bracket'; index: number; field: 'label' | 'min' | 'max' }
-  | { kind: 'option'; id: number }
+  | { kind: 'option'; index: number }
   | { kind: 'setup'; key: string }
-  | { kind: 'extra'; id: number };
+  | { kind: 'extra'; index: number };
 
 const clone = (c: PricingGridContent): PricingGridContent =>
   JSON.parse(JSON.stringify(c)) as PricingGridContent;
@@ -70,7 +78,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
       if (cell.kind === 'subscription') {
         next.subscription[cell.plan][cell.bracket] = value;
       } else if (cell.kind === 'option') {
-        const o = next.options?.find((x) => x.id === cell.id);
+        const o = next.options?.[cell.index];
         if (o) o.unitPrice[cell.bracket] = value;
       } else if (cell.kind === 'setup') {
         const post = next.setupFees?.[cell.key] as
@@ -78,7 +86,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
           | undefined;
         if (post?.[cell.plan]) post[cell.plan][cell.bracket] = value;
       } else {
-        const e = next.extras?.find((x) => x.id === cell.id);
+        const e = next.extras?.[cell.index];
         if (e) e.unitPrice = value;
       }
       return next;
@@ -97,7 +105,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
            plutôt que d'y écrire un plafond inventé. */
         else b.max = value.trim() === '' ? null : Number(value) || 0;
       } else if (cell.kind === 'option') {
-        const o = next.options?.find((x) => x.id === cell.id);
+        const o = next.options?.[cell.index];
         if (o) o.name = value;
       } else if (cell.kind === 'setup') {
         const post = next.setupFees?.[cell.key];
@@ -106,7 +114,7 @@ export function usePricingDraft(source: PricingGridContent | null) {
            libellé ferait retomber la ventilation formation à zéro. */
         if (post) post.label = value;
       } else {
-        const e = next.extras?.find((x) => x.id === cell.id);
+        const e = next.extras?.[cell.index];
         if (e) e.name = value;
       }
       return next;

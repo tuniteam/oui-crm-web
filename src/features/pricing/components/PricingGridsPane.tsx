@@ -35,6 +35,7 @@ import {
   PRICING_BASE_OUTDATED,
   PRICING_HAS_QUOTES,
 } from '../constants/pricing.constants';
+import { PricingIssuesPane } from './PricingIssuesPane';
 import { SavePricingGridWindow } from './SavePricingGridWindow';
 import { ActivatePricingGridWindow } from './ActivatePricingGridWindow';
 import { DeletePricingGridWindow } from './DeletePricingGridWindow';
@@ -205,6 +206,9 @@ export function PricingGridsPane() {
   const { activating, activate } = useActivatePricingGrid();
   const { deleting, remove } = useDeletePricingGrid();
   const [askDate, setAskDate] = useState(false);
+  /* Ce que le serveur a refuse au dernier envoi, garde brut : la traduction
+     vit dans `PricingIssuesPane`, qui sait devant quel champ la poser. */
+  const [issues, setIssues] = useState<string[]>([]);
 
   /* Activer et supprimer se font depuis la liste, sur une ligne qui n'est pas
      forcement celle du tiroir : chacun garde donc sa cible. */
@@ -226,6 +230,7 @@ export function PricingGridsPane() {
 
   const close = () => {
     stop();
+    setIssues([]);
     setOpenedId(null);
   };
 
@@ -386,6 +391,8 @@ export function PricingGridsPane() {
               </p>
             ) : null}
 
+            <PricingIssuesPane details={issues} content={draft} />
+
             <PricingGridBody
               gridId={openedId}
               draft={draft}
@@ -412,7 +419,10 @@ export function PricingGridsPane() {
                     type="button"
                     variant="outline"
                     data-testid="pricing-edit-cancel"
-                    onClick={stop}
+                    onClick={() => {
+                      setIssues([]);
+                      stop();
+                    }}
                   >
                     {UI.EDIT.CANCEL}
                   </Button>
@@ -431,9 +441,11 @@ export function PricingGridsPane() {
                     data-testid="pricing-edit-save"
                     onClick={async () => {
                       if (!draft || !opened) return;
+                      setIssues([]);
                       const r = await update({ id: opened.id, content: draft });
                       if (r.ok) close();
                       else if (r.code === PRICING_HAS_QUOTES) setAskDate(true);
+                      else setIssues(r.details);
                     }}
                   >
                     {UI.EDIT.FIX}
@@ -444,7 +456,10 @@ export function PricingGridsPane() {
                   type="button"
                   variant="outline"
                   data-testid="pricing-edit-start"
-                  onClick={start}
+                  onClick={() => {
+                    setIssues([]);
+                    start();
+                  }}
                 >
                   <Pencil />
                   {UI.EDIT.START}

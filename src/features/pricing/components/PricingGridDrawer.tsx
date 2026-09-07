@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -262,7 +263,7 @@ export function PricingGridBody({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {c.options.map((o) => (
+                {c.options.map((o, oi) => (
                   <TableRow key={o.id}>
                     <TableCell>
                       <span className="font-medium">{o.name}</span>
@@ -279,7 +280,10 @@ export function PricingGridBody({
                           editing={editing}
                           testId={`pricing-opt-${o.id}-${i}`}
                           onChange={(nv) =>
-                            setPrice?.({ kind: 'option', id: o.id, bracket: i }, nv)
+                            setPrice?.(
+                              { kind: 'option', index: oi, bracket: i },
+                              nv,
+                            )
                           }
                         />
                       </TableCell>
@@ -322,10 +326,22 @@ export function PricingGridBody({
                           rowSpan={c.plans.length}
                           className="font-medium align-top"
                         >
-                          {/* Le libellé s'affiche, la clé ne se voit jamais —
-                              c'est elle que le serveur reconnaît pour ventiler
-                              le une-fois sur le devis. */}
-                          {String(c.setupFees?.[key]?.label ?? key)}
+                          {/* Le libellé s'affiche, la clé ne se voit jamais.
+                              Depuis SPEC-19 c'est `nature` qui commande la
+                              ventilation du une-fois, plus la clé : deux
+                              postes identiques à l'œil peuvent ventiler
+                              différemment, l'écran doit donc le dire. */}
+                          <span className="block">
+                            {c.setupFees?.[key]?.label ?? key}
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            appearance="outline"
+                            size="sm"
+                            className="mt-1 font-normal"
+                          >
+                            {UI.NATURE[c.setupFees?.[key]?.nature ?? 'SETUP']}
+                          </Badge>
                         </TableCell>
                       ) : null}
                       <TableCell>{p}</TableCell>
@@ -371,7 +387,7 @@ export function PricingGridBody({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {c.extras.map((e) => (
+              {c.extras.map((e, ei) => (
                 <TableRow key={e.id}>
                   <TableCell className="font-medium">{e.name}</TableCell>
                   <TableCell className="text-end tabular-nums">
@@ -379,7 +395,7 @@ export function PricingGridBody({
                       value={e.unitPrice}
                       editing={editing}
                       testId={`pricing-extra-${e.id}`}
-                      onChange={(nv) => setPrice?.({ kind: 'extra', id: e.id }, nv)}
+                      onChange={(nv) => setPrice?.({ kind: 'extra', index: ei }, nv)}
                     />
                   </TableCell>
                 </TableRow>

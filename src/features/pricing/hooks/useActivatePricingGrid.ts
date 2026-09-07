@@ -50,10 +50,18 @@ export function useActivatePricingGrid() {
       /* Traité par l'écran, qui propose de forcer : un toast rouge ici
          ajouterait du bruit à une question qu'on est en train de poser. */
       if (getApiErrorCode(err) === PRICING_BASE_OUTDATED) return;
+      /*
+       * `details[]` n'est **jamais** affiche brut.
+       *
+       * Ce sont des cles de correspondance — `subscription.ESSENTIEL: 1
+       * prices for 2 brackets` — pensees pour etre mappees sur un champ. Le
+       * toast n'en donne que le compte ; la traduction se fait a l'ecran, qui
+       * sait devant quel champ poser chaque message.
+       */
       const details = getApiErrorDetails(err);
       toast.error(
         details?.length
-          ? PRICING_UI.ERRORS.INVALID + details.join(' · ')
+          ? PRICING_UI.ERRORS.INVALID_SUMMARY(details.length)
           : getApiErrorMessage(err) || PRICING_UI.ERRORS.SAVE,
       );
     },
@@ -75,10 +83,20 @@ export function useActivatePricingGrid() {
       code: string | null;
       activeVersion: number | null;
       basedOnVersion: number | null;
+      /* Le serveur **revalide** le contenu a l'activation : une version
+         preparee il y a des semaines peut echouer sur une regle durcie
+         entre-temps, devant un ecran qui n'a jamais vu ce formulaire. */
+      details: string[];
     }> => {
       try {
         await mutation.mutateAsync(payload);
-        return { ok: true, code: null, activeVersion: null, basedOnVersion: null };
+        return {
+          ok: true,
+          code: null,
+          activeVersion: null,
+          basedOnVersion: null,
+          details: [],
+        };
       } catch (err) {
         const meta = getApiErrorMeta(err);
         const num = (v: unknown) => (typeof v === 'number' ? v : null);
@@ -87,6 +105,7 @@ export function useActivatePricingGrid() {
           code: getApiErrorCode(err),
           activeVersion: num(meta?.activeVersion),
           basedOnVersion: num(meta?.basedOnVersion),
+          details: getApiErrorDetails(err) ?? [],
         };
       }
     },

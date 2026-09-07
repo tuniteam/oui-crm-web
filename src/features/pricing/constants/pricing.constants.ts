@@ -38,6 +38,26 @@ export const PRICING_GRID_ACTIVE = 'PRICING_GRID_ACTIVE';
 export const PRICING_BASE_OUTDATED = 'PRICING_GRID_BASE_OUTDATED';
 
 /**
+ * Un identifiant d'option ou de prestation que ce projet n'a jamais
+ * distribue — SPEC-19.
+ *
+ * Le front ne fabrique plus d'identifiant : un element nouveau part **sans
+ * `id`**, le serveur lui en donne un. Ce code ne devrait donc plus jamais
+ * apparaitre ; s'il apparait, c'est qu'un `id` a ete invente quelque part.
+ */
+export const PRICING_UNKNOWN_ITEM_ID = 'PRICING_GRID_UNKNOWN_ITEM_ID';
+
+/**
+ * Un element retire est encore porte par un devis **brouillon** — SPEC-19.
+ *
+ * `meta.items` nomme les elements, `meta.quotes` les devis qui les
+ * retiennent : l'ecran les liste sans analyser une phrase. Le serveur bloque
+ * plutot que de laisser filer, car retirer la formule d'un brouillon le
+ * rendrait illisible — il se recalcule a chaque lecture.
+ */
+export const PRICING_ITEM_IN_USE = 'PRICING_GRID_ITEM_IN_USE';
+
+/**
  * Combien de versions la liste charge d'un coup.
  *
  * Le defaut du contrat, et il suffit : une grille se revise quelques fois par
@@ -103,6 +123,19 @@ export const PRICING_UI = {
 
   /** Le tiroir : les cinq tableaux de la V8, replies en accordeon. */
   DRAWER: {
+  /**
+   * Ce qu'un poste de frais est, en un mot — SPEC-19.
+   *
+   * Affiche a cote du libelle : c'est `nature`, et non plus la cle ecrite en
+   * dur, qui decide si le montant tombe dans « formation » ou dans « mise en
+   * place » sur le devis. Le taire laisserait deux postes identiques a l'oeil
+   * ventiler differemment.
+   */
+  NATURE: {
+    TRAINING: 'Formation',
+    SETUP: 'Mise en place',
+  },
+
     SECTIONS: {
       BRACKETS: 'Tranches de population',
       SUBSCRIPTION: 'Abonnement HT par mois',
@@ -274,6 +307,38 @@ export const PRICING_UI = {
     FETCH: 'Impossible de charger les grilles tarifaires',
     SAVE: 'Impossible d’enregistrer la grille',
     ACTIVE_GRID: 'La version active ne peut pas être supprimée : le projet se retrouverait sans grille.',
+    /**
+     * Ne devrait jamais s'afficher : le front n'invente plus d'identifiant.
+     * Le message vise donc le developpeur autant que l'utilisateur.
+     */
+    UNKNOWN_ITEM: 'Un élément porte un identifiant inconnu du projet. Rechargez la version et recommencez.',
+
+    /**
+     * Le repli quand le serveur refuse le contenu — SPEC-19.
+     *
+     * `messages.details[]` est une **cle de correspondance**, pas une phrase :
+     * l'anglais et les chemins techniques sont deliberes cote API. On les
+     * traduit devant leur champ ; ce qui reste tombe ici.
+     *
+     * Ce repli n'est pas un ornement : le jour ou une regle s'ajoute cote
+     * serveur, il est tout ce qui separe un message imparfait d'un ecran
+     * muet — et l'ecran muet est pire.
+     */
+    INVALID_SUMMARY: (n: number) =>
+      n > 1
+        ? `Cette grille comporte ${n} anomalies.`
+        : 'Cette grille comporte une anomalie.',
+    INVALID_DETAIL: 'Voir le détail',
+    /** Ce que le support doit pouvoir lire tel quel, sans le montrer d'office. */
+    INVALID_RAW: 'Détail technique',
+    IN_USE: (items: string[], quotes: string[]) =>
+      `Impossible de retirer ${items.join(', ')} : ${
+        quotes.length > 1
+          ? `les devis ${quotes.join(', ')} les utilisent encore`
+          : `le devis ${quotes[0]} l’utilise encore`
+      }. Modifiez ou supprimez ${quotes.length > 1 ? 'ces devis' : 'ce devis'} d’abord.`,
+    IN_USE_FALLBACK:
+      'Un élément retiré est encore utilisé par un devis en brouillon de cette version.',
     DELETE_HAS_QUOTES: (n: number) =>
       `${n} devis est attaché à cette version, brouillon compris : retirez-le avant de supprimer.`,
     /** `details[]` porte le chemin fautif : on les rend tels quels tant que la
