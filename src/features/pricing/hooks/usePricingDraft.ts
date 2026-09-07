@@ -31,6 +31,8 @@ export type GridOps = {
   addPlan: (name: string) => void;
   removePlan: (name: string) => void;
   addOption: () => void;
+  /** La franchise d'une option : ce que l'abonnement couvre avant facturation. */
+  setOptionIncluded: (index: number, value: number) => void;
   removeOption: (index: number) => void;
   addExtra: () => void;
   removeExtra: (index: number) => void;
@@ -179,6 +181,15 @@ export function usePricingDraft(source: PricingGridContent | null) {
       addPlan: (name: string) => apply((c) => edit.addPlan(c, name)),
       removePlan: (name: string) => apply((c) => edit.removePlan(c, name)),
       addOption: () => apply(edit.addOption),
+      setOptionIncluded: (index: number, value: number) =>
+        apply((c) => {
+          const o = c.options?.[index];
+          /* `0` s'ecrit `0`, pas `undefined` : le contrat accepte un nombre
+             positif ou nul, et retirer la cle changerait le sens en « rien
+             n'est compris » de facon implicite. */
+          if (o) o.included = Math.max(0, Math.round(value));
+          return c;
+        }),
       removeOption: (index: number) => apply((c) => edit.removeOption(c, index)),
       addExtra: () => apply(edit.addExtra),
       removeExtra: (index: number) => apply((c) => edit.removeExtra(c, index)),

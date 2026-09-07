@@ -235,7 +235,35 @@ export const PRICING_UI = {
     PLAN: 'Formule',
     POST: 'Poste',
     UNIT_PRICE: 'Prix unitaire HT',
-    INCLUDED: (n: number) => `${n} inclus dans l’abonnement`,
+    /**
+     * La franchise d'une option — `options[].included`.
+     *
+     * Ce n'est pas une mention, c'est une **regle de facturation** : avec
+     * `included: 1`, prendre trois profils n'en facture que deux, et le devis
+     * porte la ligne « Profil Gestionnaire (supplementaire) ». Le prix de la
+     * colonne est donc celui du **supplementaire**, pas celui de l'option.
+     *
+     * « 1 inclus dans l'abonnement » etait vrai et muet sur l'essentiel : ce
+     * qui se passe au-dela.
+     */
+    INCLUDED: (n: number) => `${n} compris`,
+    INCLUDED_HINT: (n: number) =>
+      n > 1
+        ? `Les ${n} premiers sont compris dans l’abonnement ; on facture à partir du ${n + 1}ᵉ, au prix ci-contre.`
+        : 'Le premier est compris dans l’abonnement ; on facture à partir du 2ᵉ, au prix ci-contre.',
+    /**
+     * L'en-tete de la colonne, et la phrase qui la sauve.
+     *
+     * « Compris » seul ne se suffit pas : la question « c'est quoi ? » est
+     * revenue deux fois. Il faut dire **dans quoi** c'est compris, et **ce
+     * qui se passe au-dela** — sans quoi on lit le prix de la colonne comme
+     * le prix de l'option, alors que c'est celui du supplementaire.
+     */
+    INCLUDED_FIELD: 'Compris dans l’abo',
+    INCLUDED_SUBHEAD: 'facturé au-delà',
+    INCLUDED_NONE: 'Rien n’est compris : l’option est facturée dès la première unité.',
+    /** L'unite des strates, dite une fois au lieu de six. */
+    BRACKET_UNIT: 'habitants',
     NO_OPTIONS: 'Aucune option mensuelle.',
     NO_EXTRAS: 'Aucune prestation libre.',
     NO_SETUP: 'Aucun frais de mise en place.',

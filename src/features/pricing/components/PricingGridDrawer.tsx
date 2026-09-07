@@ -4,7 +4,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Plus, Trash2 } from 'lucide-react';
+import {
+  Layers,
+  Package,
+  Plus,
+  Repeat,
+  SlidersHorizontal,
+  Trash2,
+  Wrench,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -149,6 +157,22 @@ const price = (n: number) => formatPrice(n);
  * serveur. Le pas de `0,1` suit la V8 : les abonnements se chiffrent au dixième
  * d'euro, les frais à l'euro.
  */
+/**
+ * Le champ **discret** : sans bordure au repos, cernee au survol et au focus.
+ *
+ * Une bordure permanente sur chaque case transformait le tableau en grille de
+ * boites : quarante rectangles ou l'oeil cherchait des prix. Le contenu doit
+ * primer sur le contenant — la bordure ne sert qu'a designer la case qu'on
+ * s'apprete a modifier, elle n'a pas a etre la le reste du temps.
+ *
+ * Toutes les couleurs viennent du theme : `border`, `accent` au survol,
+ * `ring` au focus.
+ */
+const QUIET_FIELD =
+  'h-8 rounded-md border border-transparent bg-transparent px-2 shadow-none ' +
+  'hover:border-border hover:bg-accent/40 ' +
+  'focus-visible:border-primary focus-visible:bg-background';
+
 function PriceCellInput({
   value,
   editing,
@@ -169,10 +193,20 @@ function PriceCellInput({
       data-testid={testId}
       value={String(value)}
       onChange={(e) => onChange(Number(e.target.value) || 0)}
-      className="h-8 w-24 text-end tabular-nums"
+      className={`${QUIET_FIELD} w-24 text-end tabular-nums`}
     />
   );
 }
+
+/**
+ * L'en-tete d'une colonne de strate.
+ *
+ * Le libelle porte son unite — « 0 – 500 hab. » — et six colonnes la
+ * repetaient six fois, en cassant chaque en-tete sur deux lignes. On la dit
+ * une seule fois sous la rangee ; le libelle stocke, lui, ne bouge pas.
+ */
+const shortBracket = (label: string) =>
+  label.replace(/\s*hab\.?\s*$/i, '').trim() || label;
 
 /**
  * Un tableau large défile **dans son propre conteneur**.
@@ -185,22 +219,46 @@ function Wide({ children }: { children: React.ReactNode }) {
   return <div className="overflow-x-auto">{children}</div>;
 }
 
+/**
+ * L'icone de chaque section — SVG inline, jamais une image.
+ *
+ * Cinq titres alignes et de meme graisse se ressemblent tous : l'oeil doit
+ * les lire pour retrouver celle qu'il cherche. Une icone donne un point
+ * d'accroche different par section, ce qui compte d'autant plus que le tiroir
+ * s'ouvre entierement replie.
+ *
+ * Elles heritent de `currentColor` et suivent donc le theme sans reglage.
+ */
+const SECTION_ICONS = {
+  brackets: Layers,
+  subscription: Repeat,
+  options: SlidersHorizontal,
+  setup: Wrench,
+  extras: Package,
+} as const;
+
 function Section({
   value,
   title,
   count,
   children,
 }: {
-  value: string;
+  value: keyof typeof SECTION_ICONS;
   title: string;
   count: string;
   children: React.ReactNode;
 }) {
+  const Icon = SECTION_ICONS[value];
   return (
     <AccordionItem value={value}>
       <AccordionTrigger data-testid={`pricing-section-${value}`}>
         <span className="flex w-full items-center justify-between pe-3">
-          {title}
+          <span className="flex items-center gap-2.5">
+            {/* `text-muted-foreground` : l'icone repere, elle ne rivalise pas
+                avec le titre. */}
+            <Icon className="size-4 shrink-0 text-muted-foreground" />
+            {title}
+          </span>
           {/* Ce que la section contient, dit sans l'ouvrir : replié, un
               accordéon muet oblige à tout déplier pour trouver. */}
           <span className="text-xs font-normal text-muted-foreground">
@@ -305,7 +363,7 @@ export function PricingGridBody({
                             e.target.value,
                           )
                         }
-                        className="h-8"
+                        className={`${QUIET_FIELD} w-full font-medium`}
                       />
                     ) : (
                       b.label
@@ -368,8 +426,8 @@ export function PricingGridBody({
               <TableRow>
                 <TableHead>{UI.PLAN}</TableHead>
                 {c.brackets.map((b) => (
-                  <TableHead key={b.label} className="text-end">
-                    {b.label}
+                  <TableHead key={b.label} className="text-end whitespace-nowrap">
+                    {shortBracket(b.label)}
                   </TableHead>
                 ))}
                 {ops ? (
@@ -432,15 +490,42 @@ export function PricingGridBody({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{UI.LABEL}</TableHead>
+                  {/* Le libellé ne s'enroule pas : trois lignes de nom
+                      faisaient des rangées de 93 px, et le tableau défile
+                      déjà dans son conteneur. */}
+                  <TableHead className="min-w-56 whitespace-nowrap">
+                    {UI.LABEL}
+                  </TableHead>
+                  {/* La franchise est une colonne, non une note pendue sous
+                      le nom : c'est une donnee de la ligne, elle se lit et se
+                      compare comme les prix. */}
+                  <TableHead className="text-end whitespace-nowrap">
+                    {UI.INCLUDED_FIELD}
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      {UI.INCLUDED_SUBHEAD}
+                    </span>
+                  </TableHead>
                   {c.brackets.map((b) => (
-                    <TableHead key={b.label} className="text-end">
-                      {b.label}
+                    <TableHead key={b.label} className="text-end whitespace-nowrap">
+                      {shortBracket(b.label)}
                     </TableHead>
                   ))}
                   {ops ? (
                     <TableHead className="text-center">{UI.ACTIONS}</TableHead>
                   ) : null}
+                </TableRow>
+                {/* L'unite, une seule fois : six en-tetes portant « hab. » se
+                    cassaient chacun sur deux lignes. */}
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableHead className="h-auto p-0" />
+                  <TableHead className="h-auto p-0" />
+                  <TableHead
+                    colSpan={c.brackets.length}
+                    className="h-auto p-0 pb-2 text-center text-xs font-normal text-muted-foreground"
+                  >
+                    {UI.BRACKET_UNIT}
+                  </TableHead>
+                  {ops ? <TableHead className="h-auto p-0" /> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -448,7 +533,7 @@ export function PricingGridBody({
                   /* Le rang, non l'`id` : un élément neuf n'en a pas encore,
                      le serveur le lui donne à l'enregistrement. */
                   <TableRow key={`option-${oi}`}>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       {/* Le nom se saisit : une option ajoutée arrive nommée
                           « Nouvelle option », et `options[].name` est requis —
                           un champ vide serait refusé en anglais au moment
@@ -460,16 +545,39 @@ export function PricingGridBody({
                           onChange={(e) =>
                             setLabel?.({ kind: 'option', index: oi }, e.target.value)
                           }
-                          className="h-8 min-w-48"
+                          className={`${QUIET_FIELD} w-full min-w-56 font-medium`}
                         />
                       ) : (
                         <span className="font-medium">{o.name}</span>
                       )}
-                      {o.included ? (
-                        <span className="block text-xs text-muted-foreground">
-                          {UI.INCLUDED(o.included)}
-                        </span>
-                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-end tabular-nums">
+                      {editing ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          data-testid={`pricing-opt-included-${oi}`}
+                          value={o.included ?? 0}
+                          onChange={(e) =>
+                            ops?.setOptionIncluded(oi, Number(e.target.value) || 0)
+                          }
+                          className={`${QUIET_FIELD} w-20 text-end tabular-nums`}
+                        />
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {/* `0` s'affiche : une colonne à trous ferait
+                                croire à une donnée manquante. */}
+                            <span tabIndex={0}>{o.included ?? 0}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {o.included
+                              ? UI.INCLUDED_HINT(o.included)
+                              : UI.INCLUDED_NONE}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </TableCell>
                     {o.unitPrice.map((v, i) => (
                       <TableCell key={i} className="text-end tabular-nums">
@@ -526,8 +634,8 @@ export function PricingGridBody({
                   <TableHead>{UI.POST}</TableHead>
                   <TableHead>{UI.PLAN}</TableHead>
                   {c.brackets.map((b) => (
-                    <TableHead key={b.label} className="text-end">
-                      {b.label}
+                    <TableHead key={b.label} className="text-end whitespace-nowrap">
+                      {shortBracket(b.label)}
                     </TableHead>
                   ))}
                   {ops ? (
@@ -637,7 +745,7 @@ export function PricingGridBody({
                         onChange={(ev) =>
                           setLabel?.({ kind: 'extra', index: ei }, ev.target.value)
                         }
-                        className="h-8 min-w-48"
+                        className={`${QUIET_FIELD} w-full min-w-56 font-medium`}
                       />
                     ) : (
                       e.name
