@@ -315,11 +315,15 @@ export function OrganizationSummaryTab({
    * Trois criteres sur six sont dans le champ du registre ; le contact
    * principal se saisit dans son onglet ; la population et l'e-mail se
    * remplissent dans le formulaire, juste dessous, et n'appellent aucun
-   * bouton. Une fiche complete garde le registre, pour corriger un SIRET.
+   * bouton.
+   *
+   * **Une fiche complete n'a pas d'action.** Le bandeau vert annonce qu'il
+   * n'y a plus rien a completer : un bouton « Completer depuis le registre »
+   * a cote se contredit avec lui. Un SIRET a corriger se saisit dans le
+   * formulaire, juste dessous.
    */
   const missing = organization.completeness?.missing ?? [];
-  const registryHelps =
-    missing.length === 0 || missing.some((m) => UI.REGISTRY_FILLS.includes(m));
+  const registryHelps = missing.some((m) => UI.REGISTRY_FILLS.includes(m));
   const onlyContactMissing =
     missing.length === 1 && missing[0] === 'PRIMARY_CONTACT';
 
