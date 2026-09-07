@@ -3,6 +3,7 @@ export const PRICING_ROUTES = {
   PRICING_GRIDS_API: '/pricing-grids',
   ACTIVE_GRID_API: '/pricing-grids/active',
   GRID_API: (id: string) => `/pricing-grids/${id}`,
+  ACTIVATE_GRID_API: (id: string) => `/pricing-grids/${id}/activate`,
 } as const;
 
 /**
@@ -23,6 +24,18 @@ export const PRICING_NO_ACTIVE = 'PRICING_GRID_NO_ACTIVE';
  */
 export const PRICING_HAS_QUOTES = 'PRICING_GRID_HAS_QUOTES';
 export const PRICING_DATE_INVALID = 'PRICING_GRID_EFFECTIVE_DATE_INVALID';
+
+/** La version active ne se supprime pas : le projet serait sans grille. */
+export const PRICING_GRID_ACTIVE = 'PRICING_GRID_ACTIVE';
+
+/**
+ * Version preparee sur une grille qui n'est plus active — SPEC-18.
+ *
+ * `meta` porte `activeVersion` et `basedOnVersion`. Franchissable avec
+ * `force: true` : revenir volontairement a une grille anterieure est
+ * legitime, et le serveur le journalise comme tel.
+ */
+export const PRICING_BASE_OUTDATED = 'PRICING_GRID_BASE_OUTDATED';
 
 /**
  * Combien de versions la liste charge d'un coup.
@@ -63,6 +76,21 @@ export const PRICING_UI = {
   },
 
   VIEW: 'Voir la version',
+  ACTIVATE: 'Activer',
+  DELETE: 'Supprimer',
+
+  /**
+   * Pourquoi une version ne peut pas etre activee.
+   *
+   * `activation.reason` vient du serveur : **le front grise le bouton et
+   * affiche la raison, il ne recalcule pas la regle**, qui vit cote serveur
+   * une seule fois.
+   */
+  CANNOT_ACTIVATE: {
+    ALREADY_ACTIVE: 'C’est déjà la version active.',
+    BASE_OUTDATED: (base: number, active: number) =>
+      `Préparée à partir de la v${base}, alors que la v${active} est active : l’activer écraserait ce qui a été fait entre-temps.`,
+  },
 
   /** La filiation, quand elle existe : le signal qui manque a qui active. */
   DERIVED_FROM: (v: number) => `dérivée de la v${v}`,
@@ -161,20 +189,93 @@ export const PRICING_UI = {
 
   SAVE_WINDOW: {
     TITLE: 'Enregistrer une nouvelle version',
-    LEAD: (next: number) =>
-      `Vos modifications formeront la version ${next}. Elle naît **inactive** : les devis continuent d'être chiffrés avec la version active jusqu'à ce que vous l'activiez.`,
+    /**
+     * **Aucun numero annonce.** Il etait calcule depuis le plus haut connu ;
+     * depuis que `DELETE` existe, la suite a des trous — supprimer la v4 ne
+     * libere pas le 4, la suivante s'appelle v5 — et l'annonce serait fausse
+     * juste apres une suppression. Le serveur attribue, l'ecran lit apres.
+     */
+    LEAD:
+      'Vos modifications formeront une nouvelle version. Elle naît inactive : les devis continuent d’être chiffrés avec la version active jusqu’à ce que vous l’activiez.',
     EFFECTIVE_DATE: 'Date d’effet prévue',
-    /** Declarative : aucun automatisme ne bascule la grille a cette date. */
+    /**
+     * Previsionnelle, et **refixee a l'activation** depuis SPEC-18.
+     *
+     * Le champ reste obligatoire a la creation (`400 INVALID_DATA` sans lui),
+     * mais ce qui fait foi est la date donnee au moment d'activer : la figer
+     * ici garantissait qu'elle serait fausse des que l'activation glissait.
+     */
     EFFECTIVE_HINT:
-      'Documentaire : aucune bascule automatique. L’activation reste un geste explicite.',
+      'Prévisionnelle : aucune bascule automatique. La date qui fera foi se confirme au moment d’activer.',
     CONFIRM: 'Créer la version',
     CANCEL: 'Annuler',
     SAVED: (v: number) => `Version ${v} créée — elle n’est pas encore active.`,
   },
 
+  /**
+   * Pourquoi une version ne se supprime pas.
+   *
+   * Contrairement a l'activation, le serveur n'envoie pas d'etat pret a
+   * l'emploi : les deux raisons se lisent sur la ligne elle-meme — `active`
+   * et `quotesCount`. Ce ne sont pas des regles recalculees, ce sont des
+   * faits affiches dans les colonnes voisines.
+   */
+  CANNOT_DELETE: {
+    ACTIVE: 'La version active ne se supprime pas : le projet serait sans grille.',
+    HAS_QUOTES: (n: number) =>
+      `${n} devis est attaché à cette version, brouillon compris : corriger une version répare ses brouillons, la supprimer les détruirait.`,
+  },
+
+  ACTIVATE_WINDOW: {
+    TITLE: 'Activer cette version',
+    /**
+     * Ce que l'activation change, en langage clair — pas un « Confirmer ? ».
+     *
+     * `quotes` compte les devis **deja emis, toutes versions confondues** :
+     * ce sont eux qui conservent leur chiffrage. Le decompte de la version
+     * qu'on active dirait tout autre chose — souvent zero, puisqu'une version
+     * preparee n'a rien chiffre.
+     */
+    LEAD: (v: number, quotes: number) =>
+      quotes > 0
+        ? `Les nouveaux devis seront chiffrés avec la version ${v}. Les ${quotes} devis déjà émis conservent leur chiffrage.`
+        : `Les nouveaux devis seront chiffrés avec la version ${v}.`,
+    /**
+     * La date se fixe **a l'activation** depuis SPEC-18 : la figer a la
+     * preparation garantissait qu'elle serait fausse des que l'activation
+     * glissait d'un jour. Vide, elle prend le jour meme.
+     */
+    DATE: 'Date d’effet',
+    DATE_HINT: 'Laissée vide, la date d’effet devient aujourd’hui.',
+    /**
+     * Le refus du serveur, dit avec les deux numeros.
+     *
+     * Ils arrivent dans `messages.meta` justement pour eviter d'analyser la
+     * phrase du serveur, qui peut changer.
+     */
+    OUTDATED: (v: number, base: number, active: number) =>
+      `La version ${v} a été préparée à partir de la version ${base}, alors que la version ${active} est active. L’activer écrase ce qui a été fait entre-temps — ce qui est légitime si vous revenez volontairement à cette grille.`,
+    CONFIRM: 'Activer',
+    CONFIRM_FORCE: 'Activer quand même',
+    CANCEL: 'Annuler',
+    DONE: (v: number) => `Version ${v} active — les nouveaux devis la suivent.`,
+  },
+
+  DELETE_WINDOW: {
+    TITLE: 'Supprimer cette version',
+    LEAD: (v: number) =>
+      `La version ${v} sera retirée définitivement. Son numéro ne sera pas réutilisé.`,
+    CONFIRM: 'Supprimer',
+    CANCEL: 'Annuler',
+    DONE: (v: number) => `Version ${v} supprimée.`,
+  },
+
   ERRORS: {
     FETCH: 'Impossible de charger les grilles tarifaires',
     SAVE: 'Impossible d’enregistrer la grille',
+    ACTIVE_GRID: 'La version active ne peut pas être supprimée : le projet se retrouverait sans grille.',
+    DELETE_HAS_QUOTES: (n: number) =>
+      `${n} devis est attaché à cette version, brouillon compris : retirez-le avant de supprimer.`,
     /** `details[]` porte le chemin fautif : on les rend tels quels tant que la
      *  resolution en cellules n'est pas faite (tranche C). */
     INVALID: 'La grille est refusée : ',

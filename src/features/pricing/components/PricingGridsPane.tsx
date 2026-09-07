@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Pencil } from 'lucide-react';
+import { CircleCheck, Eye, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -29,8 +29,15 @@ import { usePricingGrid, usePricingGrids } from '../hooks/usePricingGrids';
 import { usePricingDraft } from '../hooks/usePricingDraft';
 import { useCreatePricingGrid } from '../hooks/usePricingMutations';
 import { useUpdatePricingGrid } from '../hooks/useUpdatePricingGrid';
-import { PRICING_HAS_QUOTES } from '../constants/pricing.constants';
+import { useActivatePricingGrid } from '../hooks/useActivatePricingGrid';
+import { useDeletePricingGrid } from '../hooks/useDeletePricingGrid';
+import {
+  PRICING_BASE_OUTDATED,
+  PRICING_HAS_QUOTES,
+} from '../constants/pricing.constants';
 import { SavePricingGridWindow } from './SavePricingGridWindow';
+import { ActivatePricingGridWindow } from './ActivatePricingGridWindow';
+import { DeletePricingGridWindow } from './DeletePricingGridWindow';
 import type { PricingGridSummary } from '../types/pricingGrid';
 import { PricingGridBody } from './PricingGridDrawer';
 
@@ -56,6 +63,114 @@ function StateBadge({ grid }: { grid: PricingGridSummary }) {
     <Badge variant="secondary" appearance="outline" size="sm" className="whitespace-nowrap">
       {replaced ? UI.STATE.REPLACED : UI.STATE.PREPARED}
     </Badge>
+  );
+}
+
+/**
+ * Ce que le serveur reproche a une version, quand il lui reproche quelque
+ * chose. `null` si elle est activable.
+ */
+const outdatedOf = (g: PricingGridSummary) =>
+  g.activation.reason === 'BASE_OUTDATED'
+    ? { activeVersion: g.activation.activeVersion, basedOnVersion: g.basedOnVersion }
+    : null;
+
+/**
+ * Le bouton « Activer », et la raison quand il ne s'active pas.
+ *
+ * **Deux refus, deux traitements.** `ALREADY_ACTIVE` est une impasse : la
+ * version est deja celle qui chiffre, le bouton est grise et l'infobulle le
+ * dit. `BASE_OUTDATED` n'en est pas une : la version derive d'une grille
+ * perimee, le serveur refuse **sans `force`**, mais revenir volontairement a
+ * une grille anterieure est legitime. Griser la aussi enfermerait
+ * l'administrateur ; le bouton reste donc cliquable et c'est la fenetre qui
+ * expose le risque avant de forcer.
+ *
+ * `<span tabIndex={0}>` : un bouton desactive ne recoit pas d'evenement de
+ * pointeur, son infobulle ne s'ouvrirait jamais. Meme parade que
+ * `CorrectEmailCard`.
+ */
+function ActivateAction({
+  grid,
+  onActivate,
+}: {
+  grid: PricingGridSummary;
+  onActivate: () => void;
+}) {
+  const blocked = grid.activation.reason === 'ALREADY_ACTIVE';
+  const button = (
+    <Button
+      mode="icon"
+      variant="ghost"
+      disabled={blocked}
+      aria-label={UI.ACTIVATE}
+      data-testid={`pricing-activate-${grid.version}`}
+      onClick={onActivate}
+    >
+      <CircleCheck />
+    </Button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {blocked ? <span tabIndex={0}>{button}</span> : button}
+      </TooltipTrigger>
+      <TooltipContent>
+        {blocked
+          ? UI.CANNOT_ACTIVATE.ALREADY_ACTIVE
+          : outdatedOf(grid)
+            ? UI.CANNOT_ACTIVATE.BASE_OUTDATED(
+                grid.basedOnVersion ?? 0,
+                grid.activation.activeVersion ?? 0,
+              )
+            : UI.ACTIVATE}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+/**
+ * Le bouton « Supprimer », grise quand il echouerait a coup sur.
+ *
+ * Les deux refus du serveur se lisent sur la ligne : la version **active** ne
+ * part pas, et **tout** devis attache bloque, brouillon compris. Offrir un
+ * bouton qui repondra toujours 409 apprend la regle par l'echec ; la dire dans
+ * l'infobulle l'apprend avant. Les toasts d'erreur restent en filet pour la
+ * course entre deux administrateurs.
+ */
+function DeleteAction({
+  grid,
+  onDelete,
+}: {
+  grid: PricingGridSummary;
+  onDelete: () => void;
+}) {
+  const reason = grid.active
+    ? UI.CANNOT_DELETE.ACTIVE
+    : grid.quotesCount > 0
+      ? UI.CANNOT_DELETE.HAS_QUOTES(grid.quotesCount)
+      : null;
+  const button = (
+    <Button
+      mode="icon"
+      variant="ghost"
+      disabled={reason !== null}
+      aria-label={UI.DELETE}
+      data-testid={`pricing-delete-${grid.version}`}
+      onClick={onDelete}
+    >
+      <Trash2 />
+    </Button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {reason ? <span tabIndex={0}>{button}</span> : button}
+      </TooltipTrigger>
+      <TooltipContent>{reason ?? UI.DELETE}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -87,12 +202,27 @@ export function PricingGridsPane() {
     usePricingDraft(grid?.content ?? null);
   const { saving, create } = useCreatePricingGrid();
   const { saving: fixing, update } = useUpdatePricingGrid();
+  const { activating, activate } = useActivatePricingGrid();
+  const { deleting, remove } = useDeletePricingGrid();
   const [askDate, setAskDate] = useState(false);
 
-  /* La version suivante est attribuee par le serveur ; on l'annonce depuis la
-     plus haute connue, ce qui suffit a rendre le versionnement visible. */
-  const nextVersion = Math.max(0, ...grids.map((g) => g.version)) + 1;
+  /* Activer et supprimer se font depuis la liste, sur une ligne qui n'est pas
+     forcement celle du tiroir : chacun garde donc sa cible. */
+  const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [outdated, setOutdated] = useState<{
+    activeVersion: number | null;
+    basedOnVersion: number | null;
+  } | null>(null);
+
+  const toActivate = grids.find((g) => g.id === activatingId) ?? null;
+  const toDelete = grids.find((g) => g.id === deletingId) ?? null;
+
   const activeVersion = grids.find((g) => g.active)?.version ?? null;
+
+  /* Les devis deja emis, toutes versions confondues : ce sont eux qui gardent
+     leur chiffrage quand la grille bascule. */
+  const issuedQuotes = grids.reduce((n, g) => n + g.quotesCount, 0);
 
   const close = () => {
     stop();
@@ -183,6 +313,22 @@ export function PricingGridsPane() {
                         </TooltipTrigger>
                         <TooltipContent>{UI.VIEW}</TooltipContent>
                       </Tooltip>
+
+                      {canUpdate ? (
+                        <>
+                          <ActivateAction
+                            grid={g}
+                            onActivate={() => {
+                              setOutdated(outdatedOf(g));
+                              setActivatingId(g.id);
+                            }}
+                          />
+                          <DeleteAction
+                            grid={g}
+                            onDelete={() => setDeletingId(g.id)}
+                          />
+                        </>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -309,10 +455,52 @@ export function PricingGridsPane() {
         }
       />
 
+      <ActivatePricingGridWindow
+        open={activatingId !== null}
+        onOpenChange={(open) => !open && setActivatingId(null)}
+        grid={toActivate}
+        issuedQuotes={issuedQuotes}
+        busy={activating}
+        outdated={outdated}
+        onConfirm={async (payload) => {
+          if (!toActivate) return;
+          const r = await activate({ id: toActivate.id, ...payload });
+          if (r.ok) {
+            setActivatingId(null);
+            setOutdated(null);
+            return;
+          }
+          /* Le serveur a le dernier mot : si sa filiation est perimee alors
+             que la liste la disait bonne — un autre administrateur a active
+             entre-temps — la fenetre reste ouverte et pose la question. */
+          if (r.code === PRICING_BASE_OUTDATED) {
+            setOutdated({
+              activeVersion: r.activeVersion,
+              basedOnVersion: r.basedOnVersion,
+            });
+          }
+        }}
+      />
+
+      <DeletePricingGridWindow
+        open={deletingId !== null}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        grid={toDelete}
+        busy={deleting}
+        onConfirm={async () => {
+          if (!toDelete) return;
+          const ok = await remove({ id: toDelete.id, version: toDelete.version });
+          if (ok) {
+            setDeletingId(null);
+            /* La version supprimee pouvait etre celle du tiroir. */
+            if (openedId === toDelete.id) close();
+          }
+        }}
+      />
+
       <SavePricingGridWindow
         open={askDate}
         onOpenChange={setAskDate}
-        nextVersion={nextVersion}
         saving={saving}
         onConfirm={async (effectiveDate) => {
           if (!draft || !opened) return;

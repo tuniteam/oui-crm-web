@@ -56,6 +56,24 @@ export const pricingService = {
   ): Promise<PricingGrid> =>
     (await api.patch<PricingGrid>(PRICING_ROUTES.GRID_API(id), payload)).data,
 
+  /**
+   * Bascule le projet sur cette version. `200`, idempotent.
+   *
+   * `effectiveDate` absente → la date d'effet devient celle de l'activation.
+   * `force` franchit le refus d'une version derivee d'une grille perimee.
+   * Non enveloppee : l'appelant route `409 PRICING_GRID_BASE_OUTDATED`.
+   */
+  activate: async (
+    id: string,
+    payload: { effectiveDate?: string; force?: boolean } = {},
+  ): Promise<PricingGrid> =>
+    (
+      await api.post<PricingGrid>(
+        PRICING_ROUTES.ACTIVATE_GRID_API(id),
+        payload,
+      )
+    ).data,
+
   /** Renonce a une version. `204`. */
   remove: async (id: string): Promise<void> => {
     await api.delete(PRICING_ROUTES.GRID_API(id));

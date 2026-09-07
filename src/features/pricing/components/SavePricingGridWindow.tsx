@@ -35,13 +35,11 @@ const today = () => {
 export function SavePricingGridWindow({
   open,
   onOpenChange,
-  nextVersion,
   saving,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  nextVersion: number;
   saving: boolean;
   onConfirm: (effectiveDate: string) => void;
 }) {
@@ -63,7 +61,7 @@ export function SavePricingGridWindow({
       renderBody={() => (
         <div className="space-y-4" data-testid="pricing-save-window">
           <p className="text-sm text-muted-foreground">
-            {UI.LEAD(nextVersion).replace(/\*\*/g, '')}
+            {UI.LEAD}
           </p>
 
           <div className="space-y-1.5">
