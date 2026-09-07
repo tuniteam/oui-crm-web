@@ -6,8 +6,14 @@ import { ReusableSheet } from '@/components/drawer/ReusableSheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReferenceLabels } from '@/features/settings/hooks/useReferenceLabels';
 import { Badge, BadgeDot } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toneOf } from '@/shared/constants/tone';
+import { truncateText } from '@/shared/utils/string-utils';
 import {
   CUSTOMER_STATUS_LABELS,
   CUSTOMER_STATUS_TONES,
@@ -161,59 +167,24 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHooks={() => usePanelData(organizationId, open)}
       title={
-        organizationId ? <PanelTitle organizationId={organizationId} /> : ''
+        organizationId ? (
+          <PanelTitle organizationId={organizationId} />
+        ) : (
+          ''
+        )
       }
-      renderHeaderExtra={({ organization, typeLabel, labelOf }) =>
+      renderHeaderExtra={({ organization, typeLabel }) =>
         organization ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {[
-                typeLabel ?? organization.type,
-                organization.city,
-                `Dépt. ${organization.department}`,
-                organization.bracketLabel,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Les teintes viennent des tables de la feature, jamais du
-                  composant : la meme valeur porte la meme couleur ici et dans
-                  la liste. */}
-              <Badge
-                variant={toneOf(SALES_STATUS_TONES, organization.salesStatus)}
-                appearance="outline"
-              >
-                <BadgeDot />
-                {SALES_STATUS_LABELS[organization.salesStatus]}
-              </Badge>
-              <Badge
-                variant={toneOf(
-                  CUSTOMER_STATUS_TONES,
-                  organization.customerStatus,
-                )}
-                appearance="outline"
-              >
-                <BadgeDot />
-                {CUSTOMER_STATUS_LABELS[organization.customerStatus]}
-              </Badge>
-              {organization.priority ? (
-                <Badge
-                  variant={toneOf(PRIORITY_TONES, organization.priority)}
-                  appearance="outline"
-                >
-                  <BadgeDot />
-                  {PRIORITY_LABELS[organization.priority]}
-                </Badge>
-              ) : null}
-              {(organization.tags ?? []).map((t) => (
-                <Badge key={t} variant="secondary" appearance="outline">
-                  <BadgeDot />
-                  {labelOf('TAG', t) ?? t}
-                </Badge>
-              ))}
-            </div>
-          </div>
+          <p className="truncate text-sm text-muted-foreground">
+            {[
+              typeLabel ?? organization.type,
+              organization.city,
+              `${ORGANIZATIONS_UI.TABLE_HEADERS.DEPARTMENT} ${organization.department}`,
+              organization.bracketLabel,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
         ) : null
       }
       renderFooter={({ organization }) =>
@@ -355,6 +326,90 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
  * Le panneau se referme de lui-meme : il n'y a rien a y faire, et le laisser
  * ouvert sur un message inviterait a insister.
  */
+/**
+ * Les pastilles de la fiche, posees a la suite du nom.
+ *
+ * Elles ne se coupent jamais — un statut a moitie lisible ne vaut rien — et
+ * au-dela de `MAX_TAGS` les tags se resument par « +2 », leur liste restant
+ * dans l'infobulle. Sans ce plafond, une fiche a cinq tags poussait l'entete
+ * a quatre lignes et le formulaire d'autant plus bas : ce qu'on vient lire
+ * descendait sous la ligne de flottaison a cause d'une information
+ * secondaire.
+ */
+function PanelBadges({
+  organization,
+  labelOf,
+}: {
+  organization: OrganizationDetail;
+  labelOf: ReturnType<typeof useReferenceLabels>['labelOf'];
+}) {
+  const H = ORGANIZATION_DETAIL_UI.HEADER;
+  const tags = (organization.tags ?? []).map((t) => labelOf('TAG', t) ?? t);
+  const shown = tags.slice(0, H.MAX_TAGS);
+  const hidden = tags.slice(H.MAX_TAGS);
+
+  /* Les teintes viennent des tables de la feature, jamais du composant : la
+     meme valeur porte la meme couleur ici et dans la liste. */
+  return (
+    <span className="flex shrink-0 items-center gap-2 text-sm font-normal">
+      <Badge
+        variant={toneOf(SALES_STATUS_TONES, organization.salesStatus)}
+        appearance="outline"
+        className="whitespace-nowrap"
+      >
+        <BadgeDot />
+        {SALES_STATUS_LABELS[organization.salesStatus]}
+      </Badge>
+      <Badge
+        variant={toneOf(CUSTOMER_STATUS_TONES, organization.customerStatus)}
+        appearance="outline"
+        className="whitespace-nowrap"
+      >
+        <BadgeDot />
+        {CUSTOMER_STATUS_LABELS[organization.customerStatus]}
+      </Badge>
+      {organization.priority ? (
+        <Badge
+          variant={toneOf(PRIORITY_TONES, organization.priority)}
+          appearance="outline"
+          className="whitespace-nowrap"
+        >
+          <BadgeDot />
+          {PRIORITY_LABELS[organization.priority]}
+        </Badge>
+      ) : null}
+      {shown.map((label) => (
+        <Badge
+          key={label}
+          variant="secondary"
+          appearance="outline"
+          /* Un tag libre peut etre long : il se coupe, la ou un statut, qui
+             vient d'une liste fermee, ne le fait jamais. */
+          className="max-w-32 truncate"
+        >
+          <BadgeDot />
+          {label}
+        </Badge>
+      ))}
+      {hidden.length > 0 ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/* Une pastille n'est pas un bouton : le `span` porte le focus
+                clavier pour que l'infobulle s'ouvre, la pastille garde sa
+                forme d'information. */}
+            <span tabIndex={0}>
+              <Badge variant="secondary" appearance="outline">
+                {H.MORE_TAGS(hidden.length)}
+              </Badge>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{H.MORE_TAGS_TITLE(hidden)}</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </span>
+  );
+}
+
 function PanelNotFound({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const timer = setTimeout(onClose, NOT_FOUND_CLOSE_DELAY_MS);
@@ -373,11 +428,41 @@ function PanelNotFound({ onClose }: { onClose: () => void }) {
 }
 
 /** Titre du panneau : le nom de la fiche, ou un squelette pendant le chargement. */
+/**
+ * La premiere ligne de l'entete : le nom, puis les pastilles a sa droite.
+ *
+ * Le nom est coupe a `MAX_NAME` caracteres — en caracteres et non en pixels,
+ * pour qu'il tombe au meme endroit quelles que soient les pastilles portees
+ * par la fiche. Le nom entier reste dans l'infobulle : une fiche qu'on ne
+ * peut plus nommer n'est plus identifiable.
+ */
 function PanelTitle({ organizationId }: { organizationId: string }) {
   const { organization } = useOrganization(organizationId);
-  return organization ? (
-    <span data-testid="organization-panel-title">{organization.name}</span>
-  ) : (
-    <Skeleton className="h-6 w-64" />
+  /* Le titre est rendu hors du render-prop qui porte `labelOf` : il appelle
+     donc le hook lui-meme. Aucun appel de plus au serveur — les referentiels
+     sont deja en cache. */
+  const { labelOf } = useReferenceLabels();
+  if (!organization) return <Skeleton className="h-6 w-64" />;
+
+  const H = ORGANIZATION_DETAIL_UI.HEADER;
+  const short = truncateText(organization.name, H.MAX_NAME);
+  const name = (
+    <span data-testid="organization-panel-title">{short}</span>
+  );
+
+  return (
+    <span className="flex items-center gap-2.5">
+      {short === organization.name ? (
+        name
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span tabIndex={0}>{name}</span>
+          </TooltipTrigger>
+          <TooltipContent>{organization.name}</TooltipContent>
+        </Tooltip>
+      )}
+      <PanelBadges organization={organization} labelOf={labelOf} />
+    </span>
   );
 }

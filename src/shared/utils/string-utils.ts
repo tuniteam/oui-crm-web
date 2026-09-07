@@ -62,3 +62,18 @@ export function formatPrice(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '';
   return currencyFr.format(value).replace(/ /g, ' ');
 }
+
+/**
+ * Coupe un texte a `max` caracteres, ellipse comprise.
+ *
+ * L'ellipse est le caractere unique U+2026, jamais trois points : elle compte
+ * pour un, et les moteurs de recherche comme les lecteurs d'ecran la
+ * reconnaissent comme une troncature.
+ *
+ * A preferer a `truncate` CSS quand la limite doit etre la **meme partout**
+ * — un nom d'organisme tient sur 25 caracteres dans l'entete de fiche comme
+ * ailleurs, quelle que soit la largeur reelle du panneau.
+ */
+export function truncateText(value: string, max: number): string {
+  return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
+}

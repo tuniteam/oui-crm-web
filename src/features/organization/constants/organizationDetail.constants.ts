@@ -8,6 +8,30 @@ export const ORGANIZATION_DETAIL_UI = {
   /** Fiche disparue depuis l'ouverture, ou identifiant périmé dans l'URL. */
   NOT_FOUND: 'Fiche introuvable',
 
+  /**
+   * L'entete, tenu sur deux lignes.
+   *
+   * Le nom, puis le sous-titre et les pastilles cote a cote. Sans plafond,
+   * une fiche a cinq tags poussait l'entete a quatre lignes et le formulaire
+   * d'autant plus bas : ce qu'on vient lire descendait sous la ligne de
+   * flottaison a cause d'une information secondaire.
+   */
+  HEADER: {
+    /**
+     * Longueur du nom sur la ligne d'entete.
+     *
+     * Une limite en **caracteres**, non en pixels : le nom partage sa ligne
+     * avec les pastilles, dont la largeur ne se devine pas. Un `truncate` CSS
+     * laisserait la ligne se decider a l'execution, et le nom finirait coupe
+     * differemment selon les statuts portes par la fiche.
+     */
+    MAX_NAME: 25,
+    /** Au-dela, les tags se resument — les trois statuts, eux, restent. */
+    MAX_TAGS: 2,
+    MORE_TAGS: (n: number) => `+${n}`,
+    MORE_TAGS_TITLE: (labels: string[]) => labels.join(' · '),
+  },
+
   TABS: {
     SUMMARY: 'Synthèse',
     CONTACTS: 'Contacts',
