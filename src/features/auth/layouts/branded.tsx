@@ -3,6 +3,7 @@ import { toAbsoluteUrl } from '@/lib/helpers';
 import { Card, CardContent } from '@/components/ui/card';
 import { AUTH } from '../constants/auth.constants';
 import { AUTH_ILLUSTRATIONS } from '../constants/constants';
+import { formatShortDateTimeFr } from '@/shared/utils/date-utils';
 
 export function BrandedLayout() {
   return (
@@ -26,6 +27,14 @@ export function BrandedLayout() {
               <Outlet />
               <p className="text-center text-xs text-muted-foreground pt-6">
                 {AUTH.UI.COPYRIGHT(new Date().getFullYear())}
+              </p>
+              {/* Lisible sans compte : on vérifie un déploiement depuis une
+                  fenêtre privée, sans se déconnecter. */}
+              <p
+                data-testid="build-time"
+                className="text-center text-xs text-muted-foreground pt-1"
+              >
+                {AUTH.UI.BUILT_AT(formatShortDateTimeFr(__BUILD_TIME__))}
               </p>
             </CardContent>
           </Card>

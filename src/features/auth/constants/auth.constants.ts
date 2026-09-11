@@ -3,6 +3,8 @@ export const AUTH = {
   UI: {
       COPYRIGHT: (year: number) =>
     `© ${year} Oui Crm`,
+    /** Ce que la production sert vraiment : la date de construction de l'image. */
+    BUILT_AT: (date: string) => `Version du ${date}`,
     TITLE: 'Connexion',
     SUBTITLE: 'Bienvenue ! Connectez-vous avec vos identifiants.',
 

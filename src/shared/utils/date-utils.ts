@@ -50,3 +50,19 @@ export function formatShortDateFr(
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR');
 }
+
+/**
+ * « 11/09/2026 21:40 » — date et heure, dans le fuseau du navigateur.
+ *
+ * Même contrat que `formatShortDateFr` : une chaîne vide pour une valeur
+ * absente ou invalide, jamais « Invalid Date ».
+ */
+export function formatShortDateTimeFr(
+  value: string | Date | null | undefined,
+): string {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+}
