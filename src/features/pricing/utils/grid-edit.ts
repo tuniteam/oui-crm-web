@@ -55,6 +55,13 @@ function eachPriceRow(
 }
 
 /**
+ * Où couper une strate ouverte : elle n'a pas de borne haute dont prendre le
+ * milieu. Une borne franche plutôt qu'un calcul, que l'utilisateur corrige
+ * ensuite dans la colonne « À ». Un choix d'écran, pas une règle du contrat.
+ */
+const OPEN_BRACKET_CUT = 1000;
+
+/**
  * Insère une strate en **coupant** celle du rang donné en deux.
  *
  * La coupe est ce qui rend les quatre règles du serveur inviolables : la
@@ -79,7 +86,9 @@ export function addBracket(
      strate fermée, en son milieu. L'utilisateur corrige ensuite les bornes,
      et c'est `setBracketBound` qui garde la chaîne cohérente. */
   const boundary =
-    cut.max === null ? cut.min + 1000 : cut.min + Math.floor((cut.max - cut.min) / 2);
+    cut.max === null
+      ? cut.min + OPEN_BRACKET_CUT
+      : cut.min + Math.floor((cut.max - cut.min) / 2);
 
   const before = {
     ...cut,

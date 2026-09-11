@@ -64,6 +64,8 @@ export const PERMISSIONS = {
     READ: 'projects:read',
     CREATE: 'projects:create',
     UPDATE: 'projects:update',
+    /** Suppression définitive — super admin seulement, d'après le seed de l'API. */
+    DELETE: 'projects:delete',
   },
   USERS: {
     READ: 'users:read',

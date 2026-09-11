@@ -55,7 +55,7 @@ export function useCreateProject() {
           fieldError: { field: 'slug', message: CREATE_PROJECT_UI.ERRORS.SLUG_EXISTS },
         };
       }
-      if (code === PROJECT_ERROR_CODES.SOURCE_NOT_FOUND) {
+      if (code === PROJECT_ERROR_CODES.NOT_FOUND) {
         return {
           ok: false,
           fieldError: {
