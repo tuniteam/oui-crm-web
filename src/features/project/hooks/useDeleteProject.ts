@@ -6,7 +6,7 @@ import { useMeStore } from '@/contexts/useMeStore';
 import {
   PROJECT_DANGER_UI,
   PROJECT_NOT_FOUND,
-  PROJECT_STATUS_ERROR_CODES,
+  PROJECT_ERROR_CODES,
 } from '../constants/constants';
 import { PROJECT_ROUTES } from '../constants/routes.constants';
 import { projectService } from '../services/projectService';
@@ -47,11 +47,11 @@ export function useDeleteProject(projectId: string) {
       /* Traités par l'écran : le nom sous son champ, le contenu avec ses
          compteurs et la proposition d'archiver. */
       if (
-        code === PROJECT_STATUS_ERROR_CODES.NAME_MISMATCH ||
-        code === PROJECT_STATUS_ERROR_CODES.NOT_EMPTY
+        code === PROJECT_ERROR_CODES.NAME_MISMATCH ||
+        code === PROJECT_ERROR_CODES.NOT_EMPTY
       )
         return;
-      if (code === PROJECT_STATUS_ERROR_CODES.NOT_FOUND) {
+      if (code === PROJECT_ERROR_CODES.NOT_FOUND) {
         /* Déjà supprimé dans un autre onglet : l'issue voulue, atteinte
            ailleurs. */
         toast.error(PROJECT_NOT_FOUND.DESCRIPTION);
@@ -65,7 +65,7 @@ export function useDeleteProject(projectId: string) {
   const remove = async (
     name: string,
   ): Promise<
-    | { result: 'OK' | 'NAME_MISMATCH' | 'DONE_ELSEWHERE' }
+    | { result: 'OK' | 'NAME_MISMATCH' | 'HANDLED' }
     | { result: 'NOT_EMPTY'; counts: ProjectDataCounts }
   > => {
     try {
@@ -73,15 +73,15 @@ export function useDeleteProject(projectId: string) {
       return { result: 'OK' };
     } catch (err) {
       const code = getApiErrorCode(err);
-      if (code === PROJECT_STATUS_ERROR_CODES.NAME_MISMATCH) return { result: 'NAME_MISMATCH' };
-      if (code === PROJECT_STATUS_ERROR_CODES.NOT_EMPTY) {
+      if (code === PROJECT_ERROR_CODES.NAME_MISMATCH) return { result: 'NAME_MISMATCH' };
+      if (code === PROJECT_ERROR_CODES.NOT_EMPTY) {
         const meta = getApiErrorMeta(err) ?? {};
         const counts = Object.fromEntries(
           Object.entries(meta).filter(([, v]) => typeof v === 'number' && v > 0),
         ) as ProjectDataCounts;
         return { result: 'NOT_EMPTY', counts };
       }
-      return { result: 'DONE_ELSEWHERE' };
+      return { result: 'HANDLED' };
     }
   };
 

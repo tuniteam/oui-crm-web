@@ -26,9 +26,9 @@ import { ConfirmByNameWindow } from './ConfirmByNameWindow';
 const UI = PROJECT_DANGER_UI;
 
 type Lifecycle = {
-  title: string;
+  /** Le titre de la carte et le libellé de son bouton. */
+  label: string;
   description: string;
-  button: string;
   icon: typeof Power;
   target: ProjectStatus;
   testId: string;
@@ -54,9 +54,8 @@ type Lifecycle = {
  */
 const LIFECYCLE: Partial<Record<ProjectStatus, Lifecycle>> = {
   [PROJECT_STATUS.DRAFT]: {
-    title: ACTIVATE_PROJECT_UI.CARD_TITLE,
-    description: ACTIVATE_PROJECT_UI.CARD_DESCRIPTION,
-    button: ACTIVATE_PROJECT_UI.BUTTON,
+    label: ACTIVATE_PROJECT_UI.LABEL,
+    description: ACTIVATE_PROJECT_UI.DESCRIPTION,
     icon: Power,
     target: PROJECT_STATUS.ACTIVE,
     testId: 'project-activate',
@@ -65,9 +64,8 @@ const LIFECYCLE: Partial<Record<ProjectStatus, Lifecycle>> = {
     simple: ACTIVATE_PROJECT_UI,
   },
   [PROJECT_STATUS.ACTIVE]: {
-    title: UI.ARCHIVE.TITLE,
+    label: UI.ARCHIVE.LABEL,
     description: UI.ARCHIVE.DESCRIPTION,
-    button: UI.ARCHIVE.BUTTON,
     icon: Archive,
     target: PROJECT_STATUS.ARCHIVED,
     testId: 'project-archive',
@@ -76,9 +74,8 @@ const LIFECYCLE: Partial<Record<ProjectStatus, Lifecycle>> = {
     simple: null,
   },
   [PROJECT_STATUS.ARCHIVED]: {
-    title: RESTORE_PROJECT_UI.CARD_TITLE,
-    description: RESTORE_PROJECT_UI.CARD_DESCRIPTION,
-    button: RESTORE_PROJECT_UI.BUTTON,
+    label: RESTORE_PROJECT_UI.LABEL,
+    description: RESTORE_PROJECT_UI.DESCRIPTION,
     icon: Undo2,
     target: PROJECT_STATUS.ACTIVE,
     testId: 'project-restore',
@@ -87,6 +84,34 @@ const LIFECYCLE: Partial<Record<ProjectStatus, Lifecycle>> = {
     simple: RESTORE_PROJECT_UI,
   },
 };
+
+/**
+ * Une carte de la zone : ce que fait le geste à gauche, son bouton à droite.
+ * Écrite une fois — le cycle de vie et la suppression la partagent.
+ */
+function ActionCard({
+  label,
+  description,
+  testId,
+  children,
+}: {
+  label: string;
+  description: string;
+  testId?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card data-testid={testId}>
+      <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+        <div>
+          <div className="text-sm font-semibold">{label}</div>
+          <div className="text-xs text-muted-foreground">{description}</div>
+        </div>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
 
 /** « 36 224 organismes et 3 devis » — les compteurs non nuls, en français. */
 function describeContents(counts: ProjectDataCounts): string {
@@ -167,46 +192,38 @@ export function ProjectDangerZone({ project }: { project: ProjectDetailsResponse
         ) : null}
 
         {lifecycle ? (
-          <Card data-testid="project-lifecycle-card">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
-              <div>
-                <div className="text-sm font-semibold">{lifecycle.title}</div>
-                <div className="text-xs text-muted-foreground">{lifecycle.description}</div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                data-testid={`${lifecycle.testId}-btn`}
-                onClick={openLifecycle}
-              >
-                <lifecycle.icon />
-                {lifecycle.button}
-              </Button>
-            </CardContent>
-          </Card>
+          <ActionCard
+            testId="project-lifecycle-card"
+            label={lifecycle.label}
+            description={lifecycle.description}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              data-testid={`${lifecycle.testId}-btn`}
+              onClick={openLifecycle}
+            >
+              <lifecycle.icon />
+              {lifecycle.label}
+            </Button>
+          </ActionCard>
         ) : null}
 
         {canDelete ? (
-          <Card>
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
-              <div>
-                <div className="text-sm font-semibold">{UI.DELETE.TITLE}</div>
-                <div className="text-xs text-muted-foreground">{UI.DELETE.DESCRIPTION}</div>
-              </div>
-              <Button
-                type="button"
-                variant="destructive"
-                data-testid="project-delete-btn"
-                onClick={() => {
-                  setDeleteMismatch(false);
-                  setDeleting(true);
-                }}
-              >
-                <Trash2 />
-                {UI.DELETE.BUTTON}
-              </Button>
-            </CardContent>
-          </Card>
+          <ActionCard label={UI.DELETE.LABEL} description={UI.DELETE.DESCRIPTION}>
+            <Button
+              type="button"
+              variant="destructive"
+              data-testid="project-delete-btn"
+              onClick={() => {
+                setDeleteMismatch(false);
+                setDeleting(true);
+              }}
+            >
+              <Trash2 />
+              {UI.DELETE.LABEL}
+            </Button>
+          </ActionCard>
         ) : null}
       </div>
 
@@ -215,7 +232,7 @@ export function ProjectDangerZone({ project }: { project: ProjectDetailsResponse
         <ConfirmByNameWindow
           open={confirming}
           onOpenChange={setConfirming}
-          title={UI.ARCHIVE.WINDOW_TITLE(project.name)}
+          title={UI.ARCHIVE.TITLE(project.name)}
           lead={[UI.ARCHIVE.LEAD]}
           projectName={project.name}
           confirmLabel={UI.ARCHIVE.CONFIRM}
@@ -286,7 +303,7 @@ export function ProjectDangerZone({ project }: { project: ProjectDetailsResponse
       <ConfirmByNameWindow
         open={deleting}
         onOpenChange={setDeleting}
-        title={UI.DELETE.WINDOW_TITLE(project.name)}
+        title={UI.DELETE.TITLE(project.name)}
         lead={UI.DELETE.LEAD}
         projectName={project.name}
         confirmLabel={UI.DELETE.CONFIRM}

@@ -133,20 +133,6 @@ export const PROJECT_RULES = {
   DESCRIPTION_MAX: 1000,
 } as const;
 
-/** Codes d'erreur de `POST /projects`, relevés dans le service de l'API. */
-export const PROJECT_ERROR_CODES = {
-  /** 409 — un projet porte déjà cet identifiant. */
-  SLUG_EXISTS: 'PROJECT_SLUG_EXISTS',
-  /**
-   * 404 — le projet à copier n'existe pas.
-   *
-   * Absent du handoff, qui laissait la case vide : relevé dans
-   * `getProjectOrThrow`, qui lève `PROJECT_NOT_FOUND`.
-   */
-  SOURCE_NOT_FOUND: 'PROJECT_NOT_FOUND',
-  INVALID_DATA: 'INVALID_DATA',
-} as const;
-
 export const CREATE_PROJECT_UI = {
   TITLE: 'Nouveau projet',
   /**
@@ -193,14 +179,22 @@ export const CREATE_PROJECT_UI = {
 } as const;
 
 /**
- * Codes de `POST /projects/:id/status`, relevés dans `changeStatus` de l'API.
+ * Les codes d'erreur des routes de projet, relevés dans le service de l'API.
  *
- * `409` quand le projet a changé de statut entre l'affichage et le clic —
- * activé dans un autre onglet, typiquement ; `404` quand il a disparu.
+ * Un seul jeu : `PROJECT_NOT_FOUND` était déclaré deux fois, pour la création
+ * et pour les changements de statut, sous deux noms différents.
  */
-export const PROJECT_STATUS_ERROR_CODES = {
-  INVALID_TRANSITION: 'INVALID_STATUS_TRANSITION',
+export const PROJECT_ERROR_CODES = {
+  /** 409 à la création — un projet porte déjà cet identifiant. */
+  SLUG_EXISTS: 'PROJECT_SLUG_EXISTS',
+  /**
+   * 404 — le projet n'existe pas : celui qu'on veut copier à la création,
+   * ou celui qu'on veut activer, archiver, supprimer. Absent du handoff de
+   * création, qui laissait la case vide : relevé dans `getProjectOrThrow`.
+   */
   NOT_FOUND: 'PROJECT_NOT_FOUND',
+  /** 409 — le projet a changé de statut entre l'affichage et le clic. */
+  INVALID_TRANSITION: 'INVALID_STATUS_TRANSITION',
   /**
    * 400 — le nom ressaisi diffère du nom exact. L'API compare par `!==` :
    * casse, accents et espaces compris.
@@ -211,10 +205,9 @@ export const PROJECT_STATUS_ERROR_CODES = {
 } as const;
 
 export const ACTIVATE_PROJECT_UI = {
-  BUTTON: 'Activer le projet',
-  /** La carte de la zone, quand le projet est en brouillon. */
-  CARD_TITLE: 'Activer le projet',
-  CARD_DESCRIPTION:
+  /** Le titre de la carte et le libellé de son bouton : le même geste. */
+  LABEL: 'Activer le projet',
+  DESCRIPTION:
     'Ses membres pourront s’y connecter. Un projet actif ne revient plus en brouillon, seulement archivé.',
   /**
    * La confirmation dit **ce qui change** et **ce qui ne reviendra pas** : pas
@@ -238,10 +231,8 @@ export const PROJECT_STATUS_CHANGED = 'Ce projet a déjà changé de statut';
 
 /** Restaurer : `ARCHIVED → ACTIVE`, confirmation simple, sans ressaisie. */
 export const RESTORE_PROJECT_UI = {
-  BUTTON: 'Restaurer le projet',
-  /** La carte de la zone, quand le projet est archivé. */
-  CARD_TITLE: 'Restaurer le projet',
-  CARD_DESCRIPTION:
+  LABEL: 'Restaurer le projet',
+  DESCRIPTION:
     'Il redevient actif et ses membres retrouvent leur accès. Sa date d’activation d’origine est conservée.',
   TITLE: (name: string) => `Restaurer « ${name} » ?`,
   LEAD: 'Le projet redevient actif : ses membres y retrouvent leur accès. Sa date d’activation d’origine est conservée.',
@@ -255,22 +246,20 @@ export const RESTORE_PROJECT_UI = {
 export const PROJECT_DANGER_UI = {
   TITLE: 'Zone de danger',
   ARCHIVE: {
-    TITLE: 'Archiver le projet',
+    LABEL: 'Archiver le projet',
     DESCRIPTION:
       'Ses membres n’y ont plus accès. Les données sont conservées et le projet peut être restauré.',
-    BUTTON: 'Archiver le projet',
-    WINDOW_TITLE: (name: string) => `Archiver « ${name} » ?`,
+    TITLE: (name: string) => `Archiver « ${name} » ?`,
     LEAD: 'Les membres du projet n’y auront plus accès. Les données sont conservées et le projet pourra être restauré.',
     CONFIRM: 'Archiver',
     DONE: 'Projet archivé',
     FAILED: 'Impossible d’archiver le projet.',
   },
   DELETE: {
-    TITLE: 'Supprimer le projet',
+    LABEL: 'Supprimer le projet',
     DESCRIPTION:
       'Suppression définitive, possible seulement si le projet ne contient aucune donnée métier. Sinon, archivez-le.',
-    BUTTON: 'Supprimer le projet',
-    WINDOW_TITLE: (name: string) => `Supprimer définitivement « ${name} » ?`,
+    TITLE: (name: string) => `Supprimer définitivement « ${name} » ?`,
     /** Le texte du handoff : ce qui part, et qui perd son compte. */
     LEAD: [
       'La configuration du projet et ses fichiers seront supprimés.',

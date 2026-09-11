@@ -5,7 +5,7 @@ import { getApiErrorCode } from '@/shared/utils/api-error';
 import {
   PROJECT_NOT_FOUND,
   PROJECT_STATUS_CHANGED,
-  PROJECT_STATUS_ERROR_CODES,
+  PROJECT_ERROR_CODES,
 } from '../constants/constants';
 import { PROJECT_ROUTES } from '../constants/routes.constants';
 import { projectService } from '../services/projectService';
@@ -47,13 +47,13 @@ export function useChangeProjectStatus(projectId: string) {
     },
     onError: (err, { messages }) => {
       const code = getApiErrorCode(err);
-      if (code === PROJECT_STATUS_ERROR_CODES.NAME_MISMATCH) return;
-      if (code === PROJECT_STATUS_ERROR_CODES.INVALID_TRANSITION) {
+      if (code === PROJECT_ERROR_CODES.NAME_MISMATCH) return;
+      if (code === PROJECT_ERROR_CODES.INVALID_TRANSITION) {
         toast.error(PROJECT_STATUS_CHANGED);
         refresh();
         return;
       }
-      if (code === PROJECT_STATUS_ERROR_CODES.NOT_FOUND) {
+      if (code === PROJECT_ERROR_CODES.NOT_FOUND) {
         toast.error(PROJECT_NOT_FOUND.DESCRIPTION);
         navigate(PROJECT_ROUTES.PROJECTS);
         return;
@@ -65,21 +65,21 @@ export function useChangeProjectStatus(projectId: string) {
 
   /**
    * `'OK'`, `'NAME_MISMATCH'` pour que l'appelant l'affiche sous le champ, ou
-   * `'DONE_ELSEWHERE'` pour toute autre issue, déjà traitée ci-dessus. Ne
+   * `'HANDLED'` pour toute autre issue, déjà traitée ci-dessus. Ne
    * rejette jamais.
    */
   const changeStatus = async (
     status: ProjectStatus,
     messages: StatusChangeMessages,
     name?: string,
-  ): Promise<'OK' | 'NAME_MISMATCH' | 'DONE_ELSEWHERE'> => {
+  ): Promise<'OK' | 'NAME_MISMATCH' | 'HANDLED'> => {
     try {
       await mutation.mutateAsync({ status, name, messages });
       return 'OK';
     } catch (err) {
-      return getApiErrorCode(err) === PROJECT_STATUS_ERROR_CODES.NAME_MISMATCH
+      return getApiErrorCode(err) === PROJECT_ERROR_CODES.NAME_MISMATCH
         ? 'NAME_MISMATCH'
-        : 'DONE_ELSEWHERE';
+        : 'HANDLED';
     }
   };
 
