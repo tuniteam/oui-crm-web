@@ -62,7 +62,23 @@ export const projectService = {
    * changé de statut entre-temps, on recharge la fiche) de `404` (il a
    * disparu, on revient à la liste).
    */
-  changeStatus: async (id: string, status: ProjectStatus): Promise<void> => {
-    await api.post(PROJECT_ROUTES.PROJECT_STATUS_API(id), { status });
+  changeStatus: async (
+    id: string,
+    status: ProjectStatus,
+    /** Exigé pour archiver seulement : le nom exact, en confirmation. */
+    name?: string,
+  ): Promise<void> => {
+    await api.post(PROJECT_ROUTES.PROJECT_STATUS_API(id), { status, name });
+  },
+
+  /**
+   * DELETE /projects/:id — `204`. Un DELETE **avec corps** : le nom exact,
+   * en confirmation. Axios le passe dans `data`.
+   *
+   * Non enveloppée : `409 PROJECT_NOT_EMPTY` porte ses compteurs dans
+   * `messages.meta`, et l'écran en a besoin pour proposer l'archivage.
+   */
+  remove: async (id: string, name: string): Promise<void> => {
+    await api.delete(PROJECT_ROUTES.PROJECT_API(id), { data: { name } });
   },
 };

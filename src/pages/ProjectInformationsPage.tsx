@@ -6,7 +6,10 @@ import { DetailsPageHeaderSkeleton } from '@/components/layouts/layout-1/shared/
 import { ProjectDetailsTabsNav } from '@/features/project/components/project-details/ProjectDetailsTabsNav';
 import { ProjectInformationsTab } from '@/features/project/components/project-details/ProjectInformationsTab';
 import { ProjectDetailsBodySkeleton } from '@/features/project/components/project-details/skeleton/ProjectDetailsBodySkeleton';
-import { PROJECT_NOT_FOUND } from '@/features/project/constants/constants';
+import {
+  PROJECT_NOT_FOUND,
+  PROJECT_STATUS,
+} from '@/features/project/constants/constants';
 import { PROJECT_ROUTES } from '@/features/project/constants/routes.constants';
 import { NotFoundState } from '@/components/shared/NotFoundState';
 import { useProject } from '@/features/project/hooks/useProject';
@@ -43,6 +46,9 @@ export function ProjectInformationsPage() {
         backRoute={PROJECT_ROUTES.PROJECTS}
         targetId={data?.id ?? ''}
         editPermission={PERMISSIONS.PROJECTS.UPDATE}
+        /* Un projet archivé refuse toute modification (`409
+           PROJECT_ARCHIVED`) : le bouton n'a pas à s'y proposer. */
+        hideEdit={data.status === PROJECT_STATUS.ARCHIVED}
       />
 
       <Card className="mb-4">

@@ -201,10 +201,21 @@ export const CREATE_PROJECT_UI = {
 export const PROJECT_STATUS_ERROR_CODES = {
   INVALID_TRANSITION: 'INVALID_STATUS_TRANSITION',
   NOT_FOUND: 'PROJECT_NOT_FOUND',
+  /**
+   * 400 — le nom ressaisi diffère du nom exact. L'API compare par `!==` :
+   * casse, accents et espaces compris.
+   */
+  NAME_MISMATCH: 'PROJECT_NAME_MISMATCH',
+  /** 409 — le projet contient des données métier ; `meta` porte les compteurs. */
+  NOT_EMPTY: 'PROJECT_NOT_EMPTY',
 } as const;
 
 export const ACTIVATE_PROJECT_UI = {
   BUTTON: 'Activer le projet',
+  /** La carte de la zone, quand le projet est en brouillon. */
+  CARD_TITLE: 'Activer le projet',
+  CARD_DESCRIPTION:
+    'Ses membres pourront s’y connecter. Un projet actif ne revient plus en brouillon, seulement archivé.',
   /**
    * La confirmation dit **ce qui change** et **ce qui ne reviendra pas** : pas
    * de retour en brouillon, seulement l'archivage. C'est une action
@@ -215,6 +226,90 @@ export const ACTIVATE_PROJECT_UI = {
   CONFIRM: 'Activer',
   CANCEL: 'Annuler',
   DONE: 'Projet activé',
-  ALREADY_CHANGED: 'Ce projet a déjà changé de statut',
   FAILED: 'Impossible d’activer le projet.',
 } as const;
+
+/**
+ * Un seul message pour un `409 INVALID_STATUS_TRANSITION`, quel que soit le
+ * geste : l'activation et l'archivage le formulaient différemment dans leurs
+ * handoffs, pour dire la même chose.
+ */
+export const PROJECT_STATUS_CHANGED = 'Ce projet a déjà changé de statut';
+
+/** Restaurer : `ARCHIVED → ACTIVE`, confirmation simple, sans ressaisie. */
+export const RESTORE_PROJECT_UI = {
+  BUTTON: 'Restaurer le projet',
+  /** La carte de la zone, quand le projet est archivé. */
+  CARD_TITLE: 'Restaurer le projet',
+  CARD_DESCRIPTION:
+    'Il redevient actif et ses membres retrouvent leur accès. Sa date d’activation d’origine est conservée.',
+  TITLE: (name: string) => `Restaurer « ${name} » ?`,
+  LEAD: 'Le projet redevient actif : ses membres y retrouvent leur accès. Sa date d’activation d’origine est conservée.',
+  CONFIRM: 'Restaurer',
+  CANCEL: 'Annuler',
+  DONE: 'Projet restauré',
+  FAILED: 'Impossible de restaurer le projet.',
+} as const;
+
+/** La zone « danger » de la fiche : les gestes qui retirent le projet. */
+export const PROJECT_DANGER_UI = {
+  TITLE: 'Zone de danger',
+  ARCHIVE: {
+    TITLE: 'Archiver le projet',
+    DESCRIPTION:
+      'Ses membres n’y ont plus accès. Les données sont conservées et le projet peut être restauré.',
+    BUTTON: 'Archiver le projet',
+    WINDOW_TITLE: (name: string) => `Archiver « ${name} » ?`,
+    LEAD: 'Les membres du projet n’y auront plus accès. Les données sont conservées et le projet pourra être restauré.',
+    CONFIRM: 'Archiver',
+    DONE: 'Projet archivé',
+    FAILED: 'Impossible d’archiver le projet.',
+  },
+  DELETE: {
+    TITLE: 'Supprimer le projet',
+    DESCRIPTION:
+      'Suppression définitive, possible seulement si le projet ne contient aucune donnée métier. Sinon, archivez-le.',
+    BUTTON: 'Supprimer le projet',
+    WINDOW_TITLE: (name: string) => `Supprimer définitivement « ${name} » ?`,
+    /** Le texte du handoff : ce qui part, et qui perd son compte. */
+    LEAD: [
+      'La configuration du projet et ses fichiers seront supprimés.',
+      'Les membres rattachés uniquement à ce projet perdront leur compte (et leur photo de profil).',
+      'Cette action est irréversible.',
+    ],
+    CONFIRM: 'Supprimer',
+    DONE: 'Projet supprimé',
+    FAILED: 'Impossible de supprimer le projet.',
+    /**
+     * Le refus d'un projet non vide, dit avec ses compteurs.
+     *
+     * Ils arrivent dans `messages.meta` — seuls les non nuls — justement pour
+     * ne pas analyser la phrase du serveur.
+     */
+    NOT_EMPTY: (name: string, contents: string) =>
+      `Impossible de supprimer « ${name} » : il contient ${contents}.`,
+    NOT_EMPTY_ARCHIVE: 'Vous pouvez l’archiver à la place.',
+    NOT_EMPTY_DRAFT:
+      'Un projet en brouillon ne s’archive pas : activez-le d’abord, ou retirez ses données.',
+  },
+  /** La ressaisie du nom, commune à l'archivage et à la suppression. */
+  CONFIRM_NAME: {
+    LABEL: 'Pour confirmer, saisissez le nom exact du projet :',
+    MISMATCH: 'Le nom ne correspond pas.',
+    CANCEL: 'Annuler',
+  },
+} as const;
+
+/**
+ * Les compteurs de `PROJECT_NOT_EMPTY`, en français — singulier, pluriel.
+ * Les clés viennent de `countProjectData` dans l'API.
+ */
+export const PROJECT_DATA_LABELS: Record<string, readonly [string, string]> = {
+  organizations: ['organisme', 'organismes'],
+  contacts: ['contact', 'contacts'],
+  activities: ['action', 'actions'],
+  campaigns: ['campagne', 'campagnes'],
+  opportunities: ['opportunité', 'opportunités'],
+  quotes: ['devis', 'devis'],
+  contracts: ['contrat', 'contrats'],
+};
