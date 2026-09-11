@@ -7,6 +7,7 @@ import { COMMON } from '@/constants/common';
 import { FEATURE_LABELS, PROJECT_INFORMATION_UI } from '../../constants/constants';
 import { formatShortDateFr } from '@/shared/utils/date-utils';
 import type { ProjectDetailsResponse } from '../../types/projectDetails';
+import { ActivateProjectAction } from './ActivateProjectAction';
 
 const { SECTIONS, FIELDS, FEATURES, FALLBACK } = PROJECT_INFORMATION_UI;
 
@@ -47,7 +48,12 @@ export function ProjectInformationsTab({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">{FIELDS.STATUS}</p>
-            <StatusBadge status={project.status} />
+            {/* Le geste à côté de l'état qu'il change : « Brouillon », puis
+                « Activer le projet ». Absent hors brouillon ou sans droit. */}
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusBadge status={project.status} />
+              <ActivateProjectAction project={project} />
+            </div>
           </div>
           <DetailsField
             label={FIELDS.USER_COUNT}
