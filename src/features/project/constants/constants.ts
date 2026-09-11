@@ -116,3 +116,78 @@ export const PROJECT_NOT_FOUND = {
 export const ERRORS = {
   FETCH_PROJECTS: 'Impossible de récupérer les projets.',
 } as const;
+
+/**
+ * Les règles d'un projet, relevées dans `CreateProjectDto` et
+ * `projects.constants.ts` de l'API — pas choisies ici.
+ *
+ * L'identifiant est **définitif** : il sert dans les URL et les noms de
+ * fichiers d'export, et aucune route ne le modifie ensuite. D'où le soin mis à
+ * le contrôler avant l'envoi plutôt qu'après un `400`.
+ */
+export const PROJECT_RULES = {
+  SLUG_MIN: 2,
+  SLUG_MAX: 50,
+  SLUG_PATTERN: /^[a-z0-9]+(-[a-z0-9]+)*$/,
+  NAME_MAX: 100,
+  DESCRIPTION_MAX: 1000,
+} as const;
+
+/** Codes d'erreur de `POST /projects`, relevés dans le service de l'API. */
+export const PROJECT_ERROR_CODES = {
+  /** 409 — un projet porte déjà cet identifiant. */
+  SLUG_EXISTS: 'PROJECT_SLUG_EXISTS',
+  /**
+   * 404 — le projet à copier n'existe pas.
+   *
+   * Absent du handoff, qui laissait la case vide : relevé dans
+   * `getProjectOrThrow`, qui lève `PROJECT_NOT_FOUND`.
+   */
+  SOURCE_NOT_FOUND: 'PROJECT_NOT_FOUND',
+  INVALID_DATA: 'INVALID_DATA',
+} as const;
+
+export const CREATE_PROJECT_UI = {
+  TITLE: 'Nouveau projet',
+  /**
+   * Ce que la création fait vraiment, dit avant de valider : un projet naît
+   * en brouillon, fermé à ses utilisateurs, et vide de membres. Sans cette
+   * phrase, on s'attend à pouvoir y inviter quelqu'un aussitôt.
+   */
+  DESCRIPTION:
+    'Le projet est créé en brouillon, sans membre ni organisme. Il reste fermé à ses utilisateurs tant qu’il n’est pas activé.',
+  FIELDS: {
+    NAME: 'Nom du projet',
+    SLUG: 'Identifiant',
+    PRODUCT: 'Produit vendu',
+    DESCRIPTION: 'Description',
+    COPY_FROM: 'Copier la configuration de…',
+  },
+  PLACEHOLDERS: {
+    NAME: 'Périscolia',
+    SLUG: 'periscolia',
+    PRODUCT: 'Périscolia — gestion périscolaire',
+    DESCRIPTION: 'Logiciel de gestion périscolaire vendu aux collectivités.',
+    COPY_FROM: 'Aucun — partir de la configuration par défaut',
+  },
+  HINTS: {
+    /** La phrase du handoff, et la seule qui dise pourquoi on doit s'appliquer. */
+    SLUG: 'Identifiant définitif, utilisé dans les URL et les exports.',
+    SLUG_AUTO: 'Proposé depuis le nom ; modifiable tant que le projet n’est pas créé.',
+    COPY_FROM:
+      'Reprend les paramètres, référentiels, périmètres, grille tarifaire, gabarits et cachet — jamais les données métier.',
+  },
+  /** La valeur « aucun projet source » : Radix refuse une option à valeur vide. */
+  NO_SOURCE: '__none__',
+  ERRORS: {
+    REQUIRED: 'Ce champ est obligatoire.',
+    TOO_LONG: (max: number) => `${max} caractères au maximum.`,
+    SLUG_LENGTH: `Entre ${PROJECT_RULES.SLUG_MIN} et ${PROJECT_RULES.SLUG_MAX} caractères.`,
+    SLUG_FORMAT:
+      'Minuscules, chiffres et tirets simples uniquement, sans tiret au début ni à la fin.',
+    SLUG_EXISTS: 'Cet identifiant est déjà utilisé.',
+    SOURCE_NOT_FOUND: 'Projet source introuvable.',
+    CREATE: 'Impossible de créer le projet.',
+  },
+  CREATED: (name: string) => `Projet « ${name} » créé en brouillon.`,
+} as const;
