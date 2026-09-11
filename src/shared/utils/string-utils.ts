@@ -77,3 +77,23 @@ export function formatPrice(value: number | null | undefined): string {
 export function truncateText(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
 }
+
+/**
+ * Un identifiant d'URL tire d'un libellé : minuscules, sans accents, mots
+ * reliés par un tiret simple.
+ *
+ * Il produit exactement ce que `^[a-z0-9]+(-[a-z0-9]+)*$` accepte — ni tiret en
+ * tête ni en queue, jamais deux d'affilée — et laisse le plafond de longueur à
+ * l'appelant, qui seul connaît le sien.
+ *
+ * `NFD` sépare la lettre de son accent (« é » → « e » + « ´ ») : on garde la
+ * lettre, on jette la marque. « Périscolia Île-de-France » → « periscolia-ile-de-france ».
+ */
+export function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

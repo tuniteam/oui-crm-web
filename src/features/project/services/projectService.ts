@@ -6,6 +6,10 @@ import type {
   ProjectListResponse,
 } from '../types/projectList';
 import type { ProjectDetailsResponse } from '../types/projectDetails';
+import type {
+  CreateProjectPayload,
+  CreateProjectResponse,
+} from '../types/projectCreate';
 
 export const projectService = {
   /**
@@ -35,4 +39,17 @@ export const projectService = {
       throw new Error(getApiErrorMessage(err));
     }
   },
+
+  /**
+   * POST /projects — route plateforme, **sans** `x-project-id` : le projet
+   * n'existe pas encore.
+   *
+   * Non enveloppée dans un `Error` nu, contrairement aux lectures : l'écran
+   * doit reconnaître `409 PROJECT_SLUG_EXISTS` pour le poser sous le champ
+   * Identifiant, et `404 PROJECT_NOT_FOUND` sous le projet à copier. Un
+   * message aplati les rendrait indiscernables d'une panne.
+   */
+  create: async (payload: CreateProjectPayload): Promise<CreateProjectResponse> =>
+    (await api.post<CreateProjectResponse>(PROJECT_ROUTES.PROJECTS_API, payload))
+      .data,
 };

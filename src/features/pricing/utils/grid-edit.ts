@@ -1,4 +1,4 @@
-import { formatInteger } from '@/shared/utils/string-utils';
+import { formatInteger, slugify } from '@/shared/utils/string-utils';
 import {
   PRICING_LIMITS,
   RESERVED_PLAN_NAMES,
@@ -298,13 +298,9 @@ export function addSetupFee(
   const clean = label.trim();
   if (!clean) return c;
 
-  const base =
-    clean
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'poste';
+  /* `'poste'` n'est pas de l'interface : c'est la clé de repli d'un libellé
+     sans lettre ni chiffre, et une clé ne s'affiche jamais. */
+  const base = slugify(clean) || 'poste';
   const taken = new Set(Object.keys(c.setupFees ?? {}));
   let key = base;
   for (let n = 2; taken.has(key); n += 1) key = `${base}-${n}`;
