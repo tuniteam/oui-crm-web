@@ -6,6 +6,7 @@ import type {
   ProjectListResponse,
 } from '../types/projectList';
 import type { ProjectDetailsResponse } from '../types/projectDetails';
+import type { ProjectStatus } from '../types/project';
 import type {
   CreateProjectPayload,
   CreateProjectResponse,
@@ -52,4 +53,16 @@ export const projectService = {
   create: async (payload: CreateProjectPayload): Promise<CreateProjectResponse> =>
     (await api.post<CreateProjectResponse>(PROJECT_ROUTES.PROJECTS_API, payload))
       .data,
+
+  /**
+   * POST /projects/:id/status — `204`, corps vide. Route plateforme, **sans**
+   * `x-project-id`.
+   *
+   * Non enveloppée dans un `Error` nu : l'écran distingue `409` (le projet a
+   * changé de statut entre-temps, on recharge la fiche) de `404` (il a
+   * disparu, on revient à la liste).
+   */
+  changeStatus: async (id: string, status: ProjectStatus): Promise<void> => {
+    await api.post(PROJECT_ROUTES.PROJECT_STATUS_API(id), { status });
+  },
 };

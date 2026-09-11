@@ -191,3 +191,30 @@ export const CREATE_PROJECT_UI = {
   },
   CREATED: (name: string) => `Projet « ${name} » créé en brouillon.`,
 } as const;
+
+/**
+ * Codes de `POST /projects/:id/status`, relevés dans `changeStatus` de l'API.
+ *
+ * `409` quand le projet a changé de statut entre l'affichage et le clic —
+ * activé dans un autre onglet, typiquement ; `404` quand il a disparu.
+ */
+export const PROJECT_STATUS_ERROR_CODES = {
+  INVALID_TRANSITION: 'INVALID_STATUS_TRANSITION',
+  NOT_FOUND: 'PROJECT_NOT_FOUND',
+} as const;
+
+export const ACTIVATE_PROJECT_UI = {
+  BUTTON: 'Activer le projet',
+  /**
+   * La confirmation dit **ce qui change** et **ce qui ne reviendra pas** : pas
+   * de retour en brouillon, seulement l'archivage. C'est une action
+   * irréversible — la seule de la fiche.
+   */
+  TITLE: (name: string) => `Activer « ${name} » ?`,
+  LEAD: 'Les membres du projet pourront s’y connecter. Un projet actif ne peut plus revenir en brouillon, seulement être archivé.',
+  CONFIRM: 'Activer',
+  CANCEL: 'Annuler',
+  DONE: 'Projet activé',
+  ALREADY_CHANGED: 'Ce projet a déjà changé de statut',
+  FAILED: 'Impossible d’activer le projet.',
+} as const;

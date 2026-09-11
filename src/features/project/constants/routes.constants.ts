@@ -8,4 +8,5 @@ export const PROJECT_ROUTES = {
   // API — routes plateforme : elles ne prennent pas l'en-tete x-project-id.
   PROJECTS_API: '/projects',
   PROJECT_API: (id: string) => `/projects/${id}`,
+  PROJECT_STATUS_API: (id: string) => `/projects/${id}/status`,
 } as const;
