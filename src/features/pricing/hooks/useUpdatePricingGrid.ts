@@ -8,6 +8,7 @@ import {
 } from '@/shared/utils/api-error';
 import {
   PRICING_HAS_QUOTES,
+  PRICING_ITEM_IN_USE,
   PRICING_UI,
 } from '../constants/pricing.constants';
 import { pricingService } from '../services/pricing.service';
@@ -43,15 +44,46 @@ export function useUpdatePricingGrid() {
     },
 
     onError: (err) => {
-      if (getApiErrorCode(err) === PRICING_HAS_QUOTES) {
+      const code = getApiErrorCode(err);
+      if (code === PRICING_HAS_QUOTES) {
         const n = Number(getApiErrorMeta(err)?.quotes ?? 0);
         toast.error(PRICING_UI.EDIT.HAS_QUOTES(n));
         return;
       }
+      /*
+       * Un element retire qu'un **brouillon** retient encore — SPEC-19.
+       *
+       * `meta.items` nomme les elements, `meta.quotes` les devis : l'ecran
+       * les liste sans analyser une phrase. Le serveur bloque plutot que de
+       * laisser filer, car un brouillon se recalcule a chaque lecture : sans
+       * sa formule il deviendrait illisible, et sans son option une ligne
+       * tomberait sans un mot.
+       */
+      if (code === PRICING_ITEM_IN_USE) {
+        const meta = getApiErrorMeta(err);
+        const items = Array.isArray(meta?.items) ? (meta.items as string[]) : [];
+        const quotes = Array.isArray(meta?.quotes)
+          ? (meta.quotes as string[])
+          : [];
+        toast.error(
+          items.length && quotes.length
+            ? PRICING_UI.ERRORS.IN_USE(items, quotes)
+            : PRICING_UI.ERRORS.IN_USE_FALLBACK,
+        );
+        return;
+      }
+      /*
+       * `details[]` n'est **jamais** affiche brut.
+       *
+       * Ce sont des cles de correspondance — `subscription.ESSENTIEL: 1
+       * prices for 2 brackets` — pensees pour etre mappees sur un champ. Le
+       * toast n'en donne que le compte ; la traduction se fait a l'ecran, qui
+       * sait devant quel champ poser chaque message.
+       */
       const details = getApiErrorDetails(err);
       toast.error(
         details?.length
-          ? PRICING_UI.ERRORS.INVALID + details.join(' · ')
+          ? PRICING_UI.ERRORS.INVALID_SUMMARY(details.length)
           : getApiErrorMessage(err) || PRICING_UI.ERRORS.SAVE,
       );
     },
@@ -65,12 +97,20 @@ export function useUpdatePricingGrid() {
       id: string;
       content?: PricingGridContent;
       effectiveDate?: string;
-    }): Promise<{ ok: boolean; code: string | null }> => {
+    }): Promise<{
+      ok: boolean;
+      code: string | null;
+      details: string[];
+    }> => {
       try {
         await mutation.mutateAsync(payload);
-        return { ok: true, code: null };
+        return { ok: true, code: null, details: [] };
       } catch (err) {
-        return { ok: false, code: getApiErrorCode(err) };
+        return {
+          ok: false,
+          code: getApiErrorCode(err),
+          details: getApiErrorDetails(err) ?? [],
+        };
       }
     },
   };

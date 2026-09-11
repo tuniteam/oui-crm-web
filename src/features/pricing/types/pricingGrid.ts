@@ -13,17 +13,79 @@ export type PricingBracket = {
   max: number | null;
 };
 
+/**
+ * Ce qu'un poste de frais **est** — SPEC-19, 07/09/2026.
+ *
+ * Commande la ventilation `oneShot: { setup, training, hardware }` servie a
+ * chaque lecture de devis. Avant, le poste de formation se reconnaissait a sa
+ * cle ecrite en dur `training` : le renommer faisait tomber la ventilation
+ * « formation » a zero et basculait son montant dans « mise en place », sans
+ * un mot.
+ */
+export type SetupFeeNature = 'TRAINING' | 'SETUP';
+
+/**
+ * Un poste de frais de mise en place.
+ *
+ * Sa cle est libre — un projet nomme ses postes comme il veut, peut en avoir
+ * plusieurs de formation ou aucun. Ce sont `nature` qui dit ce qu'il est et
+ * `label` qui l'identifie sur un devis fige, d'ou l'unicite des libelles.
+ *
+ * Les prix par formule vivent **dans le meme objet** que `label` et `nature`,
+ * d'ou deux noms de formule reserves.
+ */
+export type PricingSetupFee = {
+  label: string;
+  nature: SetupFeeNature;
+} & { [plan: string]: string | number[] };
+
+/**
+ * Une option mensuelle ou une prestation libre.
+ *
+ * `id` **absent** = element nouveau : le serveur en attribue un et le renvoie.
+ * Un identifiant que le projet n'a jamais distribue est refuse
+ * (`400 PRICING_GRID_UNKNOWN_ITEM_ID`), et un identifiant libere n'est jamais
+ * reattribue — la suite a donc des trous, et **l'indice dans le tableau n'est
+ * jamais un identifiant**. Sans cette regle, un numero recycle rebranchait en
+ * silence les devis brouillons sur une ligne differente.
+ */
+export type PricingOption = {
+  id?: number;
+  name: string;
+  /** Une valeur par strate, au **meme indice** que la strate. */
+  unitPrice: number[];
+  included?: number;
+};
+
+export type PricingExtra = {
+  id?: number;
+  name: string;
+  /** Scalaire : les prestations libres sont la seule famille sans strate. */
+  unitPrice: number;
+};
+
 export type PricingGridContent = {
   brackets: PricingBracket[];
   plans: string[];
   /** Un tableau de prix par formule, **une valeur par strate**. */
   subscription: Record<string, number[]>;
-  options?: { id: number; name: string; unitPrice: number[]; included?: number }[];
-  /** La cle (`training`, `deployment`, `configuration`) est reconnue par le
-   *  serveur pour ventiler le une-fois : la renommer casserait la ventilation. */
-  setupFees?: Record<string, { label: string } & Record<string, unknown>>;
-  extras?: { id: number; name: string; unitPrice: number }[];
+  options?: PricingOption[];
+  setupFees?: Record<string, PricingSetupFee>;
+  extras?: PricingExtra[];
 };
+
+/** Plafonds par famille — SPEC-19. Verifies en direct contre le serveur. */
+export const PRICING_LIMITS = {
+  brackets: 20,
+  plans: 10,
+  options: 30,
+  setupFees: 20,
+  extras: 30,
+} as const;
+
+/** Les deux noms qu'une formule ne peut pas porter : ce sont les attributs
+ *  d'un poste de frais, qui vivent dans le meme objet que ses prix. */
+export const RESERVED_PLAN_NAMES = ['label', 'nature'] as const;
 
 export type PricingGrid = {
   id: string;

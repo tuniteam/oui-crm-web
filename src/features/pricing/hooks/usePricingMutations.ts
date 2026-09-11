@@ -39,10 +39,18 @@ export function useCreatePricingGrid() {
       /* `details[]` porte le chemin fautif — « subscription.CONFORT: 5 prices
          for 6 brackets ». Les rendre tels quels vaut mieux qu'un message
          generique ; leur resolution en cellules releve de la tranche C. */
+      /*
+       * `details[]` n'est **jamais** affiche brut.
+       *
+       * Ce sont des cles de correspondance — `subscription.ESSENTIEL: 1
+       * prices for 2 brackets` — pensees pour etre mappees sur un champ. Le
+       * toast n'en donne que le compte ; la traduction se fait a l'ecran, qui
+       * sait devant quel champ poser chaque message.
+       */
       const details = getApiErrorDetails(err);
       toast.error(
         details?.length
-          ? PRICING_UI.ERRORS.INVALID + details.join(' · ')
+          ? PRICING_UI.ERRORS.INVALID_SUMMARY(details.length)
           : getApiErrorMessage(err) || PRICING_UI.ERRORS.SAVE,
       );
     },

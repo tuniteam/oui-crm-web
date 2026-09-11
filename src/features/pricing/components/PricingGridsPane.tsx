@@ -35,6 +35,9 @@ import {
   PRICING_BASE_OUTDATED,
   PRICING_HAS_QUOTES,
 } from '../constants/pricing.constants';
+import { AddPlanWindow } from './AddPlanWindow';
+import { AddSetupFeeWindow } from './AddSetupFeeWindow';
+import { PricingIssuesPane } from './PricingIssuesPane';
 import { SavePricingGridWindow } from './SavePricingGridWindow';
 import { ActivatePricingGridWindow } from './ActivatePricingGridWindow';
 import { DeletePricingGridWindow } from './DeletePricingGridWindow';
@@ -198,13 +201,28 @@ export function PricingGridsPane() {
   );
 
   const { grid } = usePricingGrid(openedId);
-  const { draft, editing, dirtyCount, start, stop, setPrice, setLabel } =
-    usePricingDraft(grid?.content ?? null);
+  const {
+    draft,
+    editing,
+    dirtyCount,
+    start,
+    stop,
+    setPrice,
+    setLabel,
+    ...ops
+  } = usePricingDraft(grid?.content ?? null);
   const { saving, create } = useCreatePricingGrid();
   const { saving: fixing, update } = useUpdatePricingGrid();
   const { activating, activate } = useActivatePricingGrid();
   const { deleting, remove } = useDeletePricingGrid();
   const [askDate, setAskDate] = useState(false);
+  /* Ce que le serveur a refuse au dernier envoi, garde brut : la traduction
+     vit dans `PricingIssuesPane`, qui sait devant quel champ la poser. */
+  const [issues, setIssues] = useState<string[]>([]);
+  /* Ajouter une formule ou un poste demande une saisie, et un controle avant
+     l'envoi : les deux passent par une fenetre. */
+  const [addPlan, setAddPlan] = useState(false);
+  const [addSetup, setAddSetup] = useState(false);
 
   /* Activer et supprimer se font depuis la liste, sur une ligne qui n'est pas
      forcement celle du tiroir : chacun garde donc sa cible. */
@@ -226,6 +244,7 @@ export function PricingGridsPane() {
 
   const close = () => {
     stop();
+    setIssues([]);
     setOpenedId(null);
   };
 
@@ -371,7 +390,7 @@ export function PricingGridsPane() {
             {editing && opened?.active ? (
               <p
                 data-testid="pricing-active-warning"
-                className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-sm"
+                className="rounded-lg border border-warning bg-warning-soft p-3 text-sm"
               >
                 {UI.EDIT.ACTIVE_WARNING}
               </p>
@@ -380,17 +399,24 @@ export function PricingGridsPane() {
             {editing && opened && activeVersion !== null && !opened.active ? (
               <p
                 data-testid="pricing-not-active-warning"
-                className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-sm"
+                className="rounded-lg border border-warning bg-warning-soft p-3 text-sm"
               >
                 {UI.EDIT.NOT_ACTIVE(opened.version, activeVersion)}
               </p>
             ) : null}
+
+            <PricingIssuesPane details={issues} content={draft} />
 
             <PricingGridBody
               gridId={openedId}
               draft={draft}
               setPrice={setPrice}
               setLabel={setLabel}
+              /* Les gestes n'existent qu'en modification : en lecture, le
+                 tiroir ne montre ni corbeille ni bouton d'ajout. */
+              ops={editing ? ops : undefined}
+              onAddPlan={() => setAddPlan(true)}
+              onAddSetupFee={() => setAddSetup(true)}
             />
           </div>
         )}
@@ -412,7 +438,10 @@ export function PricingGridsPane() {
                     type="button"
                     variant="outline"
                     data-testid="pricing-edit-cancel"
-                    onClick={stop}
+                    onClick={() => {
+                      setIssues([]);
+                      stop();
+                    }}
                   >
                     {UI.EDIT.CANCEL}
                   </Button>
@@ -431,9 +460,11 @@ export function PricingGridsPane() {
                     data-testid="pricing-edit-save"
                     onClick={async () => {
                       if (!draft || !opened) return;
+                      setIssues([]);
                       const r = await update({ id: opened.id, content: draft });
                       if (r.ok) close();
                       else if (r.code === PRICING_HAS_QUOTES) setAskDate(true);
+                      else setIssues(r.details);
                     }}
                   >
                     {UI.EDIT.FIX}
@@ -444,7 +475,10 @@ export function PricingGridsPane() {
                   type="button"
                   variant="outline"
                   data-testid="pricing-edit-start"
-                  onClick={start}
+                  onClick={() => {
+                    setIssues([]);
+                    start();
+                  }}
                 >
                   <Pencil />
                   {UI.EDIT.START}
@@ -495,6 +529,26 @@ export function PricingGridsPane() {
             /* La version supprimee pouvait etre celle du tiroir. */
             if (openedId === toDelete.id) close();
           }
+        }}
+      />
+
+      <AddPlanWindow
+        open={addPlan}
+        onOpenChange={setAddPlan}
+        content={draft}
+        onConfirm={(name) => {
+          ops.addPlan(name);
+          setAddPlan(false);
+        }}
+      />
+
+      <AddSetupFeeWindow
+        open={addSetup}
+        onOpenChange={setAddSetup}
+        content={draft}
+        onConfirm={(label, nature) => {
+          ops.addSetupFee(label, nature);
+          setAddSetup(false);
         }}
       />
 

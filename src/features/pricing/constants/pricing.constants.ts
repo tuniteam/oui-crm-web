@@ -1,3 +1,5 @@
+import { formatInteger } from '@/shared/utils/string-utils';
+import type { IssueCode } from '../utils/grid-issues';
 /** Grille tarifaire — L2 · US-02-01. Routes scopees projet. */
 export const PRICING_ROUTES = {
   PRICING_GRIDS_API: '/pricing-grids',
@@ -38,12 +40,44 @@ export const PRICING_GRID_ACTIVE = 'PRICING_GRID_ACTIVE';
 export const PRICING_BASE_OUTDATED = 'PRICING_GRID_BASE_OUTDATED';
 
 /**
+ * Un identifiant d'option ou de prestation que ce projet n'a jamais
+ * distribue — SPEC-19.
+ *
+ * Le front ne fabrique plus d'identifiant : un element nouveau part **sans
+ * `id`**, le serveur lui en donne un. Ce code ne devrait donc plus jamais
+ * apparaitre ; s'il apparait, c'est qu'un `id` a ete invente quelque part.
+ */
+export const PRICING_UNKNOWN_ITEM_ID = 'PRICING_GRID_UNKNOWN_ITEM_ID';
+
+/**
+ * Un element retire est encore porte par un devis **brouillon** — SPEC-19.
+ *
+ * `meta.items` nomme les elements, `meta.quotes` les devis qui les
+ * retiennent : l'ecran les liste sans analyser une phrase. Le serveur bloque
+ * plutot que de laisser filer, car retirer la formule d'un brouillon le
+ * rendrait illisible — il se recalcule a chaque lecture.
+ */
+export const PRICING_ITEM_IN_USE = 'PRICING_GRID_ITEM_IN_USE';
+
+/**
  * Combien de versions la liste charge d'un coup.
  *
  * Le defaut du contrat, et il suffit : une grille se revise quelques fois par
  * an, pas quotidiennement. La pagination viendra si un projet la depasse.
  */
 export const PRICING_PAGE_SIZE = 20;
+
+/**
+ * Les bornes du calendrier des dates d'effet.
+ *
+ * Elles ne viennent pas du contrat, qui n'en pose aucune : c'est un confort
+ * de saisie. Un an en arriere pour relire une version passee, cinq ans en
+ * avant parce qu'une grille se prepare a l'annee, pas a la decennie.
+ */
+export const PRICING_CALENDAR = {
+  YEARS_BACK: 1,
+  YEARS_AHEAD: 5,
+} as const;
 
 export const PRICING_UI = {
   TITLE: 'Grille tarifaire',
@@ -103,6 +137,106 @@ export const PRICING_UI = {
 
   /** Le tiroir : les cinq tableaux de la V8, replies en accordeon. */
   DRAWER: {
+    /**
+     * Le nom d'un élément qu'on vient d'ajouter.
+     *
+     * Jamais vide : le serveur exige `name` et `label`, et les refuse en
+     * anglais à l'enregistrement de toute la grille. Un nom par défaut se
+     * relit et se remplace ; un champ vide se perd de vue.
+     */
+    NEW_NAMES: {
+      OPTION: 'Nouvelle option',
+      EXTRA: 'Nouvelle prestation',
+    },
+    /**
+     * Ajouter et retirer — SPEC-19.
+     *
+     * Le `content` se poste en entier : ajouter un element, c'est envoyer le
+     * document avec un element de plus. Aucune route par element, donc aucun
+     * enregistrement a l'unite — tout part au meme moment que les prix.
+     */
+    ACTIONS: 'Actions',
+    ADD: {
+      BRACKET: 'Ajouter une strate',
+      PLAN: 'Ajouter une formule',
+      OPTION: 'Ajouter une option',
+      SETUP: 'Ajouter un poste',
+      EXTRA: 'Ajouter une prestation',
+    },
+    REMOVE: {
+      BRACKET: 'Retirer cette strate',
+      PLAN: 'Retirer cette formule',
+      OPTION: 'Retirer cette option',
+      SETUP: 'Retirer ce poste',
+      EXTRA: 'Retirer cette prestation',
+    },
+    /** Le plafond, dit avant le clic plutot qu'apres un refus. */
+    AT_MOST: (n: number, what: string) =>
+      `Une grille ne peut pas dépasser ${n} ${what}.`,
+    FAMILIES: {
+      brackets: 'strates',
+      plans: 'formules',
+      options: 'options',
+      setupFees: 'postes de frais',
+      extras: 'prestations',
+    },
+    /** Retirer le dernier element d'une famille qui ne peut pas etre vide. */
+    LAST_ONE: {
+      BRACKET: 'Une grille garde au moins une strate.',
+      PLAN: 'Une grille garde au moins une formule.',
+    },
+    /**
+     * Ce qu'ajouter et retirer une strate font vraiment.
+     *
+     * Dit avant le geste : la couverture `[0, +∞[` doit rester entiere, donc
+     * ajouter **coupe** la strate visee et retirer **rend sa plage** a la
+     * voisine. Sans cette phrase, l'utilisateur croit inserer une ligne et
+     * s'etonne que les bornes voisines bougent.
+     */
+    BRACKET_HINT:
+      'Ajouter coupe la strate en deux ; retirer rend sa plage à la strate voisine. Les tailles de commune restent couvertes de bout en bout.',
+    SETUP_WINDOW: {
+      TITLE: 'Ajouter un poste de frais',
+      LABEL: 'Libellé',
+      LABEL_HINT:
+        'Il s’imprime sur le devis, et doit rester distinct des autres postes : un devis déjà émis reventile ses lignes par libellé.',
+      NATURE: 'Nature',
+      NATURE_HINT:
+        'Ce choix répartit le montant entre « formation » et « mise en place » dans le récapitulatif pluriannuel.',
+      CONFIRM: 'Ajouter',
+      CANCEL: 'Annuler',
+      DUPLICATE: 'Un autre poste porte déjà ce libellé.',
+      EMPTY: 'Donnez un libellé à ce poste.',
+    },
+    PLAN_WINDOW: {
+      TITLE: 'Ajouter une formule',
+      NAME: 'Nom de la formule',
+      NAME_HINT:
+        'Il apparaît sur le devis. La formule naît avec un prix à zéro sur chaque strate et sur chaque poste de frais.',
+      CONFIRM: 'Ajouter',
+      CANCEL: 'Annuler',
+      EMPTY: 'Donnez un nom à cette formule.',
+      RESERVED: '« label » et « nature » sont réservés : ce sont les attributs d’un poste de frais.',
+      DUPLICATE: 'Une formule porte déjà ce nom.',
+    },
+    /** Retirer une formule retire aussi ses prix — le dire avant. */
+    REMOVE_PLAN_HINT: (plan: string, posts: number) =>
+      posts > 0
+        ? `Retirer « ${plan} » efface son prix d’abonnement sur chaque strate, et ses prix sur les ${posts} postes de frais.`
+        : `Retirer « ${plan} » efface son prix d’abonnement sur chaque strate.`,
+  /**
+   * Ce qu'un poste de frais est, en un mot — SPEC-19.
+   *
+   * Affiche a cote du libelle : c'est `nature`, et non plus la cle ecrite en
+   * dur, qui decide si le montant tombe dans « formation » ou dans « mise en
+   * place » sur le devis. Le taire laisserait deux postes identiques a l'oeil
+   * ventiler differemment.
+   */
+  NATURE: {
+    TRAINING: 'Formation',
+    SETUP: 'Mise en place',
+  },
+
     SECTIONS: {
       BRACKETS: 'Tranches de population',
       SUBSCRIPTION: 'Abonnement HT par mois',
@@ -126,7 +260,35 @@ export const PRICING_UI = {
     PLAN: 'Formule',
     POST: 'Poste',
     UNIT_PRICE: 'Prix unitaire HT',
-    INCLUDED: (n: number) => `${n} inclus dans l’abonnement`,
+    /**
+     * La franchise d'une option — `options[].included`.
+     *
+     * Ce n'est pas une mention, c'est une **regle de facturation** : avec
+     * `included: 1`, prendre trois profils n'en facture que deux, et le devis
+     * porte la ligne « Profil Gestionnaire (supplementaire) ». Le prix de la
+     * colonne est donc celui du **supplementaire**, pas celui de l'option.
+     *
+     * « 1 inclus dans l'abonnement » etait vrai et muet sur l'essentiel : ce
+     * qui se passe au-dela.
+     */
+    INCLUDED: (n: number) => `${n} compris`,
+    INCLUDED_HINT: (n: number) =>
+      n > 1
+        ? `Les ${n} premiers sont compris dans l’abonnement ; on facture à partir du ${n + 1}ᵉ, au prix ci-contre.`
+        : 'Le premier est compris dans l’abonnement ; on facture à partir du 2ᵉ, au prix ci-contre.',
+    /**
+     * L'en-tete de la colonne, et la phrase qui la sauve.
+     *
+     * « Compris » seul ne se suffit pas : la question « c'est quoi ? » est
+     * revenue deux fois. Il faut dire **dans quoi** c'est compris, et **ce
+     * qui se passe au-dela** — sans quoi on lit le prix de la colonne comme
+     * le prix de l'option, alors que c'est celui du supplementaire.
+     */
+    INCLUDED_FIELD: 'Compris dans l’abo',
+    INCLUDED_SUBHEAD: 'facturé au-delà',
+    INCLUDED_NONE: 'Rien n’est compris : l’option est facturée dès la première unité.',
+    /** L'unite des strates, dite une fois au lieu de six. */
+    BRACKET_UNIT: 'habitants',
     NO_OPTIONS: 'Aucune option mensuelle.',
     NO_EXTRAS: 'Aucune prestation libre.',
     NO_SETUP: 'Aucun frais de mise en place.',
@@ -274,6 +436,38 @@ export const PRICING_UI = {
     FETCH: 'Impossible de charger les grilles tarifaires',
     SAVE: 'Impossible d’enregistrer la grille',
     ACTIVE_GRID: 'La version active ne peut pas être supprimée : le projet se retrouverait sans grille.',
+    /**
+     * Ne devrait jamais s'afficher : le front n'invente plus d'identifiant.
+     * Le message vise donc le developpeur autant que l'utilisateur.
+     */
+    UNKNOWN_ITEM: 'Un élément porte un identifiant inconnu du projet. Rechargez la version et recommencez.',
+
+    /**
+     * Le repli quand le serveur refuse le contenu — SPEC-19.
+     *
+     * `messages.details[]` est une **cle de correspondance**, pas une phrase :
+     * l'anglais et les chemins techniques sont deliberes cote API. On les
+     * traduit devant leur champ ; ce qui reste tombe ici.
+     *
+     * Ce repli n'est pas un ornement : le jour ou une regle s'ajoute cote
+     * serveur, il est tout ce qui separe un message imparfait d'un ecran
+     * muet — et l'ecran muet est pire.
+     */
+    INVALID_SUMMARY: (n: number) =>
+      n > 1
+        ? `Cette grille comporte ${n} anomalies.`
+        : 'Cette grille comporte une anomalie.',
+    INVALID_DETAIL: 'Voir le détail',
+    /** Ce que le support doit pouvoir lire tel quel, sans le montrer d'office. */
+    INVALID_RAW: 'Détail technique',
+    IN_USE: (items: string[], quotes: string[]) =>
+      `Impossible de retirer ${items.join(', ')} : ${
+        quotes.length > 1
+          ? `les devis ${quotes.join(', ')} les utilisent encore`
+          : `le devis ${quotes[0]} l’utilise encore`
+      }. Modifiez ou supprimez ${quotes.length > 1 ? 'ces devis' : 'ce devis'} d’abord.`,
+    IN_USE_FALLBACK:
+      'Un élément retiré est encore utilisé par un devis en brouillon de cette version.',
     DELETE_HAS_QUOTES: (n: number) =>
       `${n} devis est attaché à cette version, brouillon compris : retirez-le avant de supprimer.`,
     /** `details[]` porte le chemin fautif : on les rend tels quels tant que la
@@ -281,3 +475,82 @@ export const PRICING_UI = {
     INVALID: 'La grille est refusée : ',
   },
 } as const;
+
+/**
+ * Ce que le serveur refuse, dit en français — SPEC-19.
+ *
+ * `grid-issues.ts` rend une **cause** et des paramètres ; la phrase vit ici,
+ * avec le reste de l'interface. C'est le patron du projet, et c'est ce qui
+ * rend l'utilitaire éprouvable sans rien afficher.
+ *
+ * Un `params` vide est normal : la plupart des causes se disent d'un trait.
+ */
+export const PRICING_ISSUE_TEXT: Record<
+  IssueCode,
+  (p: Record<string, string | number>) => string
+> = {
+  BRACKETS_REQUIRED: () => 'Définissez au moins une strate.',
+  BRACKET_FIRST_AT_ZERO: () =>
+    'La première strate doit commencer à 0 habitant.',
+  BRACKET_LAST_OPEN: () =>
+    'La dernière strate doit rester ouverte (« et plus »).',
+  BRACKET_OVERLAP: (p) => `La strate « ${p.name} » empiète sur la précédente.`,
+  /* La plage n'est nommée que si l'écran a le contenu fautif sous les yeux. */
+  BRACKET_GAP: (p) =>
+    p.from === undefined
+      ? 'Il manque des tailles de commune : certaines ne pourraient pas être chiffrées.'
+      : `Il manque les tailles entre ${formatInteger(Number(p.from))} et ${formatInteger(Number(p.to))} habitants : aucune commune de cette taille ne pourrait être chiffrée.`,
+  BRACKET_MAX_BELOW_MIN: () => 'Le maximum est inférieur au minimum.',
+  BRACKET_LABEL_REQUIRED: () => 'Donnez un nom à cette strate.',
+  BRACKETS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} strates.`,
+
+  PLAN_RESERVED: (p) =>
+    `« ${p.plan} » est un nom réservé : c’est un attribut des postes de frais, qui partagent leur objet avec les prix par formule.`,
+  PLAN_DUPLICATE: () => 'Deux formules portent le même nom.',
+  PLAN_NAME_REQUIRED: () => 'Une formule ne peut pas être sans nom.',
+  PLANS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} formules.`,
+
+  SUBSCRIPTION_MISSING_PRICE: (p) =>
+    `Formule « ${p.plan} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  SUBSCRIPTION_EXTRA_PRICE: (p) =>
+    `Formule « ${p.plan} » : il y a plus de prix que de strates.`,
+  /* Le serveur refuse plutôt que d'ignorer : un prix laissé derrière une
+     formule supprimée ressusciterait d'anciens tarifs le jour où le nom
+     revient. */
+  SUBSCRIPTION_NO_SUCH_PLAN: (p) =>
+    `Des prix d’abonnement subsistent pour la formule « ${p.plan} », qui n’existe plus.`,
+
+  OPTION_MISSING_PRICE: (p) =>
+    `Option « ${p.option} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  OPTION_NAME_REQUIRED: () => 'Donnez un nom à cette option.',
+  OPTION_INCLUDED_INVALID: (p) =>
+    `Option « ${p.option} » : la quantité comprise doit être un nombre positif ou nul.`,
+  OPTION_DUPLICATE_ID: () => 'Deux options portent le même identifiant.',
+  OPTIONS_AT_MOST: (p) => `Une grille ne peut pas dépasser ${p.max} options.`,
+
+  SETUP_LABEL_REQUIRED: () => 'Donnez un libellé à ce poste.',
+  SETUP_NATURE_REQUIRED: (p) =>
+    `Le poste « ${p.post} » est-il de la formation ou de la mise en place ? C’est ce choix qui répartit le montant dans le récapitulatif pluriannuel.`,
+  SETUP_NO_SUCH_PLAN: (p) =>
+    `Le poste « ${p.post} » garde des prix pour la formule « ${p.plan} », qui n’existe plus.`,
+  SETUP_MISSING_TABLE: (p) =>
+    `Le poste « ${p.post} » n’a pas de prix pour la formule « ${p.plan} ».`,
+  SETUP_MISSING_PRICE: (p) =>
+    `Poste « ${p.post} », formule « ${p.plan} » : il manque un prix à partir de la strate « ${p.bracket} ».`,
+  /* L'unicité n'est pas cosmétique : un devis figé reventile ses lignes
+     stockées par libellé, et deux postes homonymes y seraient indiscernables. */
+  SETUP_DUPLICATE_LABEL: () =>
+    'Deux postes de frais portent le même libellé : un devis déjà émis ne saurait plus les distinguer.',
+  SETUP_AT_MOST: (p) =>
+    `Une grille ne peut pas dépasser ${p.max} postes de frais.`,
+
+  EXTRA_PRICE_INVALID: (p) =>
+    `Prestation « ${p.extra} » : le prix doit être un nombre positif ou nul.`,
+  EXTRA_NAME_REQUIRED: () => 'Donnez un nom à cette prestation.',
+  EXTRAS_AT_MOST: (p) =>
+    `Une grille ne peut pas dépasser ${p.max} prestations.`,
+
+  /* Jamais affiché : l'écran compte ces anomalies dans son repli et montre
+     leur chaîne d'origine dans le détail dépliable. */
+  UNKNOWN: () => '',
+};
