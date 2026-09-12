@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -205,6 +206,64 @@ function PriceCellInput({
 }
 
 /**
+ * La borne haute d'une strate — saisie libre, puis validee d'un coup.
+ *
+ * `setBracketBound` recoud la voisine et **regenere les libelles** : le faire a
+ * chaque frappe faisait defiler « 0 – 5 hab. » puis « 0 – 50 hab. » en chemin
+ * vers 500, et changeait le `min` de la strate suivante autant de fois.
+ *
+ * La valeur ne remonte donc au modele qu'a la sortie du champ, ou sur
+ * `Entree`. Le brouillon reste une chaine : vider le champ pour retaper ne
+ * doit pas ecrire `0` et relabelliser toute la chaine.
+ */
+function BracketBoundInput({
+  value,
+  min,
+  testId,
+  onCommit,
+}: {
+  value: number;
+  min: number;
+  testId: string;
+  onCommit: (v: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+
+  /* Le modele reprend la main quand la borne change ailleurs : ajouter ou
+     retirer une strate recoud les bornes voisines. */
+  useEffect(() => setDraft(String(value)), [value]);
+
+  const commit = () => {
+    const parsed = Number(draft);
+    /* Un champ vide ou illisible n'est pas une borne : on rend la valeur
+       courante plutot que d'en inventer une. */
+    if (draft.trim() === '' || !Number.isFinite(parsed)) {
+      setDraft(String(value));
+      return;
+    }
+    onCommit(parsed);
+  };
+
+  return (
+    <Input
+      type="number"
+      min={min}
+      step={1}
+      data-testid={testId}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        commit();
+      }}
+      className={`${QUIET_FIELD} w-24 text-end tabular-nums`}
+    />
+  );
+}
+
+/**
  * L'en-tete d'une colonne de strate.
  *
  * Le libelle porte son unite — « 0 – 500 hab. » — et six colonnes la
@@ -356,8 +415,14 @@ export function PricingGridBody({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* La cle d'une ligne est sa **position**, jamais ses bornes :
+                  derivee de `min`/`max`, elle changeait des la premiere frappe,
+                  React demontait la ligne et le champ disparaissait sous le
+                  curseur. Une strate ne porte pas d'identifiant, et sa position
+                  est son identite — ajouter ou retirer recalcule toute la
+                  chaine de toute facon. */}
               {c.brackets.map((b, i) => (
-                <TableRow key={`${b.min}-${b.max}`}>
+                <TableRow key={i}>
                   <TableCell className="font-medium">
                     {editing ? (
                       <Input
@@ -394,16 +459,11 @@ export function PricingGridBody({
                     {b.max === null ? (
                       UI.OPEN_ENDED
                     ) : ops ? (
-                      <Input
-                        type="number"
+                      <BracketBoundInput
+                        value={b.max}
                         min={b.min}
-                        step={1}
-                        data-testid={`pricing-bracket-max-${i}`}
-                        value={String(b.max)}
-                        onChange={(e) =>
-                          ops.setBracketBound(i, Number(e.target.value) || 0)
-                        }
-                        className={`${QUIET_FIELD} w-24 text-end tabular-nums`}
+                        testId={`pricing-bracket-max-${i}`}
+                        onCommit={(v) => ops.setBracketBound(i, v)}
                       />
                     ) : (
                       formatInteger(b.max)
@@ -457,8 +517,10 @@ export function PricingGridBody({
             <TableHeader>
               <TableRow>
                 <TableHead>{UI.PLAN}</TableHead>
-                {c.brackets.map((b) => (
-                  <TableHead key={b.label} className="text-end whitespace-nowrap">
+                {/* Meme raison que la cle de ligne : le libelle est regenere
+                    a chaque borne validee, l'en-tete se remontait pour rien. */}
+                {c.brackets.map((b, bi) => (
+                  <TableHead key={bi} className="text-end whitespace-nowrap">
                     {shortBracket(b.label)}
                   </TableHead>
                 ))}
@@ -537,8 +599,8 @@ export function PricingGridBody({
                       {UI.INCLUDED_SUBHEAD}
                     </span>
                   </TableHead>
-                  {c.brackets.map((b) => (
-                    <TableHead key={b.label} className="text-end whitespace-nowrap">
+                  {c.brackets.map((b, bi) => (
+                    <TableHead key={bi} className="text-end whitespace-nowrap">
                       {shortBracket(b.label)}
                     </TableHead>
                   ))}
@@ -665,8 +727,8 @@ export function PricingGridBody({
                 <TableRow>
                   <TableHead>{UI.POST}</TableHead>
                   <TableHead>{UI.PLAN}</TableHead>
-                  {c.brackets.map((b) => (
-                    <TableHead key={b.label} className="text-end whitespace-nowrap">
+                  {c.brackets.map((b, bi) => (
+                    <TableHead key={bi} className="text-end whitespace-nowrap">
                       {shortBracket(b.label)}
                     </TableHead>
                   ))}
