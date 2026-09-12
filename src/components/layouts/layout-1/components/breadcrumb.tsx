@@ -5,7 +5,7 @@ import { buildProjectMenu } from '@/config/menu-project';
 import { MenuItem } from '@/config/types';
 import { useMeStore } from '@/contexts/useMeStore';
 import { useProjectModeStore } from '@/contexts/useProjectModeStore';
-import { useProject } from '@/features/project/hooks/useProject';
+import { useActiveProjectName } from '@/features/project/hooks/useActiveProjectName';
 import { cn } from '@/lib/utils';
 import { useMenu } from '@/hooks/use-menu';
 import { PROFILE_UI } from '@/features/profile/constants/profile.constants';
@@ -68,19 +68,9 @@ export function Breadcrumb() {
   const isProjectMode = useProjectModeStore((s) => s.isProjectMode);
   const activeProjectId = meStore.getActiveProjectId();
 
-  // Le nom vient du rattachement du contact quand il en a un. Un operateur
-  // back-office n'en a aucun, et ouvre pourtant des projets depuis la liste :
-  // son nom de projet ne peut alors venir que de l'API. C'est la bascule que
-  // fait soft-m pour le nom de client.
-  const nameFromRelationship = meStore.getActiveProjectName();
-  const { data: fetchedProject } = useProject(
-    isProjectMode && !nameFromRelationship
-      ? (activeProjectId ?? undefined)
-      : undefined,
+  const projectName = useActiveProjectName(
+    isProjectMode ? activeProjectId : null,
   );
-  const projectName = isProjectMode
-    ? (nameFromRelationship ?? fetchedProject?.name ?? null)
-    : null;
 
   const menuConfig = useMemo(() => {
     if (!isProjectMode || !activeProjectId) return MENU_SIDEBAR;

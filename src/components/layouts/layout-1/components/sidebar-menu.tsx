@@ -11,7 +11,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { MENU_SIDEBAR } from '@/config/layout-1.config';
 import { buildProjectMenu } from '@/config/menu-project';
 import { useProjectModeStore } from '@/contexts/useProjectModeStore';
-import { useProject } from '@/features/project/hooks/useProject';
+import { useActiveProjectName } from '@/features/project/hooks/useActiveProjectName';
 import { MenuConfig, MenuItem } from '@/config/types';
 import { cn } from '@/lib/utils';
 import {
@@ -95,16 +95,7 @@ export function SidebarMenu() {
       : null
     : (activeProjectId ?? relationshipProjectId);
 
-  // Le nom vient du rattachement du contact quand il en a un. On n'interroge
-  // l'API que sinon — le cas d'un operateur back-office, qui n'est rattache a
-  // aucun projet. Un contact de projet, lui, n'a pas `projects:read` : appeler
-  // GET /projects/:id lui renvoyait un 403 a chaque page, et le nom restait
-  // vide.
-  const nameFromRelationship = meStore.getActiveProjectName();
-  const { data: fetchedProject } = useProject(
-    menuProjectId && !nameFromRelationship ? menuProjectId : undefined,
-  );
-  const projectName = nameFromRelationship ?? fetchedProject?.name ?? '';
+  const projectName = useActiveProjectName(menuProjectId) ?? '';
 
   const menuConfig = useMemo(() => {
     if (!menuProjectId) return MENU_SIDEBAR;
