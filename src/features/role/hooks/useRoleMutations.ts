@@ -12,16 +12,19 @@ import type {
 
 const UI = ROLES_UI;
 
-/** Ce que l'appelant fait du refus : un champ, ou rien de plus. */
-export type RoleFailure = 'CODE_EXISTS' | 'IN_USE' | 'HANDLED';
+/** Ce que l'appelant fait du refus : le dire sous un champ, ou rien de plus. */
+export type RoleFailure = 'CODE_EXISTS' | 'HANDLED';
 
 /**
  * Ce que le serveur reproche, dit une seule fois pour les trois gestes.
  *
- * `ROLE_IS_SYSTEM` et `ROLE_NOT_FOUND` ne devraient pas survenir : l'écran
- * masque déjà les actions sur un rôle système. S'ils arrivent, la liste
- * affichée est fausse — on la recharge plutôt que de laisser l'utilisateur
- * cliquer dans le vide.
+ * `ROLE_IS_SYSTEM`, `ROLE_NOT_FOUND` et `ROLE_IN_USE` ne devraient pas
+ * survenir : l'écran masque déjà les actions sur un rôle système et refuse le
+ * clic sur un rôle porté. S'ils arrivent, la liste affichée est périmée — on la
+ * recharge plutôt que de laisser l'utilisateur cliquer dans le vide.
+ *
+ * Seul `ROLE_CODE_EXISTS` remonte à l'appelant : il se dit **sous le champ
+ * Code**, là où on agit, et non dans un bandeau au coin de l'écran.
  */
 function useRoleErrors() {
   const queryClient = useQueryClient();
@@ -30,7 +33,11 @@ function useRoleErrors() {
   const report = (err: unknown, fallback: string): RoleFailure => {
     const code = getApiErrorCode(err);
     if (code === ROLE_ERROR_CODES.CODE_EXISTS) return 'CODE_EXISTS';
-    if (code === ROLE_ERROR_CODES.IN_USE) return 'IN_USE';
+    if (code === ROLE_ERROR_CODES.IN_USE) {
+      toast.error(UI.ERRORS.IN_USE_ANY);
+      refresh();
+      return 'HANDLED';
+    }
     if (code === ROLE_ERROR_CODES.IS_SYSTEM) {
       toast.error(UI.ERRORS.IS_SYSTEM);
       refresh();

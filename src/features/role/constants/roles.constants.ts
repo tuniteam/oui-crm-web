@@ -22,8 +22,6 @@ export const ROLE_ERROR_CODES = {
   /** 409 — des utilisateurs portent encore ce rôle. */
   IN_USE: 'ROLE_IN_USE',
   NOT_FOUND: 'ROLE_NOT_FOUND',
-  EMPTY_PAYLOAD: 'EMPTY_UPDATE_PAYLOAD',
-  INVALID_DATA: 'INVALID_DATA',
 } as const;
 
 /**
@@ -146,7 +144,6 @@ export const ROLES_UI = {
       `${granted} / ${total}`,
     DIRTY: (n: number) =>
       `${n} modification${n > 1 ? 's' : ''} non enregistrée${n > 1 ? 's' : ''}`,
-    NOTHING_TO_SAVE: 'Aucune modification à enregistrer.',
   },
 
   DUPLICATE_WINDOW: {
@@ -177,6 +174,12 @@ export const ROLES_UI = {
       'Majuscules, chiffres et tirets bas uniquement, en commençant par une lettre.',
     CODE_EXISTS: 'Ce code est déjà utilisé dans ce projet.',
     IS_SYSTEM: 'Ce rôle est un rôle système : il ne se modifie pas.',
+    /**
+     * Le refus du serveur, quand la liste affichée était périmée : on ne
+     * connaît pas le nombre d'utilisateurs concernés, on ne l'invente pas.
+     */
+    IN_USE_ANY:
+      'Ce rôle est encore attribué à des utilisateurs : réaffectez-les avant de le supprimer.',
     /** `usersCount` vient de la liste : on nomme le nombre, pas « des » utilisateurs. */
     IN_USE: (n: number) =>
       n > 1

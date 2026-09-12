@@ -14,9 +14,9 @@ import type {
  * l'en-tête `x-project-id` est posé par l'intercepteur, jamais dans l'URL.
  *
  * Aucune écriture n'est enveloppée dans un `Error` nu : l'écran doit
- * reconnaître `409 ROLE_CODE_EXISTS` pour le poser sous le champ Code,
- * `409 ROLE_IN_USE` pour nommer le nombre de porteurs, et `403 ROLE_IS_SYSTEM`
- * pour recharger une liste devenue fausse.
+ * reconnaître `409 ROLE_CODE_EXISTS` pour le poser sous le champ Code, et
+ * `409 ROLE_IN_USE` / `403 ROLE_IS_SYSTEM` pour recharger une liste devenue
+ * fausse.
  */
 export const roleService = {
   getAll: async (): Promise<RolesListResponse> =>

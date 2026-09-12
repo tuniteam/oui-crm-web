@@ -6,6 +6,7 @@ import {
   noWindowHooks,
   ReusableWindow,
 } from '@/components/window/ReusableWindow';
+import { slugify } from '@/shared/utils/string-utils';
 import { ROLE_RULES, ROLES_UI } from '../constants/roles.constants';
 import { useDuplicateRole } from '../hooks/useRoleMutations';
 import type { Role } from '../types/role';
@@ -13,18 +14,23 @@ import type { Role } from '../types/role';
 const UI = ROLES_UI.DUPLICATE_WINDOW;
 const E = ROLES_UI.ERRORS;
 
-/** Le code proposé depuis le libellé : majuscules, sans accents, tirets bas. */
+/**
+ * Le code proposé depuis le libellé : majuscules, sans accents, tirets bas.
+ *
+ * C'est `slugify` — même retrait d'accents, mêmes mots reliés — relevé en
+ * majuscules : un code de rôle et un identifiant d'URL suivent la même règle,
+ * à la casse et au séparateur près.
+ */
 export function codeFromLabel(label: string): string {
-  return label
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    /* Le motif du serveur exige une lettre en tête : un code commençant par
-       un chiffre serait refusé par un `400` après la saisie. */
-    .replace(/^[0-9_]+/, '')
-    .slice(0, ROLE_RULES.CODE_MAX);
+  return (
+    slugify(label)
+      .toUpperCase()
+      .replace(/-/g, '_')
+      /* Le motif du serveur exige une lettre en tête : un code commençant par
+         un chiffre serait refusé par un `400` après la saisie. */
+      .replace(/^[0-9_]+/, '')
+      .slice(0, ROLE_RULES.CODE_MAX)
+  );
 }
 
 /**
@@ -41,12 +47,10 @@ export function DuplicateRoleWindow({
   open,
   onOpenChange,
   source,
-  onDuplicated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   source: Role | null;
-  onDuplicated?: () => void;
 }) {
   const [label, setLabel] = useState('');
   const [code, setCode] = useState('');
@@ -164,7 +168,6 @@ export function DuplicateRoleWindow({
                 return;
               }
               onOpenChange(false);
-              if (typeof result === 'object') onDuplicated?.();
             }}
           >
             {UI.CONFIRM}
