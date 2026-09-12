@@ -149,6 +149,8 @@ export const ORGANIZATIONS_UI = {
   COUNT_FILTERED: (shown: number, all: number) =>
     `${formatInteger(shown)} sur ${formatInteger(all)}`,
   FILTERS_TITLE: 'Affiner la recherche',
+  /** Le panneau ne se ferme plus en posant un critere : on le referme soi-meme. */
+  FILTERS_CLOSE: 'Fermer les filtres',
   /**
    * Le nom du critere devant sa valeur : « Statut : A contacter ».
    *
