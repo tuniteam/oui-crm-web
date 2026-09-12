@@ -15,7 +15,15 @@ export const USER_ROUTES = {
   USER_DETAIL_API: (userId: string) => `/users/${userId}`,
   USER_UPDATE_API: (userId: string) => `/users/${userId}`,
   USER_DELETE_API: (userId: string) => `/users/${userId}`,
+
+  /** Suppression definitive du compte (US-00-05 §7), a ne pas confondre avec
+   *  le retrait ci-dessus : celle-ci ne se defait pas. */
+  USER_ACCOUNT_API: (userId: string) => `/users/${userId}/account`,
   USER_CORRECT_EMAIL_API: (userId: string) => `/users/${userId}/email`,
+
+  /** Exceptions individuelles de droits (US-00-05 §4). Le corps remplace
+   *  **tout** l'ensemble : `{ added, removed }`, deux tableaux obligatoires. */
+  USER_OVERRIDES_API: (userId: string) => `/users/${userId}/overrides`,
 
   /** Renvoi du lien d'activation (US-00-05). Il n'y a pas de route /invite. */
   USER_RESEND_ACTIVATION_API: (userId: string) =>

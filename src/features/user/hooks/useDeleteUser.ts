@@ -1,6 +1,7 @@
 // src/features/user/hooks/useDeleteUser.ts
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { apiMessageOr } from '@/shared/utils/api-error';
 import { userService } from '../services/user.service';
 import { useContent } from '@/hooks/useContent';
 
@@ -17,10 +18,9 @@ export function useDeleteUser() {
     },
 
     onError: (err) => {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : content.user.delete.errors.DELETE_USER;
+      /* `CANNOT_DELETE_SELF` et `USER_IS_LAST_ADMIN` sont deja traduits par la
+         table partagee : on route sur le code, jamais sur le texte. */
+      const msg = apiMessageOr(err, content.user.delete.errors.DELETE_USER);
 
       toast.error(msg);
       console.error(msg);

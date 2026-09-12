@@ -45,6 +45,7 @@ export const TOASTS = {
   USER_ATTACHED: 'Utilisateur rattaché au projet',
 
   USER_CREATED: 'Utilisateur créé',
+  USER_UPDATED: 'Utilisateur modifié',
   CREATE_USER_ERROR: 'Erreur création utilisateur',
   SLOT_ASSIGNED: 'Le créneau a été assigné à la structure',
   SLOT_UNASSIGNED: 'Le créneau a été désassigné de la structure',

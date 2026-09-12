@@ -106,6 +106,13 @@ export const API_ERROR = {
   SCOPE_NOT_FOUND: 'Périmètre introuvable.',
   USER_IS_LAST_ADMIN:
     "Impossible : c'est le dernier administrateur actif du projet.",
+  /**
+   * Repli seulement : l'ecran de suppression definitive nomme les compteurs de
+   * `meta` — « 4 organismes et 2 devis lui sont rattaches » — et propose le
+   * retrait a la place. Ce message ne sert que si le refus survient ailleurs.
+   */
+  USER_HAS_REFERENCES:
+    'Impossible de supprimer ce compte : des données du projet lui sont rattachées.',
   EMPTY_UPDATE_PAYLOAD: 'Aucune modification à enregistrer.',
   PERMISSION_NOT_FOUND: 'Permission inconnue.',
   CANNOT_UPDATE_OWN_ACCESS:
@@ -172,6 +179,7 @@ export const API_ERROR_CODE = {
   EXPIRATION_REQUIRED_FOR_EXTERNAL: 'EXPIRATION_REQUIRED_FOR_EXTERNAL',
   SCOPE_NOT_FOUND: 'SCOPE_NOT_FOUND',
   USER_IS_LAST_ADMIN: 'USER_IS_LAST_ADMIN',
+  USER_HAS_REFERENCES: 'USER_HAS_REFERENCES',
   EMPTY_UPDATE_PAYLOAD: 'EMPTY_UPDATE_PAYLOAD',
   PERMISSION_NOT_FOUND: 'PERMISSION_NOT_FOUND',
   CANNOT_UPDATE_OWN_ACCESS: 'CANNOT_UPDATE_OWN_ACCESS',

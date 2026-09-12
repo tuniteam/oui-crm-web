@@ -147,3 +147,19 @@ export async function getBlobApiError(
     details: getApiErrorDetails(err),
   };
 }
+
+/**
+ * Le message de l'enveloppe, ou celui que l'appelant juge plus utile.
+ *
+ * `getApiErrorMessage` traduit tout code connu, mais retombe sur un « Erreur
+ * inconnue » générique dès qu'il n'y a **pas** de code — panne réseau,
+ * exception locale, réponse hors contrat. À cet endroit-là, l'appelant sait
+ * souvent mieux quoi dire : « Impossible de retirer cet utilisateur » plutôt
+ * qu'« Erreur inconnue ». Ce repli n'est donc pas un doublon du premier, il
+ * est plus précis.
+ *
+ * Écrit ici parce que six hooks recopiaient le même ternaire.
+ */
+export function apiMessageOr(err: unknown, fallback: string): string {
+  return getApiErrorCode(err) ? getApiErrorMessage(err) : fallback;
+}
