@@ -45,7 +45,9 @@ export const PERMISSIONS = {
   DEPLOYMENTS: { READ: 'deployments:read' },
   TRAININGS: { READ: 'trainings:read' },
   TICKETS: { READ: 'tickets:read' },
-  ROLES: { READ: 'roles:read' },
+  /** `roles:update` couvre dupliquer, modifier et supprimer : le contrat n'a
+   *  pas de permission de création distincte. */
+  ROLES: { READ: 'roles:read', UPDATE: 'roles:update' },
   /** Le contrat n'a pas de permission de creation distincte : `update` couvre
    *  la creation, la modification et la suppression. */
   SCOPES: { READ: 'scopes:read', UPDATE: 'scopes:update' },

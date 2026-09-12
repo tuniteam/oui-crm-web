@@ -6,6 +6,7 @@ import {
   SETTINGS_TABS,
   SETTINGS_UI,
 } from '@/features/settings/constants/constants';
+import { RolesScreen } from '@/features/role/components/RolesScreen';
 import { SettingsScreen } from '@/features/settings/components/SettingsScreen';
 import AgendaScreen from '@/features/activity/components/AgendaScreen';
 import ProspectionScreen from '@/features/organization/components/ProspectionScreen';
@@ -34,7 +35,6 @@ const SOON: { path: string; title: string; permission: string }[] = [
   { path: 'trainings', title: MENU_PROJECT.TRAININGS, permission: PERMISSIONS.TRAININGS.READ },
   { path: 'support', title: MENU_PROJECT.SUPPORT, permission: PERMISSIONS.TICKETS.READ },
   { path: 'renewals', title: MENU_PROJECT.RENEWALS, permission: PERMISSIONS.CONTRACTS.READ },
-  { path: 'roles', title: MENU_PROJECT.ROLES, permission: PERMISSIONS.ROLES.READ },
 ];
 
 export function ProjectWorkspaceRoutes() {
@@ -50,6 +50,10 @@ export function ProjectWorkspaceRoutes() {
       >
         <Route path="organizations" element={<OrganizationsTable />} />
         <Route path="prospecting" element={<ProspectionScreen />} />
+      </Route>
+
+      <Route element={<RequirePermission permission={PERMISSIONS.ROLES.READ} />}>
+        <Route path="roles" element={<RolesScreen />} />
       </Route>
 
       <Route
