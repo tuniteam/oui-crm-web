@@ -116,26 +116,49 @@ export function SidebarMenu() {
     [menuConfig],
   );
 
-  const storageKey = 'sidebar-open-sections';
+  // Une cle par menu : le menu plateforme et chaque menu projet n'ont aucun
+  // identifiant de groupe en commun. Avec une cle unique, changer de projet ou
+  // revenir au back-office faisait tomber dans le cas « etat etranger » et
+  // repartait de tout ouvert — un operateur qui alterne perdait sa disposition
+  // a chaque bascule.
+  const storageKey = `sidebar-open-sections:${menuProjectId ?? 'platform'}`;
 
-  // L'etat memorise vaut pour le menu qui l'a produit. En passant du menu
-  // plateforme au menu projet, aucun de ses identifiants ne correspond : on
-  // ouvre alors tous les groupes plutot que de les laisser tous fermes.
+  /*
+   * Ce que l'utilisateur a ouvert et ferme, tel qu'il l'a laisse.
+   *
+   * Quatre cas, et c'est leur distinction qui compte : un tableau **absent**
+   * n'est pas un tableau **vide**. Les confondre faisait que tout replier —
+   * le geste le plus delibere — etait le seul a ne pas survivre au
+   * rechargement.
+   */
   const openSections = useMemo<string[]>(() => {
-    let saved: string[] = [];
+    let saved: string[] | null = null;
     try {
       const raw = localStorage.getItem(storageKey);
-      if (raw) saved = JSON.parse(raw) as string[];
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) saved = parsed as string[];
+      }
     } catch {
       /* ignore */
     }
-    const known = saved.filter((v) => sectionValues.includes(v));
-    return known.length ? known : sectionValues;
-  }, [sectionValues]);
 
-  const handleSectionsChange = useCallback((values: string[]) => {
-    localStorage.setItem(storageKey, JSON.stringify(values));
-  }, []);
+    // Rien de memorise : premiere visite, on montre ce qui est disponible.
+    if (!saved) return sectionValues;
+    // Tout ferme, explicitement. On le respecte.
+    if (saved.length === 0) return [];
+
+    const known = saved.filter((v) => sectionValues.includes(v));
+    // Un etat qui ne parle pas de ce menu : on ouvre plutot qu'un rail vide.
+    return known.length ? known : sectionValues;
+  }, [sectionValues, storageKey]);
+
+  const handleSectionsChange = useCallback(
+    (values: string[]) => {
+      localStorage.setItem(storageKey, JSON.stringify(values));
+    },
+    [storageKey],
+  );
 
   if (!meStore.me) {
     return <SidebarMenuSkeleton />;
@@ -362,7 +385,12 @@ export function SidebarMenu() {
     <div className="flex flex-col grow min-h-0">
       {/* Scrollable menu area */}
       <ScrollArea className="sidebar-menu-scroll flex grow min-h-0 px-4 pt-4">
+        {/* La cle porte le menu courant : `defaultRootValue` ne s'applique
+            qu'au montage, donc sans elle, basculer de projet gardait a l'ecran
+            l'etat du precedent et l'ecrivait sous la nouvelle cle. Changer de
+            menu est un changement d'identite, pas une mise a jour. */}
         <AccordionMenu
+          key={storageKey}
           selectedValue={pathname}
           matchPath={matchPath}
           type="multiple"
