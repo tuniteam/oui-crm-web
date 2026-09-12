@@ -29,7 +29,6 @@ import { DataGridTable } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { ReusableTableSkeleton } from './ReusableTableSkeleton';
 
 export interface PaginationMeta {
   total: number;
@@ -299,23 +298,23 @@ export function ReusableTable<
   const showCreateEmptyState =
     !loading && data.length === 0 && isSearchEmpty && !hasActiveFilters;
 
-  if (loading && data.length === 0) {
-    return (
-      <ReusableTableSkeleton
-        columns={memoizedColumns.length || 6}
-        rows={defaultPageSize}
-        headerControls={enableSearch ? 2 : 1}
-        showFooter
-      />
-    );
-  }
-
   return showCreateEmptyState ? (
     emptyTableMessage
   ) : (
     <DataGrid
       table={table}
       recordCount={meta?.total ?? 0}
+      /*
+       * Le chargement reste **dans** le tableau.
+       *
+       * `DataGridTable` remplace alors les seules lignes par des lignes
+       * grises, et garde l'en-tete des colonnes, la barre d'outils, la bande
+       * des criteres et la pagination. Un squelette de carte entiere — ce
+       * qu'on rendait ici — demontait tout cela a chaque filtre pose : le
+       * badge, les pastilles et le panneau de filtres disparaissaient puis
+       * revenaient, et le panneau ne se refermait pas, il cessait d'exister.
+       */
+      isLoading={loading}
       tableLayout={tableLayout}
       emptyMessage={COMMON.NO_DATA_AVAILABLE}
     >

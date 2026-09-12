@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { COMMON } from '@/constants';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDataGrid } from '@/components/ui/data-grid';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const headerCellSpacingVariants = cva('', {
   variants: {
@@ -535,7 +536,13 @@ function DataGridTable<TData>() {
                     column={column}
                     key={colIndex}
                   >
-                    {column.columnDef.meta?.skeleton}
+                    {/* Repli : aucune colonne du projet ne decrit son
+                        squelette, et sans lui la ligne de chargement serait
+                        une rangee de cellules vides. Un defaut ici evite de
+                        le repeter colonne par colonne sur chaque tableau. */}
+                    {column.columnDef.meta?.skeleton ?? (
+                      <Skeleton className="h-4 w-full" />
+                    )}
                   </DataGridTableBodyRowSkeletonCell>
                 );
               })}
