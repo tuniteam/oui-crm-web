@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -96,6 +96,23 @@ const NOT_FOUND_CLOSE_DELAY_MS = 2500;
 
 export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
   const open = !!organizationId;
+
+  /*
+   * Ce que le panneau **montre**, qui n'est pas ce qu'il ouvre.
+   *
+   * Fermer retire `fiche` de l'URL, d'ou l'identifiant vient : le meme rendu
+   * passe donc `open` a faux et l'identifiant a `null`. Or le tiroir reste
+   * monte pendant ses 300 ms de sortie — il s'y affichait vide, en-tete sans
+   * nom et squelettes gris, ce qui se lit comme un second tiroir qui
+   * apparait.
+   *
+   * On garde donc le dernier identifiant connu pour le rendu. La requete
+   * reste desactivee, mais le cache porte encore la fiche : le contenu ne
+   * bouge plus pendant que le tiroir s'en va.
+   */
+  const lastShownId = useRef<string | null>(null);
+  if (organizationId) lastShownId.current = organizationId;
+  const shownId = organizationId ?? lastShownId.current;
   const canReadContacts = useMeStore((s) =>
     s.hasPermission(PERMISSIONS.CONTACTS.READ),
   );
@@ -165,10 +182,10 @@ export function OrganizationPanel({ organizationId, onOpenChange }: Props) {
       // par « Annuler ». (`preventClose` vaut deja `true` par defaut ; il
       // etait force a `false` ici.)
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      useHooks={() => usePanelData(organizationId, open)}
+      useHooks={() => usePanelData(shownId, open)}
       title={
-        organizationId ? (
-          <PanelTitle organizationId={organizationId} />
+        shownId ? (
+          <PanelTitle organizationId={shownId} />
         ) : (
           ''
         )

@@ -500,6 +500,16 @@ export default function OrganizationsTable() {
     return chips;
   }, [filterFields, incompleteOnly]);
 
+  /*
+   * L'ouverture du panneau de filtres, tenue ici plutot que par Radix.
+   *
+   * Le menu d'un `Select` vit dans un portail, tout en bas du `body` : cliquer
+   * une option est donc, pour le panneau, un clic **hors de lui**, et il se
+   * refermait a chaque critere pose. On pose dix criteres d'affilee, on
+   * rouvrait dix fois.
+   */
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   const headerFilters = useMemo(
     () => (
       <div className="flex flex-wrap items-center gap-2">
@@ -518,7 +528,7 @@ export default function OrganizationsTable() {
         />
 
 
-        <Popover>
+        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" data-testid="organization-filters-open">
               <SlidersHorizontal />
@@ -537,12 +547,48 @@ export default function OrganizationsTable() {
               filtrait sans les voir. En deux colonnes ils tiennent en trois
               rangees ; le `max-h` garde un defilement interne si le
               referentiel s'allonge un jour. */}
+          {/* Trois zones : seul le milieu defile. Le titre et le pied restent
+              en vue — onze criteres font defiler, et une commande de sortie
+              qui s'echappe vers le haut ne sert a rien au moment ou on en a
+              besoin. Meme partage que le tiroir, cf. `ReusableSheet`. */}
           <PopoverContent
             align="start"
-            className="max-h-[70vh] w-[34rem] space-y-4 overflow-y-auto"
+            className="flex max-h-[70vh] w-[34rem] flex-col overflow-hidden p-0"
+            /* Un clic dans le menu d'un selecteur ne referme plus le panneau —
+               il est hors de lui dans le DOM, pas a l'ecran. Un vrai clic
+               ailleurs le referme toujours : c'est un reflexe acquis, et le
+               retirer enfermerait l'utilisateur.
+               L'element clique se lit dans `detail.originalEvent` : Radix
+               emet un `CustomEvent` sur le panneau, donc `e.target` est le
+               panneau lui-meme et le test ne verrait jamais rien. */
+            onPointerDownOutside={(e) => {
+              const target = e.detail.originalEvent.target as HTMLElement | null;
+              if (target?.closest('[data-slot=select-content]')) {
+                e.preventDefault();
+              }
+            }}
           >
-            <p className="text-sm font-semibold">{SEARCH.FILTERS_TITLE}</p>
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <p className="text-sm font-semibold">{SEARCH.FILTERS_TITLE}</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    mode="icon"
+                    aria-label={SEARCH.FILTERS_CLOSE}
+                    data-testid="organization-filters-close"
+                    onClick={() => setFiltersOpen(false)}
+                    className="-me-2 text-muted-foreground"
+                  >
+                    <X />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{SEARCH.FILTERS_CLOSE}</TooltipContent>
+              </Tooltip>
+            </div>
 
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {filterFields.map((f) => {
               /* Un critere qui agit se voit dans le panneau, pas seulement
@@ -596,19 +642,35 @@ export default function OrganizationsTable() {
               />
               {SEARCH.INCOMPLETE_ONLY}
             </Label>
+            </div>
 
-            {hasActiveFilters ? (
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3">
+              {/* La remise a zero reste a gauche : elle defait, elle ne
+                  conclut pas. Les deux gestes ne doivent pas se toucher.
+                  Nom distinct de celui de la bande de criteres : les deux
+                  coexistent quand le panneau est ouvert, et un selecteur qui
+                  repond deux fois fait echouer la recette en mode strict. */}
+              {hasActiveFilters ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  data-testid="organization-filters-reset-panel"
+                  onClick={resetFilters}
+                  className="me-auto gap-1.5 text-muted-foreground"
+                >
+                  <RotateCcw className="size-3.5" />
+                  {SEARCH.RESET}
+                </Button>
+              ) : null}
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                data-testid="organization-filters-reset"
-                onClick={resetFilters}
-                className="w-full gap-1.5 text-muted-foreground"
+                data-testid="organization-filters-done"
+                onClick={() => setFiltersOpen(false)}
               >
-                <RotateCcw className="size-3.5" />
-                {SEARCH.RESET}
+                {SEARCH.FILTERS_CLOSE}
               </Button>
-            ) : null}
+            </div>
           </PopoverContent>
         </Popover>
 
@@ -622,6 +684,7 @@ export default function OrganizationsTable() {
       incompleteOnly,
       hasActiveFilters,
       resetFilters,
+      filtersOpen,
     ],
   );
 
