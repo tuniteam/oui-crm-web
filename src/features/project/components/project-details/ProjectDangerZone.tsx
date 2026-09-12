@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Archive, Power, Trash2, TriangleAlert, Undo2 } from 'lucide-react';
+import { ActionCard } from '@/components/shared/ActionCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { DetailsSection } from '@/components/layouts/layout-1/shared/details-page/DetailsSection';
 import {
   noWindowHooks,
@@ -9,7 +9,7 @@ import {
 } from '@/components/window/ReusableWindow';
 import { PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
-import { formatInteger } from '@/shared/utils/string-utils';
+import { describeCounts } from '@/shared/utils/string-utils';
 import {
   ACTIVATE_PROJECT_UI,
   PROJECT_DANGER_UI,
@@ -85,44 +85,9 @@ const LIFECYCLE: Partial<Record<ProjectStatus, Lifecycle>> = {
   },
 };
 
-/**
- * Une carte de la zone : ce que fait le geste à gauche, son bouton à droite.
- * Écrite une fois — le cycle de vie et la suppression la partagent.
- */
-function ActionCard({
-  label,
-  description,
-  testId,
-  children,
-}: {
-  label: string;
-  description: string;
-  testId?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card data-testid={testId}>
-      <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div>
-          <div className="text-sm font-semibold">{label}</div>
-          <div className="text-xs text-muted-foreground">{description}</div>
-        </div>
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
-
 /** « 36 224 organismes et 3 devis » — les compteurs non nuls, en français. */
-function describeContents(counts: ProjectDataCounts): string {
-  const parts = Object.entries(counts).map(([key, n]) => {
-    const [one, many] = PROJECT_DATA_LABELS[key] ?? [key, key];
-    return `${formatInteger(n)} ${n > 1 ? many : one}`;
-  });
-  return parts.length > 1
-    ? `${parts.slice(0, -1).join(', ')} et ${parts[parts.length - 1]}`
-    : parts[0] ?? '';
-}
+const describeContents = (counts: ProjectDataCounts): string =>
+  describeCounts(counts, PROJECT_DATA_LABELS);
 
 /**
  * La zone de danger de la fiche : le cycle de vie du projet, puis sa

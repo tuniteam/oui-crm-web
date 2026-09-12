@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { apiMessageOr } from '@/shared/utils/api-error';
 import type { CreateUserPayload, CreateUserResponse } from '../types/createUser';
 import { userService } from '../services/user.service';
 import { TOASTS } from '../constants/users.constants';
@@ -26,7 +27,9 @@ export function useCreateUser() {
 
     onError: (e) => {
       console.error(e);
-      toast.error(e instanceof Error ? e.message : TOASTS.CREATE_USER_ERROR);
+      /* Le refus a un code — initiales prises, adresse deja membre, externe
+         sans echeance — et la table partagee le traduit. */
+      toast.error(apiMessageOr(e, TOASTS.CREATE_USER_ERROR));
     },
   });
 

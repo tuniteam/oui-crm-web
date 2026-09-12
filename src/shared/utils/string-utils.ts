@@ -97,3 +97,30 @@ export function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Des compteurs nommés, en une énumération française.
+ *
+ * `{ organizations: 4, quotes: 2 }` donne « 4 organismes et 2 devis » : les
+ * virgules jusqu'au dernier, « et » devant lui. Chaque clé porte son couple
+ * singulier / pluriel, parce qu'« 1 devis » et « 2 devis » ne se traitent pas
+ * comme « 1 organisme » et « 2 organismes ».
+ *
+ * Une clé inconnue s'affiche telle quelle : un référentiel qui s'allonge ne
+ * doit pas faire disparaître un compteur de l'écran — mais c'est le signe
+ * qu'il manque une traduction dans la table.
+ */
+export function describeCounts(
+  counts: Record<string, number>,
+  labels: Record<string, readonly [string, string]>,
+): string {
+  const parts = Object.entries(counts)
+    .filter(([, n]) => n > 0)
+    .map(([key, n]) => {
+      const [one, many] = labels[key] ?? [key, key];
+      return `${formatInteger(n)} ${n > 1 ? many : one}`;
+    });
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(0, -1).join(', ')} et ${parts[parts.length - 1]}`;
+}

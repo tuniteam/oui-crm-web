@@ -11,5 +11,8 @@ export const INVITE_USER_CARD = {
   TOASTS: {
     SUCCESS: 'Invitation envoyée avec succès',
     ERROR: "Impossible d'envoyer l'invitation",
+    /** 200 avec `sent: false` : la route a repondu, le SMTP n'a pas suivi. */
+    NOT_SENT:
+      "L'invitation n'a pas pu partir : le service d'envoi n'a pas répondu. Réessayez dans un moment.",
   },
 } as const;

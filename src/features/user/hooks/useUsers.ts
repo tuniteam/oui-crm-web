@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/shared/utils/api-error';
 
 import type { UserListParams, UserListResponse } from '../types/userList';
 import { userService } from '../services/user.service';
@@ -13,8 +14,9 @@ export const useUsers = (params: UserListParams, enabled = true) => {
   });
 
   if (query.isError) {
-    const msg =
-      query.error instanceof Error ? query.error.message : ERRORS.FETCH_USERS;
+    /* Le service ne resout plus le message a notre place : on le demande a
+       l'enveloppe, qui porte le code et sa traduction. */
+    const msg = query.error ? getApiErrorMessage(query.error) : ERRORS.FETCH_USERS;
     console.error(msg);
     toast.error(msg);
   }
