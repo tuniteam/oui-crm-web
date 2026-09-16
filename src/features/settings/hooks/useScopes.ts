@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '@/shared/constants/empty';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -29,19 +30,41 @@ export function useScopes(enabled = true) {
 }
 
 /**
- * Table des regions.
+ * Table des regions, **taillee au demandeur** — US-00-07.
  *
- * Statique et de quatorze lignes : elle ne change pas d'une session a l'autre.
- * `staleTime: Infinity` evite de la redemander a chaque ouverture du panneau.
+ * Ce n'est plus une table statique. Le serveur la decoupe selon le perimetre
+ * de l'appelant : un acces hors perimetre `NONE` limite au departement 89 ne
+ * recoit qu'une entree, `Bourgogne-Franche-Comte -> ['89']`, tandis qu'un
+ * commercial ou un administrateur recoit les quatorze regions entieres. Un
+ * compteur « Normandie (5 departements) » est donc juste **pour cette
+ * personne**, et differe de ce que voit quelqu'un d'autre. C'est voulu.
+ *
+ * D'ou l'utilisateur et le projet dans la cle : mise en cache globalement,
+ * elle servait au suivant la decoupe du precedent — et `gcTime: Infinity` ne
+ * l'aurait jamais relachee.
+ *
+ * La route demande `references:read`, que **tous les roles** possedent : elle
+ * n'a plus besoin d'etre gardee.
+ *
+ * `withinScope` taille la table au perimetre **quel que soit le role** : c'est
+ * le mode « Mon secteur », utile a un commercial, qui recoit sinon les
+ * quatorze regions.
  */
-export function useGeoRegions(enabled = true) {
+export function useGeoRegions(enabled = true, withinScope = false) {
+  const contactId = useMeStore((s) => s.me?.contactId);
+  const projectId = useMeStore((s) => s.activeProjectId);
+
   const query = useQuery<GeoRegion[]>({
-    queryKey: ['geo', 'regions'],
-    queryFn: async () => (await scopesService.getRegions()).data ?? [],
+    /* `withinScope` dans la cle : les deux modes rendent deux tables
+       differentes, et se chasseraient l'un l'autre sous une cle commune. */
+    queryKey: ['geo', 'regions', projectId, contactId, withinScope],
+    queryFn: async () => (await scopesService.getRegions(withinScope)).data ?? [],
     enabled,
+    /* La decoupe ne bouge pas tant que le perimetre de la personne ne bouge
+       pas : inutile de la redemander a chaque ouverture du panneau. */
     staleTime: Infinity,
     gcTime: Infinity,
   });
 
-  return { regions: query.data ?? [], loading: query.isLoading };
+  return { regions: query.data ?? EMPTY_ARRAY, loading: query.isLoading };
 }

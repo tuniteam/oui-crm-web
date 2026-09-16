@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FILTER_ALL, FILTER_DEBOUNCE_MS, FILTER_OPTIONS_LIMIT, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
+import { EMPTY_ARRAY } from '@/shared/constants/empty';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useGeoRegions } from '@/features/settings/hooks/useScopes';
 import { useActivePricingGrid } from '@/features/pricing/hooks/useActivePricingGrid';
@@ -111,6 +112,16 @@ const enumOptions = <T extends string>(
  * hors de portee de cet ecran. Un lien partage porte donc les filtres, pas la
  * saisie libre.
  */
+/** « Prenom Nom », sans double espace quand l'un des deux manque. */
+const toSalesRepOption = (u: {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+}) => ({
+  value: u.id,
+  label: [u.firstName, u.lastName].filter(Boolean).join(' '),
+});
+
 const urlFilter = (key: string, fallback: string) =>
   new URLSearchParams(window.location.search).get(key) ?? fallback;
 
@@ -217,7 +228,36 @@ export default function OrganizationsTable() {
 
   /** Les menus se construisent depuis l'API : referentiels et perimetres
    *  appartiennent au projet, jamais a une liste ecrite en dur. */
-  const { regions } = useGeoRegions();
+  /*
+   * Le perimetre de la personne, **deja resolu par le serveur** (US-00-07 §4) :
+   * regions traduites en departements plus les departements explicites. Vide
+   * veut dire « tout le territoire », pas « aucun departement ».
+   *
+   * Il decide d'une seule chose ici : proposer ou non le basculement « Mon
+   * secteur ». Sans perimetre geographique, les deux modes rendent la meme
+   * table — un interrupteur sans effet serait pire que pas d'interrupteur.
+   */
+  /* Memorise : recreer ce tableau a chaque rendu relancerait le memo des
+     criteres, et l'effet qui ecrit l'URL avec lui. */
+  const me = useMeStore((s) => s.me);
+  const meAsOption = useMemo(
+    () => (me ? [toSalesRepOption({ id: me.contactId, firstName: me.firstName, lastName: me.lastName })] : EMPTY_ARRAY),
+    [me],
+  );
+
+  const myDepartments = useMeStore(
+    (s) => s.getActiveRoleRelationship()?.scope?.resolvedDepartments ?? EMPTY_ARRAY,
+  );
+  const hasGeoScope = myDepartments.length > 0;
+  /* Preselectionne sur son secteur quand on en a un : c'est ce qu'on regarde
+     en premier, et les quatorze regions restent a un clic. */
+  const [withinScope, setWithinScope] = useState(false);
+  useEffect(() => setWithinScope(hasGeoScope), [hasGeoScope]);
+
+  /* `geo/regions` demande `references:read`, que tous les roles possedent :
+     aucune garde. Le serveur taille la table au perimetre du demandeur — un
+     consultant limite a un departement n'y voit que sa region. */
+  const { regions } = useGeoRegions(true, withinScope && hasGeoScope);
   /* `pricing:read` est un droit que les commerciaux ont. Sans grille active,
      `brackets` est vide et le menu ne parait pas — voir useActivePricingGrid. */
   const canReadPricing = useMeStore((s) =>
@@ -240,7 +280,17 @@ export default function OrganizationsTable() {
     toast.info(SEARCH.BRACKET_GONE);
   }, [bracket, brackets]);
 
-  const { users } = useUsers({ page: 1, limit: FILTER_OPTIONS_LIMIT });
+  /*
+   * Le menu du critere « Commercial » se remplit depuis la liste des
+   * utilisateurs — une route que seul `users:read` ouvre. Sans garde, un
+   * commercial declenchait un 403 a chaque ouverture de l'ecran, pour un
+   * menu qu'il ne pouvait de toute facon pas remplir.
+   */
+  const canReadUsers = hasPermission(PERMISSIONS.USERS.READ);
+  const { users } = useUsers(
+    { page: 1, limit: FILTER_OPTIONS_LIMIT },
+    canReadUsers,
+  );
   const leadSourceOptions = useMemo(() => optionsOf('LEAD_SOURCE'), [optionsOf]);
 
   const columns = useMemo(
@@ -381,10 +431,12 @@ export default function OrganizationsTable() {
         value: salesRepId,
         debounced: debouncedSalesRepId,
         set: setSalesRepId,
-        options: users.map((u) => ({
-          value: u.id,
-          label: [u.firstName, u.lastName].filter(Boolean).join(' '),
-        })),
+        /* Sans `users:read`, la liste du projet est hors de portee — mais on
+           peut toujours proposer son propre nom, qui laisse filtrer sur ses
+           fiches. Un menu reduit a soi vaut mieux qu'un menu vide, et mieux
+           qu'un critere masque : on dit pourquoi il est reduit. */
+        options: canReadUsers ? users.map(toSalesRepOption) : meAsOption,
+        note: canReadUsers ? undefined : SEARCH.SALES_REP_ONLY_ME,
       },
       {
         key: 'openOn',
@@ -429,6 +481,10 @@ export default function OrganizationsTable() {
       users,
       bracket,
       brackets,
+      /* `me` arrive de facon asynchrone : sans lui, la note « filtre
+         indisponible » s'afficherait au premier rendu et ne partirait jamais. */
+      canReadUsers,
+      meAsOption,
     ],
   );
 
@@ -442,26 +498,51 @@ export default function OrganizationsTable() {
    * **premiere** page de la meme recherche, pas la page 7 de celui qui l'a
    * envoye.
    */
+  /*
+   * **N'ecrire que si l'URL change vraiment.**
+   *
+   * Cet effet depend de `filterFields`, un memo dont les dependances
+   * contiennent `users`, `regions` et `brackets` — trois tableaux que leurs
+   * hooks recreent a chaque rendu tant qu'ils n'ont pas de donnees
+   * (`query.data?.data ?? []`). Le memo changeait donc d'identite a chaque
+   * rendu, et l'effet ecrivait l'URL a chaque rendu.
+   *
+   * Or naviguer vers une URL identique n'est pas neutre : `createLocation`
+   * fabrique une **cle neuve**, donc un objet `location` neuf, donc un rendu
+   * de tout consommateur de `useLocation` — dont cet ecran. Rendu neuf,
+   * tableau neuf, effet, navigation : la boucle etait fermee. React ne la
+   * signalait pas, la navigation du routeur etant asynchrone : jamais
+   * cinquante mises a jour imbriquees, juste un regime permanent.
+   *
+   * Symptome visible : la barre de progression du routeur, relancee sans
+   * cesse, n'atteignait jamais son `complete()`.
+   *
+   * La comparaison rend l'effet idempotent, et couvre la classe entiere quelle
+   * que soit la dependance qui s'agite.
+   */
   useEffect(() => {
-    setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        /* Les noms viennent de `filterFields` : ecrits ici en plus, ils
-           finiraient par diverger de ceux qu'on relit au chargement. */
-        for (const f of filterFields) {
-          if (f.debounced !== FILTER_ALL) next.set(f.key, f.debounced);
-          else next.delete(f.key);
-        }
-        const dept = debouncedDepartment.trim();
-        if (dept) next.set('department', dept);
-        else next.delete('department');
-        if (debouncedIncompleteOnly) next.set('incomplete', '1');
-        else next.delete('incomplete');
-        return next;
-      },
-      { replace: true },
-    );
-  }, [setParams, filterFields, debouncedDepartment, debouncedIncompleteOnly]);
+    const next = new URLSearchParams(params);
+    /* Les noms viennent de `filterFields` : ecrits ici en plus, ils
+       finiraient par diverger de ceux qu'on relit au chargement. */
+    for (const f of filterFields) {
+      if (f.debounced !== FILTER_ALL) next.set(f.key, f.debounced);
+      else next.delete(f.key);
+    }
+    const dept = debouncedDepartment.trim();
+    if (dept) next.set('department', dept);
+    else next.delete('department');
+    if (debouncedIncompleteOnly) next.set('incomplete', '1');
+    else next.delete('incomplete');
+
+    if (next.toString() === params.toString()) return;
+    setParams(next, { replace: true });
+  }, [
+    params,
+    setParams,
+    filterFields,
+    debouncedDepartment,
+    debouncedIncompleteOnly,
+  ]);
 
   const hasActiveFilters =
     filterFields.some((f) => f.debounced !== FILTER_ALL) ||
@@ -606,7 +687,7 @@ export default function OrganizationsTable() {
                 >
                   {f.label}
                 </Label>
-                <Select value={f.value} onValueChange={f.set}>
+                <Select value={f.value} onValueChange={f.set} disabled={!!f.note}>
                   <SelectTrigger
                     data-testid={`organization-filter-${f.key}`}
                     data-active={actif ? 'true' : undefined}
@@ -629,10 +710,31 @@ export default function OrganizationsTable() {
                     ))}
                   </SelectContent>
                 </Select>
+                {f.note ? (
+                  <p className="text-xs text-muted-foreground">{f.note}</p>
+                ) : null}
               </div>
               );
             })}
             </div>
+
+            {/* Propose seulement a qui a un perimetre geographique : sans lui,
+                les deux modes rendent la meme table et l'interrupteur serait
+                sans effet. Il ne filtre rien — le serveur intersecte toujours
+                avec le perimetre — il decide des regions proposees. */}
+            {hasGeoScope ? (
+              <Label className="flex items-start gap-2 text-sm text-muted-foreground">
+                <Switch
+                  data-testid="organization-filter-within-scope"
+                  checked={withinScope}
+                  onCheckedChange={setWithinScope}
+                />
+                <span>
+                  <span className="block text-foreground">{SEARCH.WITHIN_SCOPE}</span>
+                  <span className="block text-xs">{SEARCH.WITHIN_SCOPE_HINT}</span>
+                </span>
+              </Label>
+            ) : null}
 
             <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Switch
@@ -685,6 +787,10 @@ export default function OrganizationsTable() {
       hasActiveFilters,
       resetFilters,
       filtersOpen,
+      /* Le basculement « Mon secteur » vit dans le panneau : sans eux, il
+         resterait fige sur son etat du premier rendu. */
+      withinScope,
+      hasGeoScope,
     ],
   );
 

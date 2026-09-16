@@ -149,6 +149,34 @@ export const ORGANIZATIONS_UI = {
   COUNT_FILTERED: (shown: number, all: number) =>
     `${formatInteger(shown)} sur ${formatInteger(all)}`,
   FILTERS_TITLE: 'Affiner la recherche',
+  /**
+   * Un critere dont le menu se peuple depuis une route interdite.
+   *
+   * Il reste **affiche et inerte**, jamais masque : un critere qui disparait
+   * laisse croire qu'il n'existe pas, alors qu'il manque seulement un droit.
+   * On dit lequel, en nommant la donnee et non la permission — « la liste des
+   * utilisateurs », pas « users:read ».
+   */
+  FILTER_NO_ACCESS: (what: string) =>
+    `Filtre indisponible : vous n’avez pas accès ${what}.`,
+  NO_ACCESS_USERS: 'à la liste des utilisateurs du projet',
+  /**
+   * Le filtre « Commercial » sans `users:read` : seul son propre nom est
+   * proposé, ce qui laisse filtrer sur ses fiches — plutôt qu'un menu vide.
+   */
+  SALES_REP_ONLY_ME: 'Seul votre nom est proposé : la liste des utilisateurs du projet ne vous est pas accessible.',
+  /**
+   * Restreindre les régions proposées au périmètre de la personne.
+   *
+   * Ce n'est pas un filtre de plus : le serveur intersecte **toujours** avec
+   * le périmètre. Le basculement décide seulement des régions qu'on propose —
+   * les siennes, ou les quatorze. Il n'a donc de sens que pour quelqu'un qui a
+   * un périmètre géographique ; sans cela, les deux modes rendent la même
+   * table et le basculement est masqué.
+   */
+  WITHIN_SCOPE: 'Mon secteur',
+  WITHIN_SCOPE_HINT:
+    'Ne proposer que les régions de votre périmètre. Décoché, les quatorze régions sont proposées.',
   /** Le panneau ne se ferme plus en posant un critere : on le referme soi-meme. */
   FILTERS_CLOSE: 'Fermer les filtres',
   /**
