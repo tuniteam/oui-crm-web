@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '@/shared/constants/empty';
 import { useQuery } from '@tanstack/react-query';
 import { getApiErrorCode } from '@/shared/utils/api-error';
 import { useMeStore } from '@/contexts/useMeStore';
@@ -37,7 +38,7 @@ export function useActivePricingGrid(enabled = true) {
 
   return {
     grid: query.data ?? null,
-    brackets: query.data?.content.brackets ?? [],
+    brackets: query.data?.content.brackets ?? EMPTY_ARRAY,
     loading: query.isLoading,
   };
 }

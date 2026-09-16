@@ -217,6 +217,9 @@ export default function OrganizationsTable() {
 
   /** Les menus se construisent depuis l'API : referentiels et perimetres
    *  appartiennent au projet, jamais a une liste ecrite en dur. */
+  /* `geo/regions` demande `references:read`, que tous les roles possedent :
+     aucune garde. Le serveur taille la table au perimetre du demandeur — un
+     consultant limite a un departement n'y voit que sa region. */
   const { regions } = useGeoRegions();
   /* `pricing:read` est un droit que les commerciaux ont. Sans grille active,
      `brackets` est vide et le menu ne parait pas — voir useActivePricingGrid. */
@@ -240,7 +243,17 @@ export default function OrganizationsTable() {
     toast.info(SEARCH.BRACKET_GONE);
   }, [bracket, brackets]);
 
-  const { users } = useUsers({ page: 1, limit: FILTER_OPTIONS_LIMIT });
+  /*
+   * Le menu du critere « Commercial » se remplit depuis la liste des
+   * utilisateurs — une route que seul `users:read` ouvre. Sans garde, un
+   * commercial declenchait un 403 a chaque ouverture de l'ecran, pour un
+   * menu qu'il ne pouvait de toute facon pas remplir.
+   */
+  const canReadUsers = hasPermission(PERMISSIONS.USERS.READ);
+  const { users } = useUsers(
+    { page: 1, limit: FILTER_OPTIONS_LIMIT },
+    canReadUsers,
+  );
   const leadSourceOptions = useMemo(() => optionsOf('LEAD_SOURCE'), [optionsOf]);
 
   const columns = useMemo(
@@ -385,6 +398,12 @@ export default function OrganizationsTable() {
           value: u.id,
           label: [u.firstName, u.lastName].filter(Boolean).join(' '),
         })),
+        /* Affiche mais inerte plutot que masque : un critere qui disparait
+           laisse croire qu'il n'existe pas, alors qu'il manque seulement un
+           droit. On le dit. */
+        note: canReadUsers
+          ? undefined
+          : SEARCH.FILTER_NO_ACCESS(SEARCH.NO_ACCESS_USERS),
       },
       {
         key: 'openOn',
@@ -429,6 +448,9 @@ export default function OrganizationsTable() {
       users,
       bracket,
       brackets,
+      /* `me` arrive de facon asynchrone : sans lui, la note « filtre
+         indisponible » s'afficherait au premier rendu et ne partirait jamais. */
+      canReadUsers,
     ],
   );
 
@@ -442,26 +464,51 @@ export default function OrganizationsTable() {
    * **premiere** page de la meme recherche, pas la page 7 de celui qui l'a
    * envoye.
    */
+  /*
+   * **N'ecrire que si l'URL change vraiment.**
+   *
+   * Cet effet depend de `filterFields`, un memo dont les dependances
+   * contiennent `users`, `regions` et `brackets` — trois tableaux que leurs
+   * hooks recreent a chaque rendu tant qu'ils n'ont pas de donnees
+   * (`query.data?.data ?? []`). Le memo changeait donc d'identite a chaque
+   * rendu, et l'effet ecrivait l'URL a chaque rendu.
+   *
+   * Or naviguer vers une URL identique n'est pas neutre : `createLocation`
+   * fabrique une **cle neuve**, donc un objet `location` neuf, donc un rendu
+   * de tout consommateur de `useLocation` — dont cet ecran. Rendu neuf,
+   * tableau neuf, effet, navigation : la boucle etait fermee. React ne la
+   * signalait pas, la navigation du routeur etant asynchrone : jamais
+   * cinquante mises a jour imbriquees, juste un regime permanent.
+   *
+   * Symptome visible : la barre de progression du routeur, relancee sans
+   * cesse, n'atteignait jamais son `complete()`.
+   *
+   * La comparaison rend l'effet idempotent, et couvre la classe entiere quelle
+   * que soit la dependance qui s'agite.
+   */
   useEffect(() => {
-    setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        /* Les noms viennent de `filterFields` : ecrits ici en plus, ils
-           finiraient par diverger de ceux qu'on relit au chargement. */
-        for (const f of filterFields) {
-          if (f.debounced !== FILTER_ALL) next.set(f.key, f.debounced);
-          else next.delete(f.key);
-        }
-        const dept = debouncedDepartment.trim();
-        if (dept) next.set('department', dept);
-        else next.delete('department');
-        if (debouncedIncompleteOnly) next.set('incomplete', '1');
-        else next.delete('incomplete');
-        return next;
-      },
-      { replace: true },
-    );
-  }, [setParams, filterFields, debouncedDepartment, debouncedIncompleteOnly]);
+    const next = new URLSearchParams(params);
+    /* Les noms viennent de `filterFields` : ecrits ici en plus, ils
+       finiraient par diverger de ceux qu'on relit au chargement. */
+    for (const f of filterFields) {
+      if (f.debounced !== FILTER_ALL) next.set(f.key, f.debounced);
+      else next.delete(f.key);
+    }
+    const dept = debouncedDepartment.trim();
+    if (dept) next.set('department', dept);
+    else next.delete('department');
+    if (debouncedIncompleteOnly) next.set('incomplete', '1');
+    else next.delete('incomplete');
+
+    if (next.toString() === params.toString()) return;
+    setParams(next, { replace: true });
+  }, [
+    params,
+    setParams,
+    filterFields,
+    debouncedDepartment,
+    debouncedIncompleteOnly,
+  ]);
 
   const hasActiveFilters =
     filterFields.some((f) => f.debounced !== FILTER_ALL) ||
@@ -606,7 +653,7 @@ export default function OrganizationsTable() {
                 >
                   {f.label}
                 </Label>
-                <Select value={f.value} onValueChange={f.set}>
+                <Select value={f.value} onValueChange={f.set} disabled={!!f.note}>
                   <SelectTrigger
                     data-testid={`organization-filter-${f.key}`}
                     data-active={actif ? 'true' : undefined}
@@ -629,6 +676,9 @@ export default function OrganizationsTable() {
                     ))}
                   </SelectContent>
                 </Select>
+                {f.note ? (
+                  <p className="text-xs text-muted-foreground">{f.note}</p>
+                ) : null}
               </div>
               );
             })}

@@ -149,6 +149,17 @@ export const ORGANIZATIONS_UI = {
   COUNT_FILTERED: (shown: number, all: number) =>
     `${formatInteger(shown)} sur ${formatInteger(all)}`,
   FILTERS_TITLE: 'Affiner la recherche',
+  /**
+   * Un critere dont le menu se peuple depuis une route interdite.
+   *
+   * Il reste **affiche et inerte**, jamais masque : un critere qui disparait
+   * laisse croire qu'il n'existe pas, alors qu'il manque seulement un droit.
+   * On dit lequel, en nommant la donnee et non la permission — « la liste des
+   * utilisateurs », pas « users:read ».
+   */
+  FILTER_NO_ACCESS: (what: string) =>
+    `Filtre indisponible : vous n’avez pas accès ${what}.`,
+  NO_ACCESS_USERS: 'à la liste des utilisateurs du projet',
   /** Le panneau ne se ferme plus en posant un critere : on le referme soi-meme. */
   FILTERS_CLOSE: 'Fermer les filtres',
   /**
