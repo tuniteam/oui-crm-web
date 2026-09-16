@@ -47,6 +47,16 @@ export type MeScope = {
   regions: string[];
   departments: string[];
   portfolioOnly: boolean;
+  /**
+   * Les regions resolues en departements, plus les departements explicites —
+   * dedoublonnes et tries par le serveur (US-00-07). **Vide = tout le
+   * territoire**, et non « aucun departement ».
+   *
+   * A ne pas confondre avec le champ de meme nom dans `settings/types/scopes`,
+   * qui decrit un perimetre du referentiel : celui-ci decrit le perimetre
+   * **de la personne connectee** sur ce projet.
+   */
+  resolvedDepartments: string[];
 };
 
 /**

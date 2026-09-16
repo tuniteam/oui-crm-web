@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { FILTER_ALL, FILTER_DEBOUNCE_MS, FILTER_OPTIONS_LIMIT, PERMISSIONS } from '@/constants';
 import { useMeStore } from '@/contexts/useMeStore';
+import { EMPTY_ARRAY } from '@/shared/constants/empty';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useGeoRegions } from '@/features/settings/hooks/useScopes';
 import { useActivePricingGrid } from '@/features/pricing/hooks/useActivePricingGrid';
@@ -111,6 +112,16 @@ const enumOptions = <T extends string>(
  * hors de portee de cet ecran. Un lien partage porte donc les filtres, pas la
  * saisie libre.
  */
+/** « Prenom Nom », sans double espace quand l'un des deux manque. */
+const toSalesRepOption = (u: {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+}) => ({
+  value: u.id,
+  label: [u.firstName, u.lastName].filter(Boolean).join(' '),
+});
+
 const urlFilter = (key: string, fallback: string) =>
   new URLSearchParams(window.location.search).get(key) ?? fallback;
 
@@ -217,10 +228,36 @@ export default function OrganizationsTable() {
 
   /** Les menus se construisent depuis l'API : referentiels et perimetres
    *  appartiennent au projet, jamais a une liste ecrite en dur. */
+  /*
+   * Le perimetre de la personne, **deja resolu par le serveur** (US-00-07 §4) :
+   * regions traduites en departements plus les departements explicites. Vide
+   * veut dire « tout le territoire », pas « aucun departement ».
+   *
+   * Il decide d'une seule chose ici : proposer ou non le basculement « Mon
+   * secteur ». Sans perimetre geographique, les deux modes rendent la meme
+   * table — un interrupteur sans effet serait pire que pas d'interrupteur.
+   */
+  /* Memorise : recreer ce tableau a chaque rendu relancerait le memo des
+     criteres, et l'effet qui ecrit l'URL avec lui. */
+  const me = useMeStore((s) => s.me);
+  const meAsOption = useMemo(
+    () => (me ? [toSalesRepOption({ id: me.contactId, firstName: me.firstName, lastName: me.lastName })] : EMPTY_ARRAY),
+    [me],
+  );
+
+  const myDepartments = useMeStore(
+    (s) => s.getActiveRoleRelationship()?.scope?.resolvedDepartments ?? EMPTY_ARRAY,
+  );
+  const hasGeoScope = myDepartments.length > 0;
+  /* Preselectionne sur son secteur quand on en a un : c'est ce qu'on regarde
+     en premier, et les quatorze regions restent a un clic. */
+  const [withinScope, setWithinScope] = useState(false);
+  useEffect(() => setWithinScope(hasGeoScope), [hasGeoScope]);
+
   /* `geo/regions` demande `references:read`, que tous les roles possedent :
      aucune garde. Le serveur taille la table au perimetre du demandeur — un
      consultant limite a un departement n'y voit que sa region. */
-  const { regions } = useGeoRegions();
+  const { regions } = useGeoRegions(true, withinScope && hasGeoScope);
   /* `pricing:read` est un droit que les commerciaux ont. Sans grille active,
      `brackets` est vide et le menu ne parait pas — voir useActivePricingGrid. */
   const canReadPricing = useMeStore((s) =>
@@ -394,16 +431,12 @@ export default function OrganizationsTable() {
         value: salesRepId,
         debounced: debouncedSalesRepId,
         set: setSalesRepId,
-        options: users.map((u) => ({
-          value: u.id,
-          label: [u.firstName, u.lastName].filter(Boolean).join(' '),
-        })),
-        /* Affiche mais inerte plutot que masque : un critere qui disparait
-           laisse croire qu'il n'existe pas, alors qu'il manque seulement un
-           droit. On le dit. */
-        note: canReadUsers
-          ? undefined
-          : SEARCH.FILTER_NO_ACCESS(SEARCH.NO_ACCESS_USERS),
+        /* Sans `users:read`, la liste du projet est hors de portee — mais on
+           peut toujours proposer son propre nom, qui laisse filtrer sur ses
+           fiches. Un menu reduit a soi vaut mieux qu'un menu vide, et mieux
+           qu'un critere masque : on dit pourquoi il est reduit. */
+        options: canReadUsers ? users.map(toSalesRepOption) : meAsOption,
+        note: canReadUsers ? undefined : SEARCH.SALES_REP_ONLY_ME,
       },
       {
         key: 'openOn',
@@ -451,6 +484,7 @@ export default function OrganizationsTable() {
       /* `me` arrive de facon asynchrone : sans lui, la note « filtre
          indisponible » s'afficherait au premier rendu et ne partirait jamais. */
       canReadUsers,
+      meAsOption,
     ],
   );
 
@@ -684,6 +718,24 @@ export default function OrganizationsTable() {
             })}
             </div>
 
+            {/* Propose seulement a qui a un perimetre geographique : sans lui,
+                les deux modes rendent la meme table et l'interrupteur serait
+                sans effet. Il ne filtre rien — le serveur intersecte toujours
+                avec le perimetre — il decide des regions proposees. */}
+            {hasGeoScope ? (
+              <Label className="flex items-start gap-2 text-sm text-muted-foreground">
+                <Switch
+                  data-testid="organization-filter-within-scope"
+                  checked={withinScope}
+                  onCheckedChange={setWithinScope}
+                />
+                <span>
+                  <span className="block text-foreground">{SEARCH.WITHIN_SCOPE}</span>
+                  <span className="block text-xs">{SEARCH.WITHIN_SCOPE_HINT}</span>
+                </span>
+              </Label>
+            ) : null}
+
             <Label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Switch
                 data-testid="organization-filter-incomplete"
@@ -735,6 +787,10 @@ export default function OrganizationsTable() {
       hasActiveFilters,
       resetFilters,
       filtersOpen,
+      /* Le basculement « Mon secteur » vit dans le panneau : sans eux, il
+         resterait fige sur son etat du premier rendu. */
+      withinScope,
+      hasGeoScope,
     ],
   );
 

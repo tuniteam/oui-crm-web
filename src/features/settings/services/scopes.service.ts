@@ -19,11 +19,20 @@ export const scopesService = {
     }
   },
 
-  /** Table statique de 14 regions. */
-  getRegions: async (): Promise<GeoRegionsResponse> => {
+  /**
+   * La table des regions, taillee au demandeur.
+   *
+   * `withinScope` la reduit au perimetre **quel que soit le role** : sans lui,
+   * un commercial recoit les quatorze regions. Le parametre n'est envoye que
+   * lorsqu'il vaut `true` — le serveur refuse toute valeur autre que `true` ou
+   * `false` par un `400 INVALID_DATA`, et un envoi systematique n'apporterait
+   * rien.
+   */
+  getRegions: async (withinScope = false): Promise<GeoRegionsResponse> => {
     try {
       const res = await api.get<GeoRegionsResponse>(
         SCOPE_ROUTES.GEO_REGIONS_API,
+        withinScope ? { params: { withinScope: true } } : undefined,
       );
       return res.data;
     } catch (err) {

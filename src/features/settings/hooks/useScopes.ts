@@ -45,14 +45,20 @@ export function useScopes(enabled = true) {
  *
  * La route demande `references:read`, que **tous les roles** possedent : elle
  * n'a plus besoin d'etre gardee.
+ *
+ * `withinScope` taille la table au perimetre **quel que soit le role** : c'est
+ * le mode « Mon secteur », utile a un commercial, qui recoit sinon les
+ * quatorze regions.
  */
-export function useGeoRegions(enabled = true) {
+export function useGeoRegions(enabled = true, withinScope = false) {
   const contactId = useMeStore((s) => s.me?.contactId);
   const projectId = useMeStore((s) => s.activeProjectId);
 
   const query = useQuery<GeoRegion[]>({
-    queryKey: ['geo', 'regions', projectId, contactId],
-    queryFn: async () => (await scopesService.getRegions()).data ?? [],
+    /* `withinScope` dans la cle : les deux modes rendent deux tables
+       differentes, et se chasseraient l'un l'autre sous une cle commune. */
+    queryKey: ['geo', 'regions', projectId, contactId, withinScope],
+    queryFn: async () => (await scopesService.getRegions(withinScope)).data ?? [],
     enabled,
     /* La decoupe ne bouge pas tant que le perimetre de la personne ne bouge
        pas : inutile de la redemander a chaque ouverture du panneau. */
