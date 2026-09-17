@@ -39,7 +39,9 @@ export const TABLE_HEADERS = {
 } as const;
 
 /** Marqueur d'un acces a duree limitee (`expiresAt` renseigne cote serveur). */
-export const EXTERNAL_BADGE = 'Externe';
+/** La colonne n'a pas la place d'une phrase : « Temporaire » dit la duree,
+ *  la ou « Externe » suggerait un statut que la base ne porte pas. */
+export const EXTERNAL_BADGE = 'Temporaire';
 
 // ==============================
 // ACTION LABELS
