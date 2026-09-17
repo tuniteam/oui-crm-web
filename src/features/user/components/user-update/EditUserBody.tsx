@@ -189,7 +189,13 @@ export function EditUserBody({ hooks, open, rolesFilter = 'false' }: Props) {
             name="isExternal"
             render={({ field }) => (
               <FormItem className="flex items-start justify-between gap-4">
-                <FormLabel>{LABELS.EXTERNAL}</FormLabel>
+                <div className="space-y-1">
+                  <FormLabel>{LABELS.EXTERNAL}</FormLabel>
+                  {/* La bascule n'etait accompagnee d'aucune explication, a la
+                      difference du perimetre juste au-dessus : on ne pouvait
+                      pas deviner qu'elle ne fait que poser une date de fin. */}
+                  <FormDescription>{HINTS.EXTERNAL}</FormDescription>
+                </div>
                 <FormControl>
                   <Switch
                     data-testid="user-edit-external-switch"

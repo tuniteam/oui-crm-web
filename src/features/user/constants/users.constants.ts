@@ -6,7 +6,7 @@ export const CREATE_USER_WINDOW = {
     EMAIL: 'Email',
     ROLE: 'Rôle',
     INITIALS: 'Initiales',
-    EXTERNAL: 'Accès externe',
+    EXTERNAL: 'Accès à durée limitée',
     EXPIRES_AT: "Fin d'accès",
   },
   PLACEHOLDERS: {
@@ -18,7 +18,8 @@ export const CREATE_USER_WINDOW = {
   },
   HINTS: {
     INITIALS: 'Deux ou trois majuscules ou chiffres. Servent à numéroter les devis.',
-    EXTERNAL: "Un accès externe expire à la date choisie. Sans date, l'accès est permanent.",
+    EXTERNAL:
+      'L’accès prend fin à la date choisie. Sans date de fin, l’accès est permanent.',
   },
   LOADING_LABELS: {
     CREATING: 'Création...',

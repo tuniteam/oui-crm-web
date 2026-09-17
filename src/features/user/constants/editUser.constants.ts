@@ -9,7 +9,11 @@ export const UPDATE_USER_WINDOW = {
        PATCH /users/:id. Il se pilote par la suspension et la re-creation. */
     ROLE: 'Rôle',
     INITIALS: 'Initiales',
-    EXTERNAL: 'Accès externe',
+    /* « Externe » n'existe pas en base : le serveur le deduit de la presence
+       d'une echeance (`isExternal: rel.expiresAt !== null`). Le libelle dit
+       donc ce que la bascule fait vraiment — poser une date de fin — et non un
+       statut de la personne, qu'un prestataire permanent contredirait. */
+    EXTERNAL: 'Accès à durée limitée',
     EXPIRES_AT: "Fin d'accès",
     SCOPE: 'Périmètre',
   },
@@ -23,6 +27,8 @@ export const UPDATE_USER_WINDOW = {
     SCOPE: 'Toute la base',
   },
   HINTS: {
+    EXTERNAL:
+      'L’accès prend fin à la date choisie. Sans date de fin, l’accès est permanent.',
     SCOPE:
       'Ce que cet utilisateur voit dans la base d’organismes. Sans périmètre, il voit tout.',
     OWN_ACCOUNT:
