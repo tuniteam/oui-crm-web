@@ -1,3 +1,4 @@
+import { LoaderCircle } from 'lucide-react';
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { ChevronDown, LucideIcon } from 'lucide-react';
@@ -421,16 +422,34 @@ function Button({
   underline,
   asChild = false,
   placeholder = false,
+  loading = false,
+  children,
   ...props
 }: React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     selected?: boolean;
     asChild?: boolean;
+    /**
+     * Une action est en cours : roue devant le libelle, et bouton inerte.
+     *
+     * Ici plutot que dans chaque appelant. Trente-cinq boutons se
+     * desactivaient pendant leur mutation **sans rien montrer** — un bouton
+     * grise et muet se lit comme un bouton interdit, pas comme un bouton qui
+     * travaille, et on reclique. L'ecran d'activation avait deja sa propre
+     * roue, recopiee deux fois.
+     *
+     * Le libelle reste : il dit ce qu'on attend. La roue le precede au lieu de
+     * l'icone d'origine, pour ne pas elargir le bouton en cours de clic.
+     */
+    loading?: boolean;
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : 'button';
   return (
     <Comp
       data-slot="button"
+      data-loading={loading ? 'true' : undefined}
+      aria-busy={loading || undefined}
+      disabled={props.disabled || loading}
       className={cn(
         buttonVariants({
           variant,
@@ -448,7 +467,22 @@ function Button({
       )}
       {...(selected && { 'data-state': 'open' })}
       {...props}
-    />
+    >
+      {/*
+        `asChild` remet le rendu a l'enfant, et Radix n'en accepte qu'un seul :
+        y ajouter la roue ferait lever `React.Children.only`. Un bouton
+        « slotte » est de toute facon un declencheur — lien, infobulle, menu —
+        ou aucune action ne se traite.
+      */}
+      {asChild || !loading ? (
+        children
+      ) : (
+        <>
+          <LoaderCircle className="animate-spin" aria-hidden="true" />
+          {children}
+        </>
+      )}
+    </Comp>
   );
 }
 
