@@ -1,3 +1,4 @@
+import { formatInteger } from '@/shared/utils/string-utils';
 import type { BulkAction, BulkPayload, BulkSkipReason } from '../types/bulk';
 import type { Priority, SalesStatus } from '../types/organizationList';
 
@@ -16,6 +17,18 @@ export const BULK_OPTIONS_LIMIT = 100;
  * l'appel que traduire un refus après.
  */
 export const BULK_MAX_IDS = 500;
+
+/**
+ * Le plafond de « tout ce qui correspond » — `BULK_SELECT_ALL_MAX` cote API.
+ *
+ * Il n'existait pas ici, et le commentaire de la barre expliquait pourquoi :
+ * « selectAll n'enumere rien, il n'est donc jamais concerne ». C'etait vrai du
+ * **payload**, pas du travail — le serveur rejouait les filtres et tentait
+ * d'ecrire 36 224 fiches dans une transaction de cinq secondes, qui expirait.
+ * Le serveur refuse desormais au-dela par `413 BULK_TOO_LARGE`, avant toute
+ * ecriture ; on le dit avant qu'il ait a le refuser.
+ */
+export const BULK_SELECT_ALL_MAX = 5_000;
 
 export const BULK_ACTION_LABELS: Record<BulkAction, string> = {
   ASSIGN_SALES_REP: 'Affecter un commercial',
@@ -121,6 +134,14 @@ export const BULK_UI = {
   /** L'unique commande de la barre : le menu des cinq actions. */
   PICK_ACTION: 'Actions',
 
+
+  /**
+   * Au-dela du plafond de `selectAll`, il n'y a plus d'echappatoire : il faut
+   * reduire ce que les filtres designent. On nomme le volume vise et on
+   * suggere par quoi affiner — « affinez vos filtres » seul laisse chercher.
+   */
+  TOO_MANY_MATCHING: (total: number, max: number) =>
+    `Cette action viserait ${formatInteger(total)} organismes, au-delà des ${formatInteger(max)} traités en une fois. Affinez vos filtres, par exemple par département ou par statut.`,
 
   /** Au-delà du plafond, la seule issue est « tout ce qui correspond ». */
   TOO_MANY: (max: number) =>

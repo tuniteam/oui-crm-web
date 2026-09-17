@@ -145,7 +145,7 @@ export function UserInformationsPage() {
               >
                 {/* Rétablir n'est pas un geste destructeur : pas d'aplat rouge. */}
                 <Button
-                  disabled={reactivating}
+                  loading={reactivating}
                   data-testid="user-reactivate"
                   onClick={() => reactivate(data)}
                 >

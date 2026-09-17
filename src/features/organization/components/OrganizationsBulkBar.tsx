@@ -14,6 +14,7 @@ import { useUsers } from '@/features/user/hooks/useUsers';
 import {
   BULK_ACTION_LABELS,
   BULK_MAX_IDS,
+  BULK_SELECT_ALL_MAX,
   BULK_FIELDS,
   BULK_OPTIONS_LIMIT,
   BULK_UI as UI,
@@ -100,11 +101,24 @@ export function OrganizationsBulkBar({
   const count = allMatching ? total : ids.length;
 
   /*
-   * Au-delà de 500 identifiants le serveur refuse (`400 INVALID_DATA`), et le
-   * plafond est atteignable : la sélection persiste d'une page à l'autre.
-   * `selectAll` n'énumère rien, il n'est donc jamais concerné.
+   * Deux plafonds, un par mode de sélection.
+   *
+   * Au-delà de 500 **identifiants** le serveur refuse le tableau
+   * (`400 INVALID_DATA`), et le plafond est atteignable : la sélection persiste
+   * d'une page à l'autre.
+   *
+   * Au-delà de 5 000 fiches **visées par les filtres**, il refuse aussi
+   * (`413 BULK_TOO_LARGE`), avant toute écriture. On croyait `selectAll`
+   * dispensé parce qu'il n'énumère rien — vrai du payload, faux du travail :
+   * le serveur rejouait les filtres et tentait 36 224 écritures dans une
+   * transaction de cinq secondes, qui expirait en 500.
+   *
+   * On le dit ici plutôt que d'attendre le refus : l'utilisateur voit le
+   * volume qu'il vise et sait qu'il doit affiner.
    */
-  const tooMany = !allMatching && ids.length > BULK_MAX_IDS;
+  const tooManyIds = !allMatching && ids.length > BULK_MAX_IDS;
+  const tooManyMatching = allMatching && total > BULK_SELECT_ALL_MAX;
+  const tooMany = tooManyIds || tooManyMatching;
 
   const options = useMemo<Option[]>(() => {
     switch (source) {
@@ -212,7 +226,16 @@ export function OrganizationsBulkBar({
 
       {/* Dit avant le clic, jamais traduit après : un refus du serveur sur
           une sélection légitime ne s'explique pas tout seul. */}
-      {tooMany ? (
+      {tooManyMatching ? (
+        <p
+          data-testid="bulk-too-many-matching"
+          className="text-xs text-destructive"
+        >
+          {UI.TOO_MANY_MATCHING(total, BULK_SELECT_ALL_MAX)}
+        </p>
+      ) : null}
+
+      {tooManyIds ? (
         <p data-testid="bulk-too-many" className="mt-2 text-sm text-destructive">
           {UI.TOO_MANY(BULK_MAX_IDS)}
         </p>

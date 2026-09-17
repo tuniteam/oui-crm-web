@@ -1,8 +1,12 @@
 import { useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getApiErrorCode, getApiErrorMessage } from '@/shared/utils/api-error';
-import { BULK_UI } from '../constants/bulk.constants';
+import {
+  getApiErrorCode,
+  getApiErrorMessage,
+  getApiErrorMeta,
+} from '@/shared/utils/api-error';
+import { BULK_SELECT_ALL_MAX, BULK_UI } from '../constants/bulk.constants';
 import { bulkService } from '../services/bulk.service';
 import type { BulkAction, BulkRequest, BulkResult } from '../types/bulk';
 
@@ -92,6 +96,21 @@ export function useBulkActions() {
          * dernier recours — il est humain, jamais analysé.
          */
         const code = getApiErrorCode(err);
+        /*
+         * `413 BULK_TOO_LARGE` : le serveur a refuse **avant d'ecrire**, et son
+         * `meta.total` dit le volume reellement vise — celui que la barre
+         * n'aurait pas pu connaitre si les filtres avaient bouge entre-temps.
+         * On le nomme plutot que de renvoyer un message generique.
+         */
+        if (code === 'BULK_TOO_LARGE') {
+          const total = getApiErrorMeta(err)?.total;
+          toast.error(
+            typeof total === 'number'
+              ? BULK_UI.TOO_MANY_MATCHING(total, BULK_SELECT_ALL_MAX)
+              : getApiErrorMessage(err),
+          );
+          return null;
+        }
         const known =
           code === 'USER_NOT_FOUND'
             ? BULK_UI.ERRORS.USER_NOT_FOUND

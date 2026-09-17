@@ -128,7 +128,8 @@ export function BulkActionWindow({
           <Button
             type="button"
             variant={destructive ? 'destructive' : 'primary'}
-            disabled={running || (field?.needsValue === true && !value)}
+            loading={running}
+            disabled={field?.needsValue === true && !value}
             data-testid="bulk-window-confirm"
             onClick={() =>
               void onConfirm(

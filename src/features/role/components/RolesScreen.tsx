@@ -264,7 +264,8 @@ export function RolesScreen() {
                       corps vide par `400 EMPTY_UPDATE_PAYLOAD`. */}
                   <Button
                     type="button"
-                    disabled={draft.dirtyCount === 0 || saving}
+                    loading={saving}
+                    disabled={draft.dirtyCount === 0}
                     data-testid="role-edit-save"
                     onClick={async () => {
                       const result = await update(opened.id, draft.payload());
@@ -328,7 +329,8 @@ export function RolesScreen() {
             <Button
               type="button"
               variant="destructive"
-              disabled={removing || (deleting?.usersCount ?? 0) > 0}
+              loading={removing}
+              disabled={(deleting?.usersCount ?? 0) > 0}
               data-testid="role-delete-confirm"
               onClick={async () => {
                 if (!deleting) return;

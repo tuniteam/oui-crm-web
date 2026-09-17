@@ -154,7 +154,8 @@ export function DuplicateRoleWindow({
           </Button>
           <Button
             type="button"
-            disabled={pending || labelIssue !== null || codeIssue !== null}
+            loading={pending}
+            disabled={labelIssue !== null || codeIssue !== null}
             data-testid="role-duplicate-confirm"
             onClick={async () => {
               const result = await duplicate(source.id, {

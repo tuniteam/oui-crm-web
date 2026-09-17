@@ -118,7 +118,7 @@ export function DeleteAccountWindow({
             <Button
               type="button"
               variant="destructive"
-              disabled={pending}
+              loading={pending}
               data-testid="user-delete-account-confirm"
               onClick={async () => {
                 const result = await deleteAccount(userId);

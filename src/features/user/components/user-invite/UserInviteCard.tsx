@@ -26,7 +26,7 @@ export function UserInviteCard({ onInviteClick, isLoading }: Props) {
       <Button
         variant="primary"
         onClick={onInviteClick}
-        disabled={isLoading}
+        loading={isLoading}
         data-testid="user-invite"
       >
         <Send />

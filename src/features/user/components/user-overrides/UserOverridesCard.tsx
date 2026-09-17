@@ -166,7 +166,8 @@ export function UserOverridesCard({ user }: { user: UserDetailsResponse }) {
               </Button>
               <Button
                 type="button"
-                disabled={draft.dirtyCount === 0 || saving}
+                loading={saving}
+                disabled={draft.dirtyCount === 0}
                 data-testid="user-overrides-save"
                 onClick={async () => {
                   const { added: a, removed: r } = draft.payload();
