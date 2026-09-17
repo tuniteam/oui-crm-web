@@ -953,6 +953,39 @@ export default function OrganizationsTable() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectionKey, setSelectionKey] = useState(0);
 
+  /*
+   * Changer un critere vide la selection.
+   *
+   * « Tout ce qui correspond » est un accord sur un **ensemble**, pas sur un
+   * nombre : le serveur rejoue les filtres au moment de l'action. Les laisser
+   * bouger apres coup ciblait donc un ensemble que personne n'avait vu — et
+   * l'ecran se contredisait, case d'en-tete decochee sous un bandeau annoncant
+   * 2 049 fiches selectionnees, les identifiants d'avant ayant survecu hors de
+   * la page affichee.
+   *
+   * La signature ne porte que les valeurs **envoyees**, pas `filterFields`
+   * entier : ses options arrivent avec leurs requetes, et viderait la
+   * selection au chargement des referentiels.
+   */
+  const filterSignature = useMemo(
+    () =>
+      [
+        ...filterFields.map((f) => `${f.key}=${f.debounced}`),
+        `department=${debouncedDepartment.trim()}`,
+        `incomplete=${debouncedIncompleteOnly}`,
+      ].join('&'),
+    [filterFields, debouncedDepartment, debouncedIncompleteOnly],
+  );
+
+  /* Au premier rendu il n'y a rien a vider, et remonter la table y relancerait
+     sa requete pour rien. */
+  const knownSignature = useRef(filterSignature);
+  useEffect(() => {
+    if (knownSignature.current === filterSignature) return;
+    knownSignature.current = filterSignature;
+    setSelectionKey((k) => k + 1);
+  }, [filterSignature]);
+
   const buildParams = useCallback(
     (pagination: { pageIndex: number; pageSize: number }, search: string) => {
       const params = {
