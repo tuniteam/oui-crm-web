@@ -62,7 +62,23 @@ export function useBulkActions() {
           {},
         );
         const report = BULK_UI.REPORT(result.processed, result.skipped.length);
-        toast.success(report, {
+        /*
+         * Le ton suit le resultat, pas le fait que l'appel ait abouti.
+         *
+         * `processed + skipped` est le total considere : des qu'une fiche est
+         * ignoree, moins de fiches ont ete traitees que selectionnees. Un fond
+         * vert le disait quand meme — « 0 traite, 353 ignorees » s'annoncait
+         * comme une reussite, et personne ne lisait la ligne du dessous.
+         *
+         * Rien de traite n'est pas un demi-succes : c'est un echec, meme si
+         * l'appel a repondu 200.
+         */
+        const notify = result.skipped.length
+          ? result.processed === 0
+            ? toast.error
+            : toast.warning
+          : toast.success;
+        notify(report, {
           description: result.skipped.length
             ? BULK_UI.SKIP_DETAIL(byReason)
             : undefined,
