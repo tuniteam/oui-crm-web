@@ -952,6 +952,10 @@ export default function OrganizationsTable() {
   const canBulk = useMeStore((s) => s.hasPermission(PERMISSIONS.ORGANIZATIONS.BULK));
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectionKey, setSelectionKey] = useState(0);
+  /* Remonter la table par sa cle est ce qui vide sa selection. Trois raisons
+     de le faire — un critere change, l'utilisateur annule, une action vient de
+     s'appliquer — et un increment brut ne dit aucune des trois. */
+  const clearSelection = useCallback(() => setSelectionKey((k) => k + 1), []);
 
   /*
    * Changer un critere vide la selection.
@@ -967,15 +971,14 @@ export default function OrganizationsTable() {
    * entier : ses options arrivent avec leurs requetes, et viderait la
    * selection au chargement des referentiels.
    */
-  const filterSignature = useMemo(
-    () =>
-      [
-        ...filterFields.map((f) => `${f.key}=${f.debounced}`),
-        `department=${debouncedDepartment.trim()}`,
-        `incomplete=${debouncedIncompleteOnly}`,
-      ].join('&'),
-    [filterFields, debouncedDepartment, debouncedIncompleteOnly],
-  );
+  /* Pas de `useMemo` : la dependance est une **chaine**, que React compare par
+     valeur. La memoriser n'eviterait qu'un `join` de treize elements, au prix
+     d'un tableau de dependances de plus a tenir a jour. */
+  const filterSignature = [
+    ...filterFields.map((f) => `${f.key}=${f.debounced}`),
+    `department=${debouncedDepartment.trim()}`,
+    `incomplete=${debouncedIncompleteOnly}`,
+  ].join('&');
 
   /* Au premier rendu il n'y a rien a vider, et remonter la table y relancerait
      sa requete pour rien. */
@@ -983,8 +986,8 @@ export default function OrganizationsTable() {
   useEffect(() => {
     if (knownSignature.current === filterSignature) return;
     knownSignature.current = filterSignature;
-    setSelectionKey((k) => k + 1);
-  }, [filterSignature]);
+    clearSelection();
+  }, [filterSignature, clearSelection]);
 
   const buildParams = useCallback(
     (pagination: { pageIndex: number; pageSize: number }, search: string) => {
@@ -1084,9 +1087,9 @@ export default function OrganizationsTable() {
             /* Les filtres tels que la liste les a envoyés — jamais une copie
                reconstruite, qui divergerait. */
             filters={stripPagination(lastParams.current)}
-            onClear={() => setSelectionKey((k) => k + 1)}
+            onClear={clearSelection}
             onDone={(done) => {
-              setSelectionKey((k) => k + 1);
+              clearSelection();
               /*
                * La fiche ouverte vit dans l'URL : une suppression groupee qui
                * l'emporte laisserait le panneau ouvert sur une fiche disparue,
